@@ -1354,4 +1354,5 @@ export const knownLogProbs: Record<string, number> = {
   "can be broken into months": -9.618549331326834,
   "can be broken into solfege": -7.926873320655762,
   "can be broken into us state abbreviations": -5.5742457151758185,
+  "has cool substring": -0.8380472667813237,
 };
