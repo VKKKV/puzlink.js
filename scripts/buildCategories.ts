@@ -15,11 +15,12 @@ const txtDir = path.join(dataDir, "categories", "txt");
 
 async function writeFile(name: string, lines: string[]) {
   const cleanLines = lines
+    .filter((line) => !line.startsWith("#"))
     .map((line) => line.toLowerCase().replaceAll(/[^a-z]/g, ""))
     .filter((line) => line.length > 0);
   const tsLines = [];
   tsLines.push(`export default [`);
-  for (const line of cleanLines) {
+  for (const line of Array.from(new Set(cleanLines)).sort()) {
     tsLines.push(`  "${line}",`);
   }
   tsLines.push(`];`);

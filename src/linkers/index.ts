@@ -8,6 +8,8 @@ import { indexingLinker } from "./indexing.js";
 import { lengthLinker } from "./length.js";
 import { letterDistributionLinker } from "./letterDistribution.js";
 
+// export type PartialLink = Readonly<{}>;
+
 /**
  * A Link is a relationship between a *set* of words, with how strong it is
  * quantified via logProb.

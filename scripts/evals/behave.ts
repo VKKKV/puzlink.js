@@ -11,7 +11,7 @@ export default {
     },
     {
       slugs: `ANNOTATION, ARTIFICIAL, ENGINE ROOM, INDIVIDUAL, OMNIVOROUS, ON LOCATION`,
-      expected: "has same vowel-consonant pattern",
+      expected: "start with the same vowel-consonant pattern",
     },
     {
       slugs: `ALMOST, BIOPSY, CHIMP, FILMS, GHOST, TUX`,

@@ -26,7 +26,7 @@ export default {
     },
     {
       slugs: `"grimaced", "formally", "questionable", "discouraged", "communicated", "chrysalis", "saccharin"`,
-      expected: "-4th leters are equal",
+      expected: "-4th letters are equal",
     },
     {
       slugs: `"formally", "thinnest", "businesswoman", "communicated", "hallucinogen", "saccharin", "cellophane"`,

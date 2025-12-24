@@ -188,4 +188,40 @@ export class LetterDistribution {
   probAnagram(k: number): LogNum {
     return this.lengthToProbs.get(k)?.anagram ?? LogNum.from(0);
   }
+
+  /** Log probability that k letters are all vowels. */
+  @memoize()
+  probVowels(k: number): LogNum {
+    if (k === 0) {
+      return LogNum.from(1);
+    }
+    if (k === 1) {
+      return LogNum.sum(
+        Array.from(VOWELS, (vowel) => this.distribution.get(vowel)),
+      );
+    }
+    return this.probVowels(1).pow(k);
+  }
+
+  /** Log probability that k letters are all consonants. */
+  @memoize()
+  probConsonants(k: number): LogNum {
+    if (k === 0) {
+      return LogNum.from(1);
+    }
+    if (k === 1) {
+      return LogNum.sum(
+        Array.from(CONSONANTS, (consonant) => this.distribution.get(consonant)),
+      );
+    }
+    return this.probConsonants(1).pow(k);
+  }
+
+  /**
+   * Log probability that n words, each of length k, have the same pattern of
+   * vowels and consonants.
+   */
+  probEqualVowelPattern(n: number, k: number): LogNum {
+    return this.probVowels(k).add(this.probConsonants(k)).pow(n);
+  }
 }
