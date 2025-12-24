@@ -34,6 +34,7 @@ describe("wordplayFeatures", () => {
         "can reverse": "at reversed = ta",
         "can rotate": "at rotate 1 = ta",
         "can swap adjacent letters": "at swap 1, 2 = ta",
+        "can swap ends": "at swap ends = ta",
         "has transadd 1": "at transadd 1 = bat, cat, ats",
         "has transadd b": "at transadd b = bat",
         "has transadd c": "at transadd c = cat",

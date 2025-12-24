@@ -1,11 +1,8 @@
+import { morseLetter } from "../data/morse.js";
+import { scrabbleLetterScore } from "../data/scrabble.js";
 import { VOWELS } from "../lib/letterDistribution.js";
-import { interval, printIndexSlug } from "../lib/util.js";
+import { interval, mapProduct, printIndexSlug } from "../lib/util.js";
 import type { Feature } from "./index.js";
-
-// TODO:
-// - scrabble score equal to [1..30]
-// - has equal numbers of dots and dashes in morse code
-// - has [1..30] { dots, dashes, dots and dashes } in morse code
 
 function palindrome(): Feature {
   return {
@@ -164,6 +161,52 @@ function alternatingVowels(): Feature {
   };
 }
 
+function scrabbleScore(n: number): Feature {
+  return {
+    name: `has scrabble score ${n.toString()}`,
+    property: (slug) => {
+      const points = Array.from(slug, (letter) => scrabbleLetterScore[letter]!);
+      const score = points.reduce((a, b) => a + b, 0);
+      return score === n
+        ? `${slug}: ${points.join("+")} = ${n.toString()}`
+        : null;
+    },
+  };
+}
+
+function morseEqual(): Feature {
+  return {
+    name: "has morse code with equal dot/dash count",
+    property: (slug) => {
+      const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
+        " ",
+      );
+      const dotCount = Array.from(morse).filter((c) => c === ".").length;
+      const dashCount = Array.from(morse).filter((c) => c === "-").length;
+      return dotCount === dashCount
+        ? `${slug} has ${dotCount.toString()} dots/dashes: ${morse}`
+        : null;
+    },
+  };
+}
+
+function morseCount(kind: { name: string; chars: string }, n: number): Feature {
+  return {
+    name: `has morse code with ${n.toString()} ${kind.name}`,
+    property: (slug) => {
+      const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
+        " ",
+      );
+      const count = Array.from(morse).filter((c) =>
+        kind.chars.includes(c),
+      ).length;
+      return count === n
+        ? `${slug} has ${count.toString()} ${kind.name}: ${morse}`
+        : null;
+    },
+  };
+}
+
 /** Features that don't fit elsewhere. */
 export function otherFeatures(): Feature[] {
   return [
@@ -173,5 +216,16 @@ export function otherFeatures(): Feature[] {
     hill(),
     valley(),
     alternatingVowels(),
+    ...mapProduct(scrabbleScore, interval(1, 40)),
+    morseEqual(),
+    ...mapProduct(
+      morseCount,
+      [
+        { name: "dots", chars: "." },
+        { name: "dashes", chars: "-" },
+        { name: "dots and dashes", chars: ".-" },
+      ],
+      interval(1, 40),
+    ),
   ];
 }
