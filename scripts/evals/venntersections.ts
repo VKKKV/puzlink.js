@@ -14,7 +14,7 @@ export default {
     },
     {
       slugs: `"lowered", "levitate", "leveraged", "lynx", "lightly", "lengths", "legislator"`,
-      expected: "has l at index 0",
+      expected: "1st letters are equal",
     },
     {
       slugs: `"levitate", "inanimate", "sizes", "lightly", "crocodile", "legislator", "carousels"`,
@@ -26,7 +26,7 @@ export default {
     },
     {
       slugs: `"grimaced", "formally", "questionable", "discouraged", "communicated", "chrysalis", "saccharin"`,
-      expected: "has a at index -4",
+      expected: "-4th leters are equal",
     },
     {
       slugs: `"formally", "thinnest", "businesswoman", "communicated", "hallucinogen", "saccharin", "cellophane"`,
@@ -54,7 +54,7 @@ export default {
     },
     {
       slugs: `"philharmonic", "mischievous", "leeching", "loophole", "toothpaste", "alcoholic", "narwhal"`,
-      expected: "has h at index 5",
+      expected: "5th letters are equal",
     },
     {
       slugs: `"mischievous", "alphabet", "mushroom", "toothpaste", "seventeenth", "narwhal", "chromosome"`,
