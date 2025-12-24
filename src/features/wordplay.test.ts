@@ -6,7 +6,17 @@ import { makeFeatureGetter } from "./index.js";
 describe("wordplayFeatures", () => {
   const featuresOf = makeFeatureGetter(
     wordplayFeatures(),
-    Wordlist.from(["at", "ats", "bar", "bat", "bath", "cat", "ta"]),
+    Wordlist.from([
+      "at",
+      "ats",
+      "atsb",
+      "bar",
+      "bat",
+      "bath",
+      "cat",
+      "ta",
+      "tsba",
+    ]),
   );
 
   test("wordplay features", () => {
@@ -22,6 +32,8 @@ describe("wordplayFeatures", () => {
         "can prepend b": "b + at = bat",
         "can prepend c": "c + at = cat",
         "can reverse": "at reversed = ta",
+        "can rotate": "at rotate 1 = ta",
+        "can swap adjacent letters": "at swap 1, 2 = ta",
         "has transadd 1": "at transadd 1 = bat, cat, ats",
         "has transadd b": "at transadd b = bat",
         "has transadd c": "at transadd c = cat",
@@ -38,9 +50,11 @@ describe("wordplayFeatures", () => {
         "can delete 1": "bats delete 1 = ats, bat",
         "can delete b": "bats delete b = ats",
         "can delete s": "bats delete s = bat",
+        "can rotate": "bats rotate 1 = atsb (alt: tsba)",
         "has transdelete 1": "bats transdelete 1 = ats, bat",
         "has transdelete b": "bats transdelete b = ats",
         "has transdelete s": "bats transdelete s = bat",
+        "is anagram": "bats anagrammed = atsb, tsba",
       }
     `);
   });

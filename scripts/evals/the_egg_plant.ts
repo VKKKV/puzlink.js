@@ -23,11 +23,11 @@ export default {
     // },
     {
       slugs: `"edens", "emanate", "gratin", "rancho", "select"`,
-      expected: "is a word when first letter shifted",
+      expected: "can rotate",
     },
     {
       slugs: `"earth", "ingles", "ought", "raked", "those"`,
-      expected: "is a word when last letter shifted",
+      expected: "can rotate",
     },
   ],
 } satisfies EvalSuite;

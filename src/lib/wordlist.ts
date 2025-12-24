@@ -111,6 +111,22 @@ export class Wordlist {
       .map((t) => t[0]);
   }
 
+  /**
+   * Filters for slugs in the wordlist under the given getter, sorted from most
+   * common to least.
+   */
+  filterWordsUnder<T>(
+    items: T[],
+    getSlug: (item: T) => string,
+    { threshold = 0 }: { threshold?: number } = {},
+  ): T[] {
+    return items
+      .map((item) => [item, this.cromulence.wordlist[getSlug(item)]] as const)
+      .filter((t): t is [T, number] => t[1] !== undefined && t[1] > threshold)
+      .sort((a, b) => b[1] - a[1])
+      .map((t) => t[0]);
+  }
+
   /** Returns true if the given phrase is in the wordlist. */
   isPhrase(phrase: string): boolean {
     return this.cromulence.cromulence(phrase) > 0;

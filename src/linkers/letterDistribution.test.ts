@@ -48,6 +48,12 @@ describe("LetterDistribution", () => {
             "over-represented: jqxz",
           ],
         ],
+        [
+          "start with the same vowel-consonant pattern",
+          [
+            "all start with CCCCCCCCCCCCCCCCCCCC",
+          ],
+        ],
       ]
     `);
   });
