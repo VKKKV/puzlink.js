@@ -85,7 +85,7 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
   const letterDist = new LetterDistribution(wordlist);
   return [
     ...featureLinkers(wordlist),
-    indexingLinker(letterDist),
+    indexingLinker(letterDist, wordlist),
     lengthLinker(lengthDist),
     letterDistributionLinker(letterDist),
   ];

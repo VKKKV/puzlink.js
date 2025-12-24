@@ -29,9 +29,9 @@ describe("Distribution", () => {
 
   test("probDistinct", () => {
     // same as probTwoDistinct(2):
-    // expect(dist.probDistinct(2).toNum()).toBeCloseTo(5 / 8);
+    expect(dist.probDistinct(2).toNum()).toBeCloseTo(5 / 8);
     // 2, 3, and 4, in any order: 3! * 1/4 * 1/2 * 1/4 = 3/16
-    // expect(dist.probDistinct(3).toNum()).toBeCloseTo(3 / 16);
+    expect(dist.probDistinct(3).toNum()).toBeCloseTo(3 / 16);
     expect(dist.probDistinct(4).toNum()).toBeCloseTo(0);
   });
 });

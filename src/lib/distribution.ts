@@ -1,15 +1,14 @@
 import { cumulativeStdNormalProbability as normCdf } from "simple-statistics";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
+import { memoize } from "./memoize.js";
 
 /** A probability distribution of items. */
 export class Distribution<T extends PropertyKey> {
   private readonly frequencies: ReadonlyMap<T, LogNum>;
-  private readonly momentCache = new Map<number, LogNum>();
 
   constructor(frequencies: ReadonlyMap<T, LogNum>) {
     this.frequencies = frequencies;
-    this.momentCache = new Map();
   }
 
   static from(data: string): Distribution<string>;
@@ -32,18 +31,11 @@ export class Distribution<T extends PropertyKey> {
   }
 
   /** k-th moment of the distribution. */
+  @memoize()
   moment(k: number): LogNum {
-    const cached = this.momentCache.get(k);
-    if (cached) {
-      return cached;
-    }
-
-    const result = LogNum.sum(
+    return LogNum.sum(
       Array.from(this.frequencies.values(), (freq) => freq.pow(k)),
     );
-
-    this.momentCache.set(k, result);
-    return result;
   }
 
   /** Log probability that k items drawn from the distribution are all equal. */
@@ -58,6 +50,7 @@ export class Distribution<T extends PropertyKey> {
    * Log probability that k items drawn from the distribution have two distinct
    * values.
    */
+  @memoize()
   probTwoDistinct(k: number): LogNum {
     const probs = [];
     for (let i = 0; i <= k; i++) {
@@ -76,6 +69,7 @@ export class Distribution<T extends PropertyKey> {
    * Log probability that k items drawn from the distribution are all equal,
    * with exactly one exception.
    */
+  @memoize()
   probAlmostEqual(k: number): LogNum {
     const probs = [];
     for (const [, freq] of this.frequencies) {

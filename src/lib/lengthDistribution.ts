@@ -1,5 +1,6 @@
 import { Distribution } from "./distribution.js";
 import { LogNum } from "./logNum.js";
+import { memoize } from "./memoize.js";
 
 export class LengthDistribution {
   readonly distribution: Distribution<number>;
@@ -33,6 +34,11 @@ export class LengthDistribution {
     return this.distribution.probEqual(k);
   }
 
+  /** Log probability that k words have the same length, except for one. */
+  probAlmostEqual(k: number): LogNum {
+    return this.distribution.probAlmostEqual(k);
+  }
+
   /** Log probability that k words have the same length modulo 2. */
   probEqualMod2(k: number): LogNum {
     return this.distMod2.probEqual(k);
@@ -44,6 +50,7 @@ export class LengthDistribution {
   }
 
   /** Log probability that k words have consecutive lengths. */
+  @memoize()
   probConsecutive(k: number): LogNum {
     if (k <= 1) {
       return LogNum.from(1);
@@ -71,19 +78,15 @@ export class LengthDistribution {
     return this.distribution.probTwoDistinct(k);
   }
 
-  private probDistinctCache = new Map<number, Map<number, LogNum>>();
-
-  /** Log probability that k words have distinct lengths, all at least min. */
+  /**
+   * Log probability that k words have distinct lengths, all at least min.
+   */
+  @memoize(2)
   probDistinct(k: number, min = 0): LogNum {
     if (k <= 0) {
       return LogNum.from(1);
     } else if (min > this.maxLength) {
       return LogNum.from(0);
-    }
-
-    const cached = this.probDistinctCache.get(k)?.get(min);
-    if (cached) {
-      return cached;
     }
 
     const probs = [];
@@ -93,19 +96,10 @@ export class LengthDistribution {
       }
       probs.push(freq.mul(this.probDistinct(k - 1, length + 1)));
     }
-    const result =
-      probs.length === 0
-        ? LogNum.from(0)
-        : LogNum.from(k).mul(LogNum.sum(probs));
 
-    let cache = this.probDistinctCache.get(k);
-    if (!cache) {
-      cache = new Map();
-      this.probDistinctCache.set(k, cache);
-      cache.set(min, result);
-    }
-
-    return result;
+    return probs.length === 0
+      ? LogNum.from(0)
+      : LogNum.from(k).mul(LogNum.sum(probs));
   }
 
   /** Log probability that k words can be paired by length. */

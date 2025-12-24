@@ -1,6 +1,8 @@
 import { Distribution } from "./distribution.js";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
+import { memoize } from "./memoize.js";
+import { caesar } from "./util.js";
 import { Wordlist } from "./wordlist.js";
 
 export const LETTERS = "abcdefghijklmnopqrstuvwxyz";
@@ -13,7 +15,7 @@ export const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 export class LetterDistribution {
   readonly distribution: Distribution<string>;
   private readonly wordlist: Wordlist;
-  private readonly lengthToProbCache: Map<
+  private readonly lengthToProbs: Map<
     number,
     { word: LogNum; anagram: LogNum }
   >;
@@ -32,7 +34,7 @@ export class LetterDistribution {
       },
     );
     this.distribution = new Distribution(frequencies);
-    this.lengthToProbCache = this.wordlist.reduce(
+    this.lengthToProbs = this.wordlist.reduce(
       new Map<number, { word: LogNum; anagram: LogNum }>(),
       (acc, slug) => {
         const prob = LogNum.prod(
@@ -116,13 +118,74 @@ export class LetterDistribution {
     return this.distribution.probAlmostEqual(k);
   }
 
+  /** Log probability that k letters have exactly two values. */
+  probTwoDistinct(k: number): LogNum {
+    return this.distribution.probTwoDistinct(k);
+  }
+
+  /** Log probability that k letters are consecutive. */
+  @memoize()
+  probConsecutive(k: number): LogNum {
+    if (k <= 1) {
+      return LogNum.from(1);
+    } else if (k > LETTERS.length) {
+      return LogNum.from(0);
+    }
+
+    const freqWindow = [];
+    for (let i = 1; i <= k; i++) {
+      freqWindow.push(this.distribution.get(LETTERS[i]!));
+    }
+
+    const partials = [];
+    for (let a = 1; a + k - 1 <= LETTERS.length; a++) {
+      partials.push(LogNum.prod(freqWindow));
+      freqWindow.shift();
+      freqWindow.push(this.distribution.get(LETTERS[a + k]!));
+    }
+
+    return LogNum.fromFactorial(k).mul(LogNum.sum(partials));
+  }
+
+  /**
+   * Log probability that k letters have distinct values, all at least min.
+   */
+  @memoize(2)
+  probDistinct(k: number, min = "a"): LogNum {
+    if (k <= 0) {
+      return LogNum.from(1);
+    } else if (min > "z") {
+      return LogNum.from(0);
+    }
+
+    const probs = [];
+    for (const [letter, freq] of this.distribution.entries()) {
+      if (letter < min) {
+        continue;
+      }
+      probs.push(freq.mul(this.probDistinct(k - 1, caesar(letter, 1))));
+    }
+
+    return probs.length === 0
+      ? LogNum.from(0)
+      : LogNum.from(k).mul(LogNum.sum(probs));
+  }
+
+  /** Log probability that k letters can be grouped in equal pairs. */
+  probPaired(k: number): LogNum {
+    if (k % 2 !== 0) {
+      return LogNum.from(0);
+    }
+    return this.probDistinct(Math.floor(k / 2));
+  }
+
   /** Log probability that k letters form a word. */
   probWord(k: number): LogNum {
-    return this.lengthToProbCache.get(k)?.word ?? LogNum.from(0);
+    return this.lengthToProbs.get(k)?.word ?? LogNum.from(0);
   }
 
   /** Log probability that k letters form an anagram of a word. */
   probAnagram(k: number): LogNum {
-    return this.lengthToProbCache.get(k)?.anagram ?? LogNum.from(0);
+    return this.lengthToProbs.get(k)?.anagram ?? LogNum.from(0);
   }
 }
