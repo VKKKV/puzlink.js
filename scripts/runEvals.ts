@@ -5,9 +5,10 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as url from "node:url";
 import { Puzlink } from "../src/index.js";
-import { Wordlist } from "../src/lib/wordlist.js";
 import type { Link } from "../src/linkers/index.js";
 import { time } from "./util.js";
+
+const DEFAULT_LIMIT = 3;
 
 const cli = meow(
   `
@@ -15,25 +16,25 @@ const cli = meow(
     Collective.jl: https://github.com/rdeits/Collective.jl
 
     Usage
-      $ npm run test:evals [options] [<pattern>]
+      $ npm run test:evals -- [options] [<pattern>]
 
     Options
-      --links <num>, -l <num>  Number of links to print per failed case [default: 3]
       --description, -d        Show descriptions for each link
+      --limit <num>, -l <num>  Number of links to print per failed case [default: ${DEFAULT_LIMIT.toString()}]
       --watch, -w              Rerun on changes *on the eval files*
   `,
   {
     importMeta: import.meta,
     flags: {
-      links: {
-        type: "number",
-        shortFlag: "l",
-        default: 3,
-      },
       description: {
         type: "boolean",
         shortFlag: "d",
         default: false,
+      },
+      limit: {
+        type: "number",
+        shortFlag: "l",
+        default: DEFAULT_LIMIT,
       },
       watch: {
         type: "boolean",
@@ -53,6 +54,11 @@ function parseArgs(): Args {
   return { pattern, ...cli.flags };
 }
 
+/**
+ * okay: expected link is the first link
+ * warn: expected link is within DEFAULT_LIMIT links
+ * fail: expected link is outside of DEFAULT_LIMIT or does not exist
+ */
 const Status = ["okay", "warn", "fail"] as const;
 type Status = (typeof Status)[number];
 
@@ -138,10 +144,14 @@ function* runEvalSuite(
 ): Generator<EvalResult> {
   for (const { slugs, expected } of suite.cases) {
     const parsedSlugs = puzlink.parse(slugs);
-    const links = puzlink.link(parsedSlugs, true);
+    const links = puzlink.link(parsedSlugs, { limit: null });
     const index = links.findIndex((link) => link.name.includes(expected));
     const status =
-      index === 0 ? "okay" : index !== -1 && index <= 2 ? "warn" : "fail";
+      index === 0
+        ? "okay"
+        : index !== -1 && index <= DEFAULT_LIMIT - 1
+          ? "warn"
+          : "fail";
     yield {
       expected,
       status,
@@ -172,7 +182,7 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
       .push(chalk.gray(` (${result.actualLink.logProb.toLog().toFixed(3)})`));
   }
 
-  for (let i = 0; i < args.links && i < result.links.length; i++) {
+  for (let i = 0; i < args.limit && i < result.links.length; i++) {
     const isExpectedLink = i + 1 === result.actualRank;
     lines.push([" ".repeat(2)]);
     lines
@@ -260,9 +270,9 @@ async function main() {
   const args = parseArgs();
 
   process.stdout.write(chalk.gray("initializing puzlink..."));
-  const { result: puzlink, duration: puzlinkInitMs } = await time(async () => {
-    return new Puzlink(await Wordlist.download());
-  });
+  const { result: puzlink, duration: puzlinkInitMs } = await time(() =>
+    Puzlink.download(),
+  );
   console.log(chalk.gray(` took ${puzlinkInitMs.toString()}ms`));
   console.log("");
 
