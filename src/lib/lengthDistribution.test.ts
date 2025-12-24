@@ -11,12 +11,12 @@ describe("Distribution", () => {
     expect(dist.probEqualMod3(2).toNum()).toBeCloseTo(3 / 8);
   });
 
-  test("probArithSeq", () => {
+  test("probConsecutive", () => {
     // 2 and 3, in either order: 2! * 1/4 * 1/2 = 1/4
     // 3 and 4, in either order: 2! * 1/2 * 1/4 = 1/4
-    expect(dist.probArithSeq(2).toNum()).toBeCloseTo(1 / 2);
+    expect(dist.probConsecutive(2).toNum()).toBeCloseTo(1 / 2);
     // 2, 3, and 4, in any order: 3! * 1/4 * 1/2 * 1/4 = 3/16
-    expect(dist.probArithSeq(3).toNum()).toBeCloseTo(3 / 16);
+    expect(dist.probConsecutive(3).toNum()).toBeCloseTo(3 / 16);
   });
 
   test("probTwoDistinct", () => {

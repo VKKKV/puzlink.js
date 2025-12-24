@@ -65,3 +65,17 @@ export function* mapProduct<const Args extends any[], R>(
     yield fn(...(arg as unknown as Args));
   }
 }
+
+/** Returns the ordinal suffix of the given number. */
+export function ordinal(n: number): string {
+  const suffix =
+    Math.abs(n) % 10 === 1 &&
+    (Math.abs(n) % 100 <= 11 || Math.abs(n) % 100 >= 14)
+      ? "st"
+      : Math.abs(n) % 10 === 2
+        ? "nd"
+        : Math.abs(n) % 10 === 3
+          ? "rd"
+          : "th";
+  return `${n.toString()}${suffix}`;
+}

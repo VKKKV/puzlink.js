@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { Distribution } from "./distribution.js";
+import { LogCounter } from "./logCounter.js";
 
 describe("Distribution", () => {
-  const dist = Distribution.from([2, 3, 3, 4]);
+  const dist = Distribution.from([2, 3, 3, 4] as number[]);
 
   test("moment", () => {
     expect(dist.moment(1).toNum()).toBeCloseTo(1);
@@ -14,5 +15,23 @@ describe("Distribution", () => {
     expect(mapped.moment(1).toNum()).toBeCloseTo(1);
     // prob three numbers from the distribution are the same mod 2:
     expect(mapped.moment(3).toNum()).toBeCloseTo(1 / 4);
+  });
+
+  test("outliers", () => {
+    expect(dist.outliers(LogCounter.from([5, 5, 5, 5, 5, 5])))
+      .toMatchInlineSnapshot(`
+        {
+          "high": {
+            "5": LogNum {
+              "data": 1.791759469228055,
+            },
+          },
+          "low": {
+            "3": LogNum {
+              "data": 1.0986122886681096,
+            },
+          },
+        }
+      `);
   });
 });

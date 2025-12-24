@@ -54,4 +54,14 @@ export class LogCounter<T extends PropertyKey> {
       yield [item, count.div(this.total)];
     }
   }
+
+  difference(other: T[]): T[] {
+    const result: T[] = [];
+    for (const item of this.counts.keys()) {
+      if (!other.includes(item)) {
+        result.push(item);
+      }
+    }
+    return result;
+  }
 }

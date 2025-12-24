@@ -40,10 +40,19 @@ function runEvalSuite(puzlink: Puzlink, suite: EvalSuite) {
     lines
       .at(-1)!
       .push(index !== -1 ? `top ${(index + 1).toString()}` : "not found");
+    if (index !== -1) {
+      lines
+        .at(-1)!
+        .push(chalk.gray(` (${links[index]!.logProb.toLog().toFixed(3)})`));
+    }
     if (failed) {
       for (let i = 0; i < 3 && i < links.length; i++) {
         lines.push(["    "]);
-        lines.at(-1)!.push(chalk.gray(`top ${(i + 1).toString()}`));
+        lines
+          .at(-1)!
+          .push(
+            chalk.gray(links[i]!.logProb.toLog().toFixed(3).padStart(7, " ")),
+          );
         lines.at(-1)!.push(": ");
         lines.at(-1)!.push(links[i]!.name);
       }

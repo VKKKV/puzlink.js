@@ -54,6 +54,41 @@ export class Distribution<T extends PropertyKey> {
     return this.moment(k);
   }
 
+  /**
+   * Log probability that k items drawn from the distribution have two distinct
+   * values.
+   */
+  probTwoDistinct(k: number): LogNum {
+    const probs = [];
+    for (let i = 0; i <= k; i++) {
+      const j = k - i;
+      probs.push(
+        LogNum.fromBinomial(k, i).mul(this.probEqual(i)).mul(this.probEqual(j)),
+      );
+    }
+    // Case where all are equal is counted 2^k times; others are counted twice:
+    return LogNum.sum(probs)
+      .sub(LogNum.from(2).pow(k).mul(this.probEqual(k)))
+      .div(LogNum.from(2));
+  }
+
+  /**
+   * Log probability that k items drawn from the distribution are all equal,
+   * with exactly one exception.
+   */
+  probAlmostEqual(k: number): LogNum {
+    const probs = [];
+    for (const [, freq] of this.frequencies) {
+      probs.push(
+        this.moment(k - 1)
+          .sub(freq.pow(k - 1))
+          .mul(freq)
+          .mul(LogNum.from(k)),
+      );
+    }
+    return LogNum.sum(probs);
+  }
+
   /** Map the items of the distribution, returning the new distribution. */
   map<U extends PropertyKey>(fn: (item: T) => U): Distribution<U> {
     const frequencies = new Map<U, LogNum>();
@@ -96,8 +131,8 @@ export class Distribution<T extends PropertyKey> {
     low: Record<T, LogNum>;
   } {
     const n = observed.total;
-    const high = {} as Record<T, LogNum>;
     const low = {} as Record<T, LogNum>;
+    const high = {} as Record<T, LogNum>;
 
     for (const [item, freq] of this.frequencies) {
       const expected = n.mul(freq);
@@ -105,9 +140,23 @@ export class Distribution<T extends PropertyKey> {
 
       if (expected.absSub(actual).pow(2).gt(LogNum.from(4))) {
         if (expected.gt(actual)) {
-          high[item] = expected.sub(actual);
+          low[item] = expected.sub(actual);
         } else {
-          low[item] = actual.sub(expected);
+          high[item] = actual.sub(expected);
+        }
+      }
+    }
+
+    const difference = observed.difference(Array.from(this.frequencies.keys()));
+    for (const item of difference) {
+      const expected = LogNum.from(0);
+      const actual = observed.get(item);
+
+      if (expected.absSub(actual).pow(2).gt(LogNum.from(4))) {
+        if (expected.gt(actual)) {
+          low[item] = expected.sub(actual);
+        } else {
+          high[item] = actual.sub(expected);
         }
       }
     }

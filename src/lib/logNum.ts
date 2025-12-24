@@ -132,6 +132,14 @@ export class LogNum {
     return this.data < other.data;
   }
 
+  static max(values: LogNum[]): LogNum {
+    return new LogNum(Math.max(...values.map((x) => x.data)));
+  }
+
+  static min(values: LogNum[]): LogNum {
+    return new LogNum(Math.min(...values.map((x) => x.data)));
+  }
+
   static sum(values: LogNum[]): LogNum {
     // Strip zeroes first:
     values = values.filter((x) => x.data !== -Infinity);

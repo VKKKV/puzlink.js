@@ -24,6 +24,10 @@ export class LengthDistribution {
     }
   }
 
+  static from(data: Map<number, LogNum>): LengthDistribution {
+    return new LengthDistribution(new Distribution(data));
+  }
+
   /** Log probability that k words have the same length. */
   probEqual(k: number): LogNum {
     return this.distribution.probEqual(k);
@@ -39,8 +43,8 @@ export class LengthDistribution {
     return this.distMod3.probEqual(k);
   }
 
-  /** Log probability that k words have an arithmetic sequence of lengths. */
-  probArithSeq(k: number): LogNum {
+  /** Log probability that k words have consecutive lengths. */
+  probConsecutive(k: number): LogNum {
     if (k <= 1) {
       return LogNum.from(1);
     } else if (k > this.maxLength) {
@@ -64,18 +68,7 @@ export class LengthDistribution {
 
   /** Log probability that k words have exactly two distinct lengths. */
   probTwoDistinct(k: number): LogNum {
-    const probs = [];
-    for (let i = 0; i <= k; i++) {
-      const j = k - i;
-      probs.push(
-        LogNum.fromBinomial(k, i).mul(this.probEqual(i)).mul(this.probEqual(j)),
-      );
-    }
-    // The case where all words have the same length is counted 2^k times,
-    // and each other case is counted twice:
-    return LogNum.sum(probs)
-      .sub(LogNum.from(2).pow(k).mul(this.probEqual(k)))
-      .div(LogNum.from(2));
+    return this.distribution.probTwoDistinct(k);
   }
 
   private probDistinctCache = new Map<number, Map<number, LogNum>>();
@@ -113,5 +106,13 @@ export class LengthDistribution {
     }
 
     return result;
+  }
+
+  /** Log probability that k words can be paired by length. */
+  probPaired(k: number): LogNum {
+    if (k % 2 !== 0) {
+      return LogNum.from(0);
+    }
+    return this.probDistinct(Math.floor(k / 2));
   }
 }
