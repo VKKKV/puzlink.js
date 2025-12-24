@@ -1,10 +1,10 @@
 export default [
   "do",
-  "re",
-  "me",
   "fa",
-  "so",
   "la",
-  "ti",
+  "mi",
+  "re",
   "si",
+  "so",
+  "ti",
 ];

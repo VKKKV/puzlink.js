@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import chokidar from "chokidar";
 import meow from "meow";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
@@ -19,6 +20,7 @@ const cli = meow(
     Options
       --links <num>, -l <num>  Number of links to print per failed case [default: 3]
       --description, -d        Show descriptions for each link
+      --watch, -w              Rerun on changes *on the eval files*
   `,
   {
     importMeta: import.meta,
@@ -33,6 +35,11 @@ const cli = meow(
         shortFlag: "d",
         default: false,
       },
+      watch: {
+        type: "boolean",
+        shortFlag: "w",
+        default: false,
+      },
     },
     allowUnknownFlags: false,
     description: false,
@@ -43,9 +50,7 @@ type Args = (typeof cli)["flags"] & { pattern: string | undefined };
 
 function parseArgs(): Args {
   const pattern = cli.input[0];
-  const links = cli.flags.links;
-  const description = cli.flags.description;
-  return { pattern, links, description };
+  return { pattern, ...cli.flags };
 }
 
 const Status = ["okay", "warn", "fail"] as const;
@@ -82,22 +87,39 @@ export type EvalSuite = {
   }[];
 };
 
+const evalsDir = path.resolve(
+  path.dirname(url.fileURLToPath(import.meta.url)),
+  "evals",
+);
+
 async function* getEvalSuites(args: Args): AsyncGenerator<EvalSuite> {
-  const evalsDir = path.resolve(
-    path.dirname(url.fileURLToPath(import.meta.url)),
-    "evals",
-  );
-  for (const file of await fs.readdir(evalsDir)) {
+  for (let file of await fs.readdir(evalsDir)) {
     if (!file.endsWith(".ts")) {
       continue;
     }
     if (args.pattern && !file.includes(args.pattern)) {
       continue;
     }
-    const evalSuite = (await import(path.join(evalsDir, file))) as {
-      default: EvalSuite;
-    };
-    yield evalSuite.default;
+    if (args.watch) {
+      // Need to bust the cache:
+      file = `${file}?t=${Date.now().toString()}`;
+    }
+    try {
+      const evalSuite = (await import(path.join(evalsDir, file))) as {
+        default?: Partial<EvalSuite>;
+      };
+      if (
+        !evalSuite.default?.name ||
+        !evalSuite.default.source ||
+        !evalSuite.default.cases ||
+        evalSuite.default.cases.some((c) => !c.slugs || !c.expected)
+      ) {
+        continue;
+      }
+      yield evalSuite.default as EvalSuite;
+    } catch {
+      // pass; possibly a file that broke mid-edit
+    }
   }
 }
 
@@ -206,16 +228,7 @@ function printEvalResults({
   return lines.join("\n");
 }
 
-async function main() {
-  const args = parseArgs();
-
-  process.stdout.write(chalk.gray("initializing puzlink..."));
-  const { result: puzlink, duration: puzlinkInitMs } = await time(async () => {
-    return new Puzlink(await Wordlist.download());
-  });
-  console.log(chalk.gray(` took ${puzlinkInitMs.toString()}ms`));
-  console.log("");
-
+async function mainLoop(args: Args, puzlink: Puzlink) {
   const statusCounts: Record<Status, number> = { okay: 0, warn: 0, fail: 0 };
   let testDurationMs = 0;
   let totalTests = 0;
@@ -240,6 +253,44 @@ async function main() {
   );
   for (const status of Status) {
     console.log(`${statusLabel[status]} ${statusCounts[status].toString()}`);
+  }
+}
+
+async function main() {
+  const args = parseArgs();
+
+  process.stdout.write(chalk.gray("initializing puzlink..."));
+  const { result: puzlink, duration: puzlinkInitMs } = await time(async () => {
+    return new Puzlink(await Wordlist.download());
+  });
+  console.log(chalk.gray(` took ${puzlinkInitMs.toString()}ms`));
+  console.log("");
+
+  if (!args.watch) {
+    await mainLoop(args, puzlink);
+  } else {
+    const rerun = (file: string) => {
+      console.clear();
+      console.log(chalk.gray("rerunning tests..."));
+      console.log();
+      void mainLoop(
+        {
+          ...args,
+          pattern: args.pattern ?? path.basename(file),
+        },
+        puzlink,
+      );
+    };
+
+    chokidar
+      .watch(evalsDir, { ignoreInitial: true })
+      .on("add", rerun)
+      .on("change", rerun);
+    if (args.pattern) {
+      await mainLoop(args, puzlink);
+      console.log();
+    }
+    console.log(chalk.gray("watching for changes..."));
   }
 }
 

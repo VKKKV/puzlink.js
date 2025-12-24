@@ -27,7 +27,26 @@ function equalWithDistanceTimes(
   };
 }
 
-// TODO(maybe): unequal letters, like ME in huntinality puz or U?S pattern?
+function unequalWithDistance(a: string, b: string, distance: number): Feature {
+  return {
+    name: `has ${a} and ${b} with ${distance.toString()} letters between`,
+    property: (slug) => {
+      if (a === b) {
+        return null;
+      }
+      const starts = interval(0, slug.length - distance - 1).filter((i) => {
+        return slug[i] === a && slug[i + distance + 1] === b;
+      });
+      if (starts.length === 0) {
+        return null;
+      }
+      return printIndexSlug(
+        slug,
+        starts.flatMap((i) => [i, i + distance + 1]),
+      );
+    },
+  };
+}
 
 function equalAnyDistanceTimes(distance: number, times: number): Feature {
   return {
@@ -155,6 +174,7 @@ export function letterSequenceFeatures(): Feature[] {
   return [
     ...mapProduct(equalWithDistanceTimes, LETTERS, [0, 1, 2, 3], [1]),
     ...mapProduct(equalWithDistanceTimes, LETTERS, [0, 1], [2, 3]),
+    ...mapProduct(unequalWithDistance, LETTERS, LETTERS, [0, 1]),
     ...mapProduct(equalAnyDistanceTimes, [0, 1, 2, 3], [1, 2, 3]),
     ...mapProduct(
       bigramOfTimes,

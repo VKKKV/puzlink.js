@@ -17,7 +17,7 @@ export default {
         HANSARDISE
         INTERPOSE
       `,
-      expected: "common letters between words",
+      expected: "unusual letter distribution",
     },
   ],
 } satisfies EvalSuite;

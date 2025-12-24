@@ -82,7 +82,8 @@ function word({
   indexed,
   wordlist,
 }: Props): Link | null {
-  if (!wordlist.isPhrase(indexed.join(""))) {
+  // TODO: isPhrase?
+  if (!wordlist.isWord(indexed.join(""))) {
     return null;
   }
   return {
