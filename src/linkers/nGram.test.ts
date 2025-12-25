@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { LetterDistribution } from "../lib/letterDistribution.js";
 import { Wordlist } from "../lib/wordlist.js";
-import { letterDistributionLinker } from "./letterDistribution.js";
+import { nGramLinker } from "./nGram.js";
 
-describe("LetterDistribution", () => {
+describe("n-gram linker", () => {
   const dist = new LetterDistribution(
     Wordlist.from([
       "aaaaaaaa",
@@ -35,11 +35,11 @@ describe("LetterDistribution", () => {
     ]),
   );
   const link = (slugs: string[]) =>
-    letterDistributionLinker(dist)
+    nGramLinker(dist)
       .eval(slugs)
       .map((l) => [l.name, l.description]);
 
-  test("letter distribution links", () => {
+  test("n-gram links", () => {
     expect(link(["jjjjjqqqqqxxxxxzzzzz"])).toMatchInlineSnapshot(`
       [
         [
@@ -52,6 +52,12 @@ describe("LetterDistribution", () => {
           "start with the same vowel-consonant pattern",
           [
             "all start with CCCCCCCCCCCCCCCCCCCC",
+          ],
+        ],
+        [
+          "end with the same vowel-consonant pattern",
+          [
+            "all end with CCCCCCCCCCCCCCCCCCCC",
           ],
         ],
       ]

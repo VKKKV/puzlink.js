@@ -13,6 +13,15 @@ function log1mExp(x: number): number {
 }
 
 /**
+ * A numerically-stable-ish log(1 + exp(x)).
+ *
+ * Follows the algorithm in <https://cran.r-project.org/web/packages/Rmpfr/vignettes/log1mexp-note.pdf>.
+ */
+function log1pExp(x: number): number {
+  return x <= 18 ? Math.log1p(Math.exp(x)) : x + Math.exp(-x);
+}
+
+/**
  * A numerically-stable-ish log of a non-negative number. Operations represent
  * operations on the numbers, not the log numbers.
  *
@@ -91,7 +100,7 @@ export class LogNum {
     if (min === -Infinity) {
       return new LogNum(max);
     }
-    return new LogNum(max + Math.log1p(Math.exp(min - max)));
+    return new LogNum(max + log1pExp(min - max));
   }
 
   absSub(other: LogNum): LogNum {

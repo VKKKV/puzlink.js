@@ -6,7 +6,7 @@ import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import { indexingLinker } from "./indexing.js";
 import { lengthLinker } from "./length.js";
-import { letterDistributionLinker } from "./letterDistribution.js";
+import { nGramLinker } from "./nGram.js";
 
 /**
  * A PartialLink is the subset of Link that a Linker needs to return. We do
@@ -42,6 +42,6 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
     ...featureLinkers(wordlist),
     indexingLinker(letterDist, wordlist),
     lengthLinker(lengthDist),
-    letterDistributionLinker(letterDist),
+    nGramLinker(letterDist),
   ];
 }

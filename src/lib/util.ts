@@ -108,6 +108,7 @@ export function* enumerate<T>(iter: Iterable<T>): Generator<[number, T]> {
 
 /** Returns an iterator over windows of the given size. */
 export function windows<T>(iter: Iterable<T>, size: 2): Generator<[T, T]>;
+export function windows<T>(iter: Iterable<T>, size: 3): Generator<[T, T, T]>;
 export function windows<T>(iter: Iterable<T>, size: number): Generator<T[]>;
 export function* windows(iter: Iterable<any>, size: number) {
   const buffer = [];

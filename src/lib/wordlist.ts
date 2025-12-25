@@ -65,6 +65,8 @@ export class Wordlist {
    * satisfies the given property. This is NOT weighted by zipf!
    */
   logProb(property: (slug: string) => boolean): LogNum {
+    // TODO: maybe tweak the weights here to get better results?
+    // if we do so, do the same thing in letterDistribution
     const count = this.reduce(0, (acc, slug) => acc + (property(slug) ? 1 : 0));
     const total = Object.keys(this.cromulence.wordlist).length;
     return LogNum.fromFraction(count, total);

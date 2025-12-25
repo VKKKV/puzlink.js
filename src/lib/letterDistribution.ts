@@ -23,17 +23,26 @@ export class LetterDistribution {
   constructor(wordlist: Wordlist) {
     this.wordlist = wordlist;
     const frequencies = wordlist.reduce(
-      new Map(Array.from(LETTERS).map((letter) => [letter, LogNum.from(0)])),
-      (freqs, slug, zipf) => {
-        const prob = LogNum.fromZipf(zipf);
-        const length = LogNum.from(slug.length);
+      {
+        letterCount: new Map<string, number>(),
+        total: 0,
+      },
+      (acc, slug) => {
         for (const letter of slug) {
-          freqs.set(letter, freqs.get(letter)!.add(prob.div(length)));
+          acc.letterCount.set(letter, (acc.letterCount.get(letter) ?? 0) + 1);
+          acc.total++;
         }
-        return freqs;
+        return acc;
       },
     );
-    this.distribution = new Distribution(frequencies);
+    this.distribution = new Distribution(
+      new Map(
+        Array.from(frequencies.letterCount.entries(), ([letter, count]) => [
+          letter,
+          LogNum.fromFraction(count, frequencies.total),
+        ]),
+      ),
+    );
     this.lengthToProbs = this.wordlist.reduce(
       new Map<number, { word: LogNum; anagram: LogNum }>(),
       (acc, slug) => {
@@ -77,7 +86,7 @@ export class LetterDistribution {
     return this.distribution.prob(counter);
   }
 
-  /** Over- and under-represented letters, at 3 sigma. */
+  /** Over- and under-represented letters, at 2 sigma. */
   outliers(slug: string): {
     high: string;
     low: string;

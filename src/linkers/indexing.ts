@@ -1,6 +1,6 @@
 import type { LetterDistribution } from "../lib/letterDistribution.js";
 import { LetterIndices } from "../lib/letterIndices.js";
-import { interval, ordinal } from "../lib/util.js";
+import { getArithmeticSequenceInfo, interval, ordinal } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker, PartialLink } from "./index.js";
 
@@ -120,11 +120,12 @@ function consecutive({
   indexText,
   indexed,
 }: Props): PartialLink | null {
-  const sorted = indexed.slice().sort();
-  for (let i = 0; i < sorted.length - 1; i++) {
-    if (sorted[i + 1]!.charCodeAt(0) - sorted[i]!.charCodeAt(0) !== 1) {
-      return null;
-    }
+  const sorted = indexed
+    .slice()
+    .map((w) => w.charCodeAt(0))
+    .sort((a, b) => a - b);
+  if (getArithmeticSequenceInfo(sorted)?.step !== 1) {
+    return null;
   }
   return {
     name: `${indexText} are consecutive`,

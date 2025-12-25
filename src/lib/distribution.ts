@@ -107,8 +107,11 @@ export class Distribution<T extends PropertyKey> {
     const n = observed.total;
     const partials = [];
     for (const [item, freq] of this.frequencies) {
-      const nfreq = n.mul(freq);
-      partials.push(nfreq.absSub(observed.get(item)).pow(2).div(nfreq));
+      const expected = n.mul(freq);
+      const actual = observed.get(item);
+      // Under chi-squared assumptions, the (expected - actual)^2/expected
+      // should be iid N(0, 1)^2.
+      partials.push(expected.absSub(actual).pow(2).div(expected));
     }
     return LogNum.sum(partials);
   }
@@ -120,8 +123,11 @@ export class Distribution<T extends PropertyKey> {
     return LogNum.from(1 - normCdf(z));
   }
 
-  /** Over- and under-represented items, at 3 sigma. */
-  outliers(observed: LogCounter<T>): {
+  /** Over- and under-represented items, at the given sigma. */
+  outliers(
+    observed: LogCounter<T>,
+    sigma = 2,
+  ): {
     high: Record<T, LogNum>;
     low: Record<T, LogNum>;
   } {
@@ -129,25 +135,20 @@ export class Distribution<T extends PropertyKey> {
     const low = {} as Record<T, LogNum>;
     const high = {} as Record<T, LogNum>;
 
-    for (const [item, freq] of this.frequencies) {
+    const keys = [
+      ...this.frequencies.keys(),
+      ...observed.filterKeys((key) => !this.frequencies.has(key)),
+    ];
+    const threshold = LogNum.from(sigma ** 2);
+
+    for (const item of keys) {
+      const freq = this.frequencies.get(item) ?? LogNum.from(0);
       const expected = n.mul(freq);
       const actual = observed.get(item);
 
-      if (expected.absSub(actual).pow(2).gt(LogNum.from(4))) {
-        if (expected.gt(actual)) {
-          low[item] = expected.sub(actual);
-        } else {
-          high[item] = actual.sub(expected);
-        }
-      }
-    }
-
-    const difference = observed.difference(Array.from(this.frequencies.keys()));
-    for (const item of difference) {
-      const expected = LogNum.from(0);
-      const actual = observed.get(item);
-
-      if (expected.absSub(actual).pow(2).gt(LogNum.from(4))) {
+      // We assume (expected - actual)^2/expected should be distributed as
+      // N(0, 1)^2; thus if it's over sigma^2, it's an outlier.
+      if (expected.absSub(actual).pow(2).div(expected).gt(threshold)) {
         if (expected.gt(actual)) {
           low[item] = expected.sub(actual);
         } else {

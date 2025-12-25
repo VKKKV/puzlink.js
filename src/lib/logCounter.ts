@@ -10,19 +10,29 @@ export class LogCounter<T extends PropertyKey> {
   }
 
   static from(data: string): LogCounter<string>;
-  static from<T extends PropertyKey>(data: readonly T[]): LogCounter<T>;
-  static from(data: string | readonly PropertyKey[]) {
+  static from<T extends PropertyKey>(data: Iterable<T>): LogCounter<T>;
+  static from<T extends PropertyKey, U>(
+    data: Iterable<U>,
+    map: (item: U) => T,
+  ): LogCounter<T>;
+  static from(
+    data: string | Iterable<PropertyKey>,
+    map?: (item: PropertyKey) => PropertyKey,
+  ) {
     const counts = new Map<PropertyKey, number>();
+    let total = 0;
 
-    for (const item of data) {
+    for (const item_ of data) {
+      const item = map ? map(item_) : item_;
       counts.set(item, (counts.get(item) ?? 0) + 1);
+      total++;
     }
 
     return new LogCounter(
       new Map(
         Array.from(counts).map(([item, count]) => [item, LogNum.from(count)]),
       ),
-      LogNum.from(data.length),
+      LogNum.from(total),
     );
   }
 
@@ -48,21 +58,17 @@ export class LogCounter<T extends PropertyKey> {
     return this.counts.entries();
   }
 
+  /** Returns a list of items that satisfy the given predicate. */
+  filterKeys(fn: (item: T, count: LogNum) => boolean): T[] {
+    return Array.from(this.counts.entries())
+      .filter(([item, count]) => fn(item, count))
+      .map(([item]) => item);
+  }
+
   /** Returns an iterable of [item, log probability] pairs. */
   *frequencies(): IterableIterator<[T, LogNum]> {
     for (const [item, count] of this.counts) {
       yield [item, count.div(this.total)];
     }
-  }
-
-  /** Returns a list of items in this that are not in other. */
-  difference(other: T[]): T[] {
-    const result: T[] = [];
-    for (const item of this.counts.keys()) {
-      if (!other.includes(item)) {
-        result.push(item);
-      }
-    }
-    return result;
   }
 }

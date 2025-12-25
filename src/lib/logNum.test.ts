@@ -45,6 +45,8 @@ describe("LogNum", () => {
     expect(LogNum.fromFraction(1, 2).sub(LogNum.from(0)).toNum()).toBeCloseTo(
       1 / 2,
     );
+
+    expect(LogNum.fromExp(20).add(LogNum.fromExp(10)).toLog()).toBeCloseTo(20);
   });
 
   test("gt, lt", () => {

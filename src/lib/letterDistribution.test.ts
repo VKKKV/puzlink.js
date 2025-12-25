@@ -36,7 +36,7 @@ describe("LetterDistribution", () => {
 
   test("prob", () => {
     expect(dist.prob("jjjjjqqqqqxxxxxzzzzz").toNum()).toBeCloseTo(0);
-    expect(dist.prob("alphabet").toNum()).toMatchInlineSnapshot(`NaN`);
+    expect(dist.prob("alphabet").toNum()).toMatchInlineSnapshot(`0.6628000000000001`);
   });
 
   test("outliers", () => {
@@ -49,10 +49,10 @@ describe("LetterDistribution", () => {
   test("probCommonOrdered", () => {
     expect(dist.probCommonOrdered(0, [3, 4, 5]).toNum()).toBe(1);
     expect(dist.probCommonOrdered(1, [3, 4, 5]).toNum()).toMatchInlineSnapshot(
-      `0.11659095599518708`,
+      `0.28211077172174237`,
     );
     expect(dist.probCommonOrdered(3, [3, 4, 5]).toNum()).toMatchInlineSnapshot(
-      `3.527961440763506e-7`,
+      `0.000006742477982379926`,
     );
   });
 });
