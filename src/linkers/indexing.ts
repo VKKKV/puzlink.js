@@ -1,4 +1,5 @@
 import type { LetterDistribution } from "../lib/letterDistribution.js";
+import { LetterIndices } from "../lib/letterIndices.js";
 import { interval, ordinal } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker, PartialLink } from "./index.js";
@@ -138,17 +139,8 @@ function paired({
   indexed,
   slugs,
 }: Props): PartialLink | null {
-  const byIndexed = new Map<string, number[]>();
-  for (let i = 0; i < indexed.length; i++) {
-    const letter = indexed[i]!;
-    if (!byIndexed.has(letter)) {
-      byIndexed.set(letter, []);
-    }
-    byIndexed.get(letter)!.push(i);
-  }
-  const countSet = new Set(
-    Array.from(byIndexed.values(), (indices) => indices.length),
-  );
+  const byIndexed = LetterIndices.from(indexed.join(""));
+  const countSet = byIndexed.countSet();
   if (countSet.size !== 1 || Array.from(countSet)[0] !== 2) {
     return null;
   }

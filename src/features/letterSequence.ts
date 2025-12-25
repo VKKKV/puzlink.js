@@ -1,5 +1,10 @@
 import { CONSONANTS, LETTERS, VOWELS } from "../lib/letterDistribution.js";
-import { interval, mapProduct, printIndexSlug } from "../lib/util.js";
+import {
+  enumerate,
+  interval,
+  mapProduct,
+  printIndexSlug,
+} from "../lib/util.js";
 import type { Feature } from "./index.js";
 
 // TODO: make the printed property names better here; some of these should be
@@ -125,8 +130,8 @@ function consecutiveOfTimes(
       let bestStreak = 0;
       let bestStart = -1;
       let currentStreak = 0;
-      for (let i = 0; i < slug.length; i++) {
-        if (kind.letters.includes(slug[i]!)) {
+      for (const [i, letter] of enumerate(slug)) {
+        if (kind.letters.includes(letter)) {
           currentStreak++;
           if (currentStreak > bestStreak) {
             bestStreak = currentStreak;

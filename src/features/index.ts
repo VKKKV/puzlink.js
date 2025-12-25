@@ -1,3 +1,4 @@
+import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
 import { Wordlist } from "../lib/wordlist.js";
 import type { Linker } from "../linkers/index.js";
@@ -9,7 +10,7 @@ import { substringFeatures } from "./substring.js";
 import { wordplayFeatures } from "./wordplay.js";
 
 type Props = {
-  letterIndices: Map<string, number[]>;
+  letterIndices: LetterIndices;
   wordlist: Wordlist;
 };
 
@@ -31,15 +32,7 @@ export type Feature = {
 };
 
 function getProps(wordlist: Wordlist, slug: string): Props {
-  const letterIndices = new Map<string, number[]>();
-  for (let i = 0; i < slug.length; i++) {
-    const letter = slug[i]!;
-    if (!letterIndices.has(letter)) {
-      letterIndices.set(letter, []);
-    }
-    letterIndices.get(letter)!.push(i);
-  }
-  return { letterIndices, wordlist };
+  return { letterIndices: LetterIndices.from(slug), wordlist };
 }
 
 /**

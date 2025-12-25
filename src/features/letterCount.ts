@@ -1,5 +1,12 @@
+import { Counter } from "../lib/counter.js";
 import { CONSONANTS, LETTERS, VOWELS } from "../lib/letterDistribution.js";
-import { capitalizeAt, interval, mapProduct } from "../lib/util.js";
+import {
+  capitalizeAt,
+  getArithmeticSequenceInfo,
+  interval,
+  mapProduct,
+  windows,
+} from "../lib/util.js";
 import type { Feature } from "./index.js";
 
 function withTimes(letter: string, times: number, strict: boolean): Feature {
@@ -8,11 +15,11 @@ function withTimes(letter: string, times: number, strict: boolean): Feature {
       ? `has ${times.toString()} ${letter}`
       : `has at least ${times.toString()} ${letter}`,
     property: (slug, { letterIndices }) => {
-      const starts = letterIndices.get(letter) ?? [];
+      const starts = letterIndices.get(letter);
       if (strict ? starts.length !== times : starts.length < times) {
         return null;
       }
-      return capitalizeAt(slug, [...starts]);
+      return capitalizeAt(slug, starts);
     },
   };
 }
@@ -24,8 +31,8 @@ function uniqueOf(
   return {
     name: `has ${times.toString()} unique ${kind.name}`,
     property: (slug, { letterIndices }) => {
-      const unique = Array.from(letterIndices.keys())
-        .filter((letter) => kind.letters.includes(letter))
+      const unique = letterIndices
+        .filterKeys((letter) => kind.letters.includes(letter))
         .sort()
         .join("");
       if (unique.length !== times) {
@@ -47,17 +54,12 @@ function nGramRepeatsTimes(
       ? `has ${count.toString()} ${kind.name}, each repeating ${repeats.toString()} times`
       : `has ${count.toString()} ${kind.name}, each repeating at least ${repeats.toString()} times`,
     property: (slug) => {
-      const counts = new Map<string, number>();
-      for (let i = 0; i < slug.length - kind.n + 1; i++) {
-        const nGram = slug.slice(i, i + kind.n);
-        counts.set(nGram, (counts.get(nGram) ?? 0) + 1);
-      }
-      const nGrams = [];
-      for (const [nGram, count] of counts) {
-        if (strict ? count === repeats : count >= repeats) {
-          nGrams.push(nGram);
-        }
-      }
+      const counts = Counter.from(
+        Array.from(windows(slug, kind.n), (w) => w.join("")),
+      );
+      const nGrams = counts.filterKeys((_, count) =>
+        strict ? count === repeats : count >= repeats,
+      );
       if (nGrams.length !== count) {
         return null;
       }
@@ -70,12 +72,10 @@ function repeatedOf(kind: { name: string; letters: string }): Feature {
   return {
     name: `has repeated ${kind.name}`,
     property: (slug, { letterIndices }) => {
-      const repeated = Array.from(letterIndices)
-        .filter(
-          ([letter, indices]) =>
-            kind.letters.includes(letter) && indices.length >= 2,
-        )
-        .map(([letter]) => letter);
+      const repeated = letterIndices.filterKeys(
+        (letter, indices) =>
+          kind.letters.includes(letter) && indices.length >= 2,
+      );
       return repeated.length > 0 ? `${slug}: ${repeated.join(", ")}` : null;
     },
   };
@@ -85,9 +85,7 @@ function equalCounts(): Feature {
   return {
     name: "has equal letter counts",
     property: (slug, { letterIndices }) => {
-      const countSet = new Set(
-        Array.from(letterIndices.values(), (a) => a.length),
-      );
+      const countSet = letterIndices.countSet();
       return countSet.size === 1
         ? `${slug} letter counts are all ${Array.from(countSet)[0]!.toString()}`
         : null;
@@ -99,22 +97,17 @@ function twoCounts(): Feature {
   return {
     name: "has one of two letter counts",
     property: (slug, { letterIndices }) => {
-      const countSet = new Set(
-        Array.from(letterIndices.values(), (a) => a.length),
-      );
+      const countSet = letterIndices.countSet();
       if (countSet.size !== 2) {
         return null;
       }
       const [a, b] = Array.from(countSet) as [number, number];
-      const aLetters = [];
-      const bLetters = [];
-      for (const [letter, indices] of letterIndices) {
-        if (indices.length === a) {
-          aLetters.push(letter);
-        } else if (indices.length === b) {
-          bLetters.push(letter);
-        }
-      }
+      const aLetters = letterIndices.filterKeys(
+        (_, indices) => indices.length === a,
+      );
+      const bLetters = letterIndices.filterKeys(
+        (_, indices) => indices.length === b,
+      );
       return `${slug} letter counts are ${a.toString()} (${aLetters.sort().join("")}) or ${b.toString()} (${bLetters.sort().join("")})`;
     },
   };
@@ -124,13 +117,15 @@ function arithmeticSequenceCounts(): Feature {
   return {
     name: "has letter counts in arithmetic sequence",
     property: (slug, { letterIndices }) => {
-      const sortedCounts = Array.from(
-        letterIndices.entries(),
-        ([l, i]) => [l, i.length] as const,
-      ).sort((a, b) => a[1] - b[1]);
-      return sortedCounts.every(([, c], i) => c === sortedCounts[0]![1] + i)
-        ? `${slug} letter counts of ${sortedCounts.map(([l]) => l).join(", ")} are ${sortedCounts.map(([, c]) => c).join(", ")}`
-        : null;
+      const sortedCounts = Array.from(letterIndices.counts()).sort(
+        ([, a], [, b]) => a - b,
+      );
+      if (!getArithmeticSequenceInfo(sortedCounts.map(([, c]) => c))) {
+        return null;
+      }
+      const letters = sortedCounts.map(([l]) => l).join(", ");
+      const counts = sortedCounts.map(([, c]) => c).join(", ");
+      return `${slug} letter counts of ${letters} are ${counts}`;
     },
   };
 }

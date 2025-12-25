@@ -55,6 +55,7 @@ export class LogCounter<T extends PropertyKey> {
     }
   }
 
+  /** Returns a list of items in this that are not in other. */
   difference(other: T[]): T[] {
     const result: T[] = [];
     for (const item of this.counts.keys()) {

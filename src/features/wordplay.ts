@@ -1,5 +1,11 @@
 import { LETTERS } from "../lib/letterDistribution.js";
-import { caesar, interval, mapProduct } from "../lib/util.js";
+import {
+  caesar,
+  enumerate,
+  interval,
+  mapProduct,
+  windows,
+} from "../lib/util.js";
 import type { Feature } from "./index.js";
 
 function prependWith(letter: string): Feature {
@@ -104,7 +110,7 @@ function curtail(): Feature {
   return {
     name: "can curtail 1",
     property: (slug, { wordlist }) => {
-      const curtailed = slug.slice(0, slug.length - 1);
+      const curtailed = slug.slice(0, -1);
       return wordlist.isWord(curtailed)
         ? `${slug} curtail 1 = ${curtailed}`
         : null;
@@ -117,8 +123,8 @@ function deleteWith(letter: string): Feature {
     name: `can delete ${letter}`,
     property: (slug, { wordlist }) => {
       const allDeleted = [];
-      for (let i = 0; i < slug.length; i++) {
-        if (slug[i] === letter) {
+      for (const [i, c] of enumerate(slug)) {
+        if (c === letter) {
           allDeleted.push(`${slug.slice(0, i)}${slug.slice(i + 1)}`);
         }
       }
@@ -135,7 +141,7 @@ function deleteAny(): Feature {
     name: "can delete 1",
     property: (slug, { wordlist }) => {
       const allDeleted = [];
-      for (let i = 0; i < slug.length; i++) {
+      for (const [i] of enumerate(slug)) {
         allDeleted.push(`${slug.slice(0, i)}${slug.slice(i + 1)}`);
       }
       const deleted = wordlist.filterWords(allDeleted);
@@ -176,8 +182,8 @@ function changeTo(letter: string): Feature {
     name: `can change to ${letter}`,
     property: (slug, { wordlist }) => {
       const allChanged = [];
-      for (let i = 0; i < slug.length; i++) {
-        if (slug[i] !== letter) {
+      for (const [i, c] of enumerate(slug)) {
+        if (c !== letter) {
           allChanged.push(`${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`);
         }
       }
@@ -194,9 +200,9 @@ function changeAny(): Feature {
     name: "can change 1",
     property: (slug, { wordlist }) => {
       const allChanged = [];
-      for (let i = 0; i < slug.length; i++) {
+      for (const [i, c] of enumerate(slug)) {
         for (const letter of LETTERS) {
-          if (slug[i] !== letter) {
+          if (c !== letter) {
             allChanged.push(`${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`);
           }
         }
@@ -249,13 +255,10 @@ function swapAdjacent(): Feature {
     name: "can swap adjacent letters",
     property: (slug, { wordlist }) => {
       const candidates: [candidate: string, i: number][] = [];
-      for (let i = 0; i < slug.length - 1; i++) {
-        candidates.push([
-          `${slug.slice(0, i)}${slug[i + 1]!}${slug[i]!}${slug.slice(i + 2)}`,
-          i,
-        ]);
+      for (const [i, [a, b]] of enumerate(windows(slug, 2))) {
+        candidates.push([`${slug.slice(0, i)}${b}${a}${slug.slice(i + 2)}`, i]);
       }
-      const swapped = wordlist.filterWordsUnder(candidates, (t) => t[0]);
+      const swapped = wordlist.filterWordsUnder(candidates, ([w]) => w);
       if (swapped.length === 0) {
         return null;
       }

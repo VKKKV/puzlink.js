@@ -2,7 +2,7 @@ import { Distribution } from "./distribution.js";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
-import { caesar } from "./util.js";
+import { caesar, interval } from "./util.js";
 import { Wordlist } from "./wordlist.js";
 
 export const LETTERS = "abcdefghijklmnopqrstuvwxyz";
@@ -97,11 +97,9 @@ export class LetterDistribution {
     }
 
     const combos = LogNum.prod(
-      Array(common)
-        .fill(null)
-        .flatMap((_, k) =>
-          lengths.map((length) => LogNum.fromFraction(length - k, k + 1)),
-        ),
+      interval(0, common - 1).flatMap((k) =>
+        lengths.map((length) => LogNum.fromFraction(length - k, k + 1)),
+      ),
     );
     const p = this.distribution.moment(lengths.length).pow(common);
 
@@ -133,7 +131,7 @@ export class LetterDistribution {
     }
 
     const freqWindow = [];
-    for (let i = 1; i <= k; i++) {
+    for (const i of interval(1, k)) {
       freqWindow.push(this.distribution.get(LETTERS[i]!));
     }
 

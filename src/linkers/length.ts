@@ -1,4 +1,5 @@
 import type { LengthDistribution } from "../lib/lengthDistribution.js";
+import { getArithmeticSequenceInfo } from "../lib/util.js";
 import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
@@ -67,10 +68,8 @@ function equalMod3({ distribution, lengths }: Props): PartialLink | null {
 }
 
 function consecutive({ distribution, lengths }: Props): PartialLink | null {
-  for (let i = 0; i < lengths.length - 1; i++) {
-    if (lengths[i + 1]! - lengths[i]! !== 1) {
-      return null;
-    }
+  if (getArithmeticSequenceInfo(lengths)?.step !== 1) {
+    return null;
   }
   return {
     name: "lengths are consecutive",

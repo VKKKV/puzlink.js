@@ -1,4 +1,5 @@
 import { LetterDistribution, VOWELS } from "../lib/letterDistribution.js";
+import { enumerate } from "../lib/util.js";
 import type { Linker, PartialLink } from "./index.js";
 
 // TODO(maybe): preponderance of NEWS
@@ -32,7 +33,7 @@ function equalVowelPattern({ distribution, slugs }: Props): PartialLink | null {
     VOWELS.includes(letter) ? "V" : "C",
   ).join("");
   for (const other of slugs) {
-    for (let i = 0; i < minLength; i++) {
+    for (const [i] of enumerate(shortest)) {
       if (VOWELS.includes(other[i]!) !== (pattern[i] === "V")) {
         return null;
       }

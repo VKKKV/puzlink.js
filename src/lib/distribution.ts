@@ -2,6 +2,7 @@ import { cumulativeStdNormalProbability as normCdf } from "simple-statistics";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
+import { interval } from "./util.js";
 
 /** A probability distribution of items. */
 export class Distribution<T extends PropertyKey> {
@@ -53,7 +54,7 @@ export class Distribution<T extends PropertyKey> {
   @memoize()
   probTwoDistinct(k: number): LogNum {
     const probs = [];
-    for (let i = 0; i <= k; i++) {
+    for (const i of interval(0, k)) {
       const j = k - i;
       probs.push(
         LogNum.fromBinomial(k, i).mul(this.probEqual(i)).mul(this.probEqual(j)),

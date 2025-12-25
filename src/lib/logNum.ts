@@ -1,5 +1,7 @@
-import { gammaln } from "simple-statistics";
 import { zipfToLogProb } from "cromulence";
+import { gammaln } from "simple-statistics";
+import { memoize } from "./memoize.js";
+import { interval } from "./util.js";
 
 /**
  * A numerically-stable-ish log(1 - exp(x)).
@@ -36,27 +38,13 @@ export class LogNum {
     return new LogNum(Math.log(numerator) - Math.log(denominator));
   }
 
-  private static binomialCache = new Map<number, Map<number, LogNum>>();
-
+  @memoize(2)
   static fromBinomial(n: number, k: number): LogNum {
-    const cached = LogNum.binomialCache.get(n)?.get(k);
-    if (cached) {
-      return cached;
+    if (n === 0 || k === 0 || k === n) {
+      return LogNum.from(1);
     }
 
-    const result =
-      n === 0 || k === 0 || k === n
-        ? new LogNum(Math.log(1))
-        : LogNum.fromBinomial(n - 1, k - 1).add(LogNum.fromBinomial(n - 1, k));
-
-    let cache = LogNum.binomialCache.get(n);
-    if (!cache) {
-      cache = new Map();
-      LogNum.binomialCache.set(n, cache);
-      cache.set(k, result);
-    }
-
-    return result;
+    return LogNum.fromBinomial(n - 1, k - 1).add(LogNum.fromBinomial(n - 1, k));
   }
 
   static fromZipf(zipf: number): LogNum {
@@ -178,11 +166,11 @@ export class LogNum {
     const probs = [];
 
     if (successes > expected) {
-      for (let i = successes; i <= trials; i++) {
+      for (const i of interval(successes, trials)) {
         probs.push(LogNum.binomialProb(i, trials, frequency));
       }
     } else {
-      for (let i = 0; i <= successes; i++) {
+      for (const i of interval(0, successes)) {
         probs.push(LogNum.binomialProb(i, trials, frequency));
       }
     }

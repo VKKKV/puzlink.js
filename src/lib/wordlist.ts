@@ -65,16 +65,9 @@ export class Wordlist {
    * satisfies the given property. This is NOT weighted by zipf!
    */
   logProb(property: (slug: string) => boolean): LogNum {
-    const total = this.reduce(0, (acc, slug) => {
-      if (!property(slug)) {
-        return acc;
-      }
-      return acc + 1;
-    });
-    return LogNum.fromFraction(
-      total,
-      Object.keys(this.cromulence.wordlist).length,
-    );
+    const count = this.reduce(0, (acc, slug) => acc + (property(slug) ? 1 : 0));
+    const total = Object.keys(this.cromulence.wordlist).length;
+    return LogNum.fromFraction(count, total);
   }
 
   /** Returns true if the given slug is in the wordlist. */
@@ -82,11 +75,7 @@ export class Wordlist {
     slug: string,
     { threshold = 0 }: { threshold?: number } = {},
   ): boolean {
-    const zipf = this.cromulence.wordlist[slug];
-    if (zipf === undefined) {
-      return false;
-    }
-    return zipf > threshold;
+    return (this.cromulence.wordlist[slug] ?? -1000) > threshold;
   }
 
   /** Returns true if any of the given slugs are in the wordlist. */

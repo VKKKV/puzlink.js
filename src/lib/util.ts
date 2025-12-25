@@ -22,8 +22,12 @@ export function printIndexSlug(slug: string, indices: number[]): string {
 }
 
 /** Returns an array of numbers from start to end (inclusive). */
-export function interval(start: number, end: number): number[] {
-  return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+export function interval(start: number, end: number, step = 1): number[] {
+  const result = [];
+  for (let i = start; i <= end; i += step) {
+    result.push(i);
+  }
+  return result;
 }
 
 type Product<A extends Iterable<any>[]> = A extends [infer First, ...infer Rest]
@@ -91,4 +95,55 @@ export function caesar(slug: string, n: number): string {
       ((c.charCodeAt(0) - aCharCode + n + 26) % 26) + aCharCode,
     );
   }).join("");
+}
+
+/** Returns an iterator over [index, item] pairs. */
+export function* enumerate<T>(iter: Iterable<T>): Generator<[number, T]> {
+  let i = 0;
+  for (const item of iter) {
+    yield [i, item];
+    i += 1;
+  }
+}
+
+/** Returns an iterator over windows of the given size. */
+export function windows<T>(iter: Iterable<T>, size: 2): Generator<[T, T]>;
+export function windows<T>(iter: Iterable<T>, size: number): Generator<T[]>;
+export function* windows(iter: Iterable<any>, size: number) {
+  const buffer = [];
+  for (const item of iter) {
+    if (buffer.length === size) {
+      buffer.shift();
+    }
+    buffer.push(item);
+    if (buffer.length === size) {
+      yield buffer.slice();
+    }
+  }
+}
+
+/**
+ * If the given array is a non-constant arithmetic sequence, returns the start,
+ * step, and last. Else, returns null.
+ */
+export function getArithmeticSequenceInfo(terms: number[]): {
+  start: number;
+  step: number;
+  last: number;
+} | null {
+  if (terms.length < 2) {
+    return null;
+  }
+  terms.sort((a, b) => a - b);
+  const start = terms[0]!;
+  const step = terms[1]! - start;
+  if (step === 0) {
+    return null;
+  }
+  for (let i = 2; i < terms.length; i++) {
+    if (terms[i]! - terms[i - 1]! !== step) {
+      return null;
+    }
+  }
+  return { start, step, last: terms.at(-1)! };
 }

@@ -1,6 +1,7 @@
 import { Distribution } from "./distribution.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
+import { interval, windows } from "./util.js";
 
 export class LengthDistribution {
   readonly distribution: Distribution<number>;
@@ -58,17 +59,12 @@ export class LengthDistribution {
       return LogNum.from(0);
     }
 
-    const freqWindow = [];
-    for (let i = 1; i <= k; i++) {
-      freqWindow.push(this.distribution.get(i));
-    }
-
-    const partials = [];
-    for (let a = 1; a + k - 1 <= this.maxLength; a++) {
-      partials.push(LogNum.prod(freqWindow));
-      freqWindow.shift();
-      freqWindow.push(this.distribution.get(a + k));
-    }
+    const range = interval(1, this.maxLength).map((i) =>
+      this.distribution.get(i),
+    );
+    const partials = Array.from(windows(range, k), (window) =>
+      LogNum.prod(window),
+    );
 
     return LogNum.fromFactorial(k).mul(LogNum.sum(partials));
   }
