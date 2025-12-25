@@ -1,9 +1,8 @@
 {
   "name": "puzlink",
   "version": "0.1.0",
-  "private": true,
   "description": "Tool to find patterns among sets of words",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "author": "CJ Quines <cj@cjquines.com>",
   "type": "module",
   "main": "dist/index.js",
