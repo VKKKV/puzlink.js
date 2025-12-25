@@ -1,0 +1,139 @@
+#root {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  height: 100%;
+  max-width: 50em;
+  margin: 0 auto;
+}
+
+.app {
+  display: flex;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.header {
+  p {
+    margin: 0;
+  }
+}
+
+.input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  justify-content: center;
+  padding: 0.5em 1em 1em;
+
+  h1 {
+    color: var(--primary-color);
+    font-size: 1.5em;
+    margin: 0;
+  }
+
+  textarea {
+    flex-grow: 1;
+    font-family: "IBM Plex Mono", monospace;
+    min-width: 12em;
+    width: 100%;
+  }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+
+    .buttons {
+      display: flex;
+      gap: 0.5em;
+    }
+  }
+
+  .credits {
+    font-size: 0.8em;
+    margin: 0;
+  }
+}
+
+.output {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  max-height: 100%;
+
+  &.loading {
+    align-items: center;
+    justify-content: center;
+  }
+
+  .load-more {
+    margin: 1em;
+  }
+
+  .links {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+}
+
+.output-controls {
+  padding: 0.5em 0.5em 0.5em 0;
+}
+
+.link {
+  &:nth-child(odd) {
+    background-color: #f2f2f2;
+  }
+
+  summary {
+    cursor: pointer;
+    padding: 0.25em 0.25em 0.25em 0.5em;
+  }
+
+  .link-summary {
+    display: inline-flex;
+    font-weight: 500;
+    justify-content: space-between;
+    gap: 1em;
+    width: calc(100% - 2em);
+  }
+
+  .link-name {
+    text-wrap: balance;
+  }
+
+  .link-score {
+    color: #888;
+    text-align: right;
+  }
+
+  .link-description {
+    font-family: "IBM Plex Mono", monospace;
+    margin: 0;
+    padding: 0 0.5em 0.5em;
+
+    li {
+      list-style-type: none;
+    }
+  }
+}
+
+@media (max-width: 720px) {
+  .app {
+    flex-direction: column;
+  }
+
+  .input textarea {
+    min-height: 15em;
+  }
+
+  .credits {
+    display: none;
+  }
+
+  .link .link-description {
+    padding: 0 1.5em 0.5em;
+  }
+}
