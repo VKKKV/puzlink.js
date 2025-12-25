@@ -4,8 +4,8 @@ import meow from "meow";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as url from "node:url";
+import type { Link } from "../src/index.js";
 import { Puzlink } from "../src/index.js";
-import type { Link } from "../src/linkers/index.js";
 import { time } from "./util.js";
 
 const DEFAULT_LIMIT = 3;
@@ -21,6 +21,7 @@ const cli = meow(
     Options
       --description, -d        Show descriptions for each link
       --limit <num>, -l <num>  Number of links to print per failed case [default: ${DEFAULT_LIMIT.toString()}]
+      --show-pass              Show cases that pass
       --watch, -w              Rerun on changes *on the eval files*
   `,
   {
@@ -35,6 +36,10 @@ const cli = meow(
         type: "number",
         shortFlag: "l",
         default: DEFAULT_LIMIT,
+      },
+      showPass: {
+        type: "boolean",
+        default: false,
       },
       watch: {
         type: "boolean",
@@ -143,7 +148,7 @@ function* runEvalSuite(
   suite: EvalSuite,
 ): Generator<EvalResult> {
   for (const { slugs, expected } of suite.cases) {
-    const parsedSlugs = puzlink.parse(slugs);
+    const parsedSlugs = Puzlink.parse(slugs);
     const links = puzlink.link(parsedSlugs, { limit: null });
     const index = links.findIndex((link) => link.name.includes(expected));
     const status =
@@ -164,7 +169,7 @@ function* runEvalSuite(
 }
 
 function printSingleResult(args: Args, result: EvalResult): string | null {
-  if (result.status === "okay") {
+  if (result.status === "okay" && !args.showPass) {
     return null;
   }
   const lines: string[][] = [];
@@ -177,9 +182,7 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
       result.actualRank ? ` top ${result.actualRank.toString()}` : " not found",
     );
   if (result.actualLink) {
-    lines
-      .at(-1)!
-      .push(chalk.gray(` (${result.actualLink.logProb.toLog().toFixed(3)})`));
+    lines.at(-1)!.push(chalk.gray(` (${result.actualLink.score.toFixed(1)})`));
   }
 
   for (let i = 0; i < args.limit && i < result.links.length; i++) {
@@ -187,16 +190,12 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
     lines.push([" ".repeat(2)]);
     lines
       .at(-1)!
-      .push(
-        chalk.gray(
-          result.links[i]!.logProb.toLog().toFixed(3).padStart(7, " "),
-        ),
-      );
+      .push(chalk.gray(result.links[i]!.score.toFixed(1).padStart(6, " ")));
     lines.at(-1)!.push(chalk.gray(": "));
     if (isExpectedLink) {
-      lines.at(-1)!.push(statusColor[result.status](result.links[i]!.name!));
+      lines.at(-1)!.push(statusColor[result.status](result.links[i]!.name));
     } else {
-      lines.at(-1)!.push(result.links[i]!.name!);
+      lines.at(-1)!.push(result.links[i]!.name);
     }
 
     if (args.description) {

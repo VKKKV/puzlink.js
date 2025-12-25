@@ -1,27 +1,58 @@
-import { slugify } from "cromulence";
-import type { LogNum } from "./lib/logNum.js";
+import { loadWordlist, slugify } from "cromulence";
 import { Wordlist } from "./lib/wordlist.js";
 import type { Linker } from "./linkers/index.js";
 import { allLinkers } from "./linkers/index.js";
 
-/** A FullLink is a Link after post-processing. */
-export type FullLink = Readonly<{
+/**
+ * A Link is a relationship between a (possibly ordered) set of words, with how
+ * strong it is quantified via its score.
+ */
+export type Link = Readonly<{
+  /** The name of the link. */
   name: string;
-  logProb: LogNum;
+  /**
+   * Any additional information about the link. Typically, this would be an
+   * explanation for why the words satisfy the given link.
+   */
   description: readonly string[];
+  /**
+   * The score of the link. A higher score means it's more likely to be
+   * important (because it's less likely to happen by chance).
+   *
+   * This is calculated as the negative of the log probability we'd expect to
+   * see this link, if each word was replaced with a random puzzle answer,
+   * rounded to 1 decimal place.
+   */
+  score: number;
 }>;
+
+/** Options for Puzlink.link(). */
+export type LinkOptions = {
+  /**
+   * Limit the number of links returned. Pass null or Infinity to return
+   * all links.
+   *
+   * Defaults to 10.
+   */
+  limit?: number | null;
+  /**
+   * Is the input in a particular order? Some of the links we use apply
+   * only if the words have a given order. Defaults to true if the words
+   * are NOT alphabetically sorted.
+   */
+  ordered?: boolean;
+};
 
 export class Puzlink {
   linkers: Linker[];
 
-  constructor(wordlist: Wordlist) {
-    this.linkers = allLinkers(wordlist);
+  constructor(wordlist: Record<string, number>) {
+    this.linkers = allLinkers(new Wordlist(wordlist));
   }
 
   /** Create a Puzlink instance by downloading the cromulence wordlist. */
   static async download(): Promise<Puzlink> {
-    const wordlist = await Wordlist.download();
-    return new Puzlink(wordlist);
+    return new Puzlink(await loadWordlist());
   }
 
   /**
@@ -30,7 +61,7 @@ export class Puzlink {
    * If the input has newlines, we split by newlines. Otherwise, if commas
    * exist, we split by commas. Otherwise, we split by spaces.
    */
-  parse(words: string | readonly string[]): string[] {
+  static parse(words: string | readonly string[]): string[] {
     if (typeof words === "string") {
       if (words.includes("\n")) {
         words = words.split("\n");
@@ -45,28 +76,11 @@ export class Puzlink {
 
   /** Return all links for a list of words. */
   link(
-    /** The words to link. See `parse` for how these are parsed. */
+    /** The words to link. See Puzlink.parse for how these are parsed. */
     words: string | readonly string[],
-    {
-      limit = 10,
-      ordered,
-    }: {
-      /**
-       * Limit the number of links returned. Pass `null` or `Infinity` to
-       * return all links.
-       *
-       * Defaults to 10.
-       */
-      limit?: number | null;
-      /**
-       * Is the input in a particular order? Some of the links we use apply
-       * only if the words have a given order. Defaults to true if the words
-       * are NOT alphabetically sorted.
-       */
-      ordered?: boolean;
-    },
-  ): FullLink[] {
-    const slugs = this.parse(words);
+    { limit = 10, ordered }: LinkOptions = {},
+  ): Link[] {
+    const slugs = Puzlink.parse(words);
 
     if (ordered === undefined) {
       const sortedSlugs = slugs.slice().sort();
@@ -77,9 +91,13 @@ export class Puzlink {
     return this.linkers
       .flatMap((linker) => {
         const links = linker.eval(slugs, ordered);
-        return links.map((link) => ({ name: linker.name, ...link }));
+        return links.map((link) => ({
+          name: linker.name,
+          ...link,
+          score: Math.round(link.logProb.toLog() * -10) / 10,
+        }));
       })
-      .sort((a, b) => (b.logProb.gt(a.logProb) ? -1 : 1))
+      .sort((a, b) => (a.score > b.score ? -1 : 1))
       .slice(0, limit ?? Infinity);
   }
 }

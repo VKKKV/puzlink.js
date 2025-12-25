@@ -9,15 +9,14 @@ import { lengthLinker } from "./length.js";
 import { letterDistributionLinker } from "./letterDistribution.js";
 
 /**
- * A Link is a relationship between a *set* of words, with how strong it is
- * quantified via logProb.
+ * A PartialLink is the subset of Link that a Linker needs to return. We do
+ * some processing before it ends up being a Link. See Link for full details.
  */
-export type Link = Readonly<{
-  /** The top-level link name to report. Defaults to the name of the linker. */
+export type PartialLink = Readonly<{
+  /** A human-readable link name; defaults to the name of the linker. */
   name?: string;
   /**
-   * The log prob we'd expect to see this link, if each word was instead
-   * replaced with a random puzzle answer.
+   * Log prob we'd expect to see this link.
    *
    * Note that this should describe the log prob of the *name* of the link.
    * A link with name "two distinct length values" should have the log prob
@@ -29,12 +28,10 @@ export type Link = Readonly<{
   description: readonly string[];
 }>;
 
-/**
- * A Linker is a function that takes a list of words and returns Links.
- */
+/** A Linker is a function that takes a list of words and returns Links. */
 export type Linker = Readonly<{
   name: string;
-  eval: (words: string[], ordered?: boolean) => Link[];
+  eval: (words: string[], ordered?: boolean) => PartialLink[];
 }>;
 
 /** All linkers. */

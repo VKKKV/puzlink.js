@@ -1,5 +1,5 @@
 import { LetterDistribution, VOWELS } from "../lib/letterDistribution.js";
-import type { Link, Linker } from "./index.js";
+import type { Linker, PartialLink } from "./index.js";
 
 // TODO(maybe): preponderance of NEWS
 // TODO(maybe): preponderance of IVXLDCM
@@ -9,7 +9,7 @@ type Props = {
   slugs: string[];
 };
 
-function unusual({ distribution, slugs }: Props): Link | null {
+function unusual({ distribution, slugs }: Props): PartialLink | null {
   const all = slugs.join("");
   const { high, low } = distribution.outliers(all);
   if (high.length > 0 || low.length > 0) {
@@ -25,7 +25,7 @@ function unusual({ distribution, slugs }: Props): Link | null {
   return null;
 }
 
-function equalVowelPattern({ distribution, slugs }: Props): Link | null {
+function equalVowelPattern({ distribution, slugs }: Props): PartialLink | null {
   const minLength = Math.min(...slugs.map((s) => s.length));
   const shortest = slugs.find((s) => s.length === minLength)!;
   const pattern = Array.from(shortest, (letter) =>
@@ -56,7 +56,7 @@ export function letterDistributionLinker(
         slugs,
       };
       return [unusual(props), equalVowelPattern(props)].filter(
-        (l): l is Link => l !== null,
+        (l): l is PartialLink => l !== null,
       );
     },
   };

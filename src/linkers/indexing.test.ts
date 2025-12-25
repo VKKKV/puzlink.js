@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { LetterDistribution, LETTERS } from "../lib/letterDistribution.js";
-import { indexingLinker } from "./indexing.js";
 import { Wordlist } from "../lib/wordlist.js";
+import { indexingLinker } from "./indexing.js";
 
 describe("LetterDistribution", () => {
   const link = (slugs: string[]) =>

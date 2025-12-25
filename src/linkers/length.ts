@@ -1,5 +1,5 @@
 import type { LengthDistribution } from "../lib/lengthDistribution.js";
-import type { Link, Linker } from "./index.js";
+import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
   distribution: LengthDistribution;
@@ -8,7 +8,7 @@ type Props = {
   slugs: string[];
 };
 
-function allEqual({ distribution, lengthSet }: Props): Link | null {
+function allEqual({ distribution, lengthSet }: Props): PartialLink | null {
   if (lengthSet.size !== 1) {
     return null;
   }
@@ -20,7 +20,11 @@ function allEqual({ distribution, lengthSet }: Props): Link | null {
   };
 }
 
-function onlyTwo({ distribution, lengthSet, slugs }: Props): Link | null {
+function onlyTwo({
+  distribution,
+  lengthSet,
+  slugs,
+}: Props): PartialLink | null {
   if (lengthSet.size !== 2) {
     return null;
   }
@@ -39,7 +43,7 @@ function onlyTwo({ distribution, lengthSet, slugs }: Props): Link | null {
   };
 }
 
-function equalMod2({ distribution, lengths }: Props): Link | null {
+function equalMod2({ distribution, lengths }: Props): PartialLink | null {
   if (new Set(lengths.map((l) => l % 2)).size !== 1) {
     return null;
   }
@@ -51,7 +55,7 @@ function equalMod2({ distribution, lengths }: Props): Link | null {
   };
 }
 
-function equalMod3({ distribution, lengths }: Props): Link | null {
+function equalMod3({ distribution, lengths }: Props): PartialLink | null {
   if (new Set(lengths.map((l) => l % 3)).size !== 1) {
     return null;
   }
@@ -62,7 +66,7 @@ function equalMod3({ distribution, lengths }: Props): Link | null {
   };
 }
 
-function consecutive({ distribution, lengths }: Props): Link | null {
+function consecutive({ distribution, lengths }: Props): PartialLink | null {
   for (let i = 0; i < lengths.length - 1; i++) {
     if (lengths[i + 1]! - lengths[i]! !== 1) {
       return null;
@@ -75,7 +79,7 @@ function consecutive({ distribution, lengths }: Props): Link | null {
   };
 }
 
-function paired({ distribution, slugs }: Props): Link | null {
+function paired({ distribution, slugs }: Props): PartialLink | null {
   const byLength = new Map<number, string[]>();
   for (const slug of slugs) {
     if (!byLength.has(slug.length)) {
@@ -113,7 +117,7 @@ export function lengthLinker(distribution: LengthDistribution): Linker {
         equalMod3(props),
         consecutive(props),
         paired(props),
-      ].filter((l): l is Link => l !== null);
+      ].filter((l): l is PartialLink => l !== null);
     },
   };
 }

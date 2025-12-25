@@ -1,7 +1,7 @@
 import type { LetterDistribution } from "../lib/letterDistribution.js";
 import { interval, ordinal } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
-import type { Link, Linker } from "./index.js";
+import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
   distribution: LetterDistribution;
@@ -11,7 +11,11 @@ type Props = {
   wordlist: Wordlist;
 };
 
-function allEqual({ distribution, indexText, indexed }: Props): Link | null {
+function allEqual({
+  distribution,
+  indexText,
+  indexed,
+}: Props): PartialLink | null {
   if (new Set(indexed).size !== 1) {
     return null;
   }
@@ -27,7 +31,7 @@ function almostEqual({
   indexText,
   indexed,
   slugs,
-}: Props): Link | null {
+}: Props): PartialLink | null {
   const indexedSet = new Set(indexed);
   if (indexedSet.size !== 2) {
     return null;
@@ -58,7 +62,7 @@ function onlyTwo({
   indexText,
   indexed,
   slugs,
-}: Props): Link | null {
+}: Props): PartialLink | null {
   const indexedSet = new Set(indexed);
   if (indexedSet.size !== 2) {
     return null;
@@ -81,7 +85,7 @@ function word({
   indexText,
   indexed,
   wordlist,
-}: Props): Link | null {
+}: Props): PartialLink | null {
   // TODO: isPhrase?
   if (!wordlist.isWord(indexed.join(""))) {
     return null;
@@ -98,7 +102,7 @@ function anagram({
   indexText,
   indexed,
   wordlist,
-}: Props): Link | null {
+}: Props): PartialLink | null {
   const anagrams = wordlist.anagrams(indexed.join(""));
   if (anagrams.length === 0) {
     return null;
@@ -110,7 +114,11 @@ function anagram({
   };
 }
 
-function consecutive({ distribution, indexText, indexed }: Props): Link | null {
+function consecutive({
+  distribution,
+  indexText,
+  indexed,
+}: Props): PartialLink | null {
   const sorted = indexed.slice().sort();
   for (let i = 0; i < sorted.length - 1; i++) {
     if (sorted[i + 1]!.charCodeAt(0) - sorted[i]!.charCodeAt(0) !== 1) {
@@ -129,7 +137,7 @@ function paired({
   indexText,
   indexed,
   slugs,
-}: Props): Link | null {
+}: Props): PartialLink | null {
   const byIndexed = new Map<string, number[]>();
   for (let i = 0; i < indexed.length; i++) {
     const letter = indexed[i]!;
@@ -202,7 +210,7 @@ export function indexingLinker(
           anagram(props),
           consecutive(props),
           paired(props),
-        ].filter((l): l is Link => l !== null);
+        ].filter((l): l is PartialLink => l !== null);
       });
     },
   };

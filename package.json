@@ -10,6 +10,7 @@
   "scripts": {
     "build:categories": "tsx scripts/buildCategories.ts",
     "build:knownLogProbs": "tsx scripts/buildKnownLogProbs.ts",
+    "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",
     "lint": "eslint",
     "test": "vitest run",
