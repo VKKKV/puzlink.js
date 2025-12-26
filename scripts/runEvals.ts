@@ -19,6 +19,7 @@ const cli = meow(
       $ npm run test:evals -- [options] [<pattern>]
 
     Options
+      --add <file>, -a <file>  Add a new eval file
       --description, -d        Show descriptions for each link
       --limit <num>, -l <num>  Number of links to print per failed case [default: ${DEFAULT_LIMIT.toString()}]
       --show-pass              Show cases that pass
@@ -27,6 +28,10 @@ const cli = meow(
   {
     importMeta: import.meta,
     flags: {
+      add: {
+        type: "string",
+        shortFlag: "a",
+      },
       description: {
         type: "boolean",
         shortFlag: "d",
@@ -271,8 +276,31 @@ async function mainLoop(args: Args, puzlink: Puzlink) {
   }
 }
 
+async function addEval(file: string) {
+  const content = `
+import type { EvalSuite } from "../runEvals.js";
+
+export default {
+  name: "${file}",
+  source: "?",
+  cases: [
+    {
+      slugs: \`\`,
+      expected: "?",
+    },
+  ],
+} satisfies EvalSuite;
+`.trimStart();
+  await fs.writeFile(path.join(evalsDir, `${file}.ts`), content, "utf-8");
+}
+
 async function main() {
   const args = parseArgs();
+
+  if (args.add) {
+    await addEval(args.add);
+    return;
+  }
 
   process.stdout.write(chalk.gray("initializing puzlink..."));
   const { result: puzlink, duration: puzlinkInitMs } = await time(() =>
