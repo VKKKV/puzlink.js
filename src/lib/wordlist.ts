@@ -1,6 +1,9 @@
 import { Cromulence, loadWordlist, logProbToZipf } from "cromulence";
-import { LetterBitset } from "./letterBitset.js";
+import { PrefixDistribution, SuffixDistribution } from "./affixDistribution.js";
+import { LetterBitsets } from "./letterBitset.js";
+import { LetterDistribution } from "./letterDistribution.js";
 import { LogNum } from "./logNum.js";
+import { memoize } from "./memoize.js";
 
 /**
  * Info about the words in a wordlist.
@@ -11,19 +14,20 @@ import { LogNum } from "./logNum.js";
 export class Wordlist {
   private cromulence: Cromulence;
   /** A map from letter bitsets to words with that bitset. */
-  private letterCounters = new Map<bigint, string[]>();
+  private bitsets: LetterBitsets;
+  /** The letter distribution of the wordlist. */
+  letters: LetterDistribution;
+  /** The prefix distribution of the wordlist. */
+  prefixes: PrefixDistribution;
+  /** The suffix distribution of the wordlist. */
+  suffixes: SuffixDistribution;
 
   constructor(wordlist: Record<string, number>) {
     this.cromulence = new Cromulence(wordlist);
-    for (const word of Object.keys(this.cromulence.wordlist)) {
-      const existing = this.letterCounters.get(LetterBitset.from(word).data);
-      if (existing !== undefined) {
-        existing.push(word);
-        continue;
-      } else {
-        this.letterCounters.set(LetterBitset.from(word).data, [word]);
-      }
-    }
+    this.bitsets = new LetterBitsets(wordlist);
+    this.letters = new LetterDistribution(wordlist);
+    this.prefixes = new PrefixDistribution(wordlist);
+    this.suffixes = new SuffixDistribution(wordlist);
   }
 
   static async download(): Promise<Wordlist> {
@@ -131,11 +135,28 @@ export class Wordlist {
       threshold = 0,
     }: { loose?: boolean; threshold?: number } = {},
   ): string[] {
-    return (this.letterCounters.get(LetterBitset.from(slug).data) ?? [])
+    return this.bitsets
+      .get(slug)
       .filter((word) => loose || word !== slug)
       .map((word) => [word, this.cromulence.wordlist[word]!] as const)
       .filter((t) => t[1] > threshold)
       .sort((a, b) => b[1] - a[1])
       .map((t) => t[0]);
+  }
+
+  /**
+   * Prob that, for two words, the first has a suffix equal to the second's
+   * prefix, of the given length.
+   */
+  @memoize()
+  probSharedAffix(length: number) {
+    const prefixes = this.prefixes.get(length);
+    const suffixes = this.suffixes.get(length);
+
+    return LogNum.sum(
+      Array.from(prefixes.entries(), ([prefix, prefixProb]) => {
+        return prefixProb.mul(suffixes.get(prefix));
+      }),
+    );
   }
 }

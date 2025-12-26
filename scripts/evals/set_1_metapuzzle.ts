@@ -18,7 +18,7 @@ export default {
         ANTHER
         HERALD
       `,
-      expected: "TODO chain",
+      expected: "multiple shared suffixes and prefixes",
     },
   ],
 } satisfies EvalSuite;

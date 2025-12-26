@@ -89,11 +89,7 @@ function memoize2<Fn extends (Arg1: any, Arg2: any) => unknown>() {
     const cache = new Map<any, Map<any, unknown>>();
     return {
       get: ([outerKey, innerKey]) => {
-        const inner = cache.get(outerKey);
-        if (inner === undefined) {
-          return null;
-        }
-        return inner.get(innerKey) ?? null;
+        return cache.get(outerKey)?.get(innerKey) ?? null;
       },
       set: ([outerKey, innerKey], value) => {
         let inner = cache.get(outerKey);
@@ -107,14 +103,34 @@ function memoize2<Fn extends (Arg1: any, Arg2: any) => unknown>() {
   });
 }
 
-/** Memoize a class method that takes two arguments. */
-export function memoize<const Fn extends (Arg1: any, Arg2: any) => unknown>(
-  levels: 2,
+function memoize3<Fn extends (Arg1: any, Arg2: any, Arg3: any) => unknown>() {
+  return memoizeDecorator<Fn>(() => {
+    const cache = new Map<any, Map<any, Map<any, unknown>>>();
+    return {
+      get: ([outerKey, middleKey, innerKey]) => {
+        return cache.get(outerKey)?.get(middleKey)?.get(innerKey) ?? null;
+      },
+      set: ([outerKey, middleKey, innerKey], value) => {
+        let middle = cache.get(outerKey);
+        if (middle === undefined) {
+          middle = new Map();
+          cache.set(outerKey, middle);
+        }
+        let inner = middle.get(middleKey);
+        if (inner === undefined) {
+          inner = new Map();
+          middle.set(middleKey, inner);
+        }
+        inner.set(innerKey, value);
+      },
+    } as Cache<Parameters<Fn>, ReturnType<Fn>>;
+  });
+}
+
+/** Memoize a class method that takes up to three arguments. */
+export function memoize<const Fn extends AnyFn>(
+  levels?: 1 | 2 | 3,
 ): (target: Fn) => Fn;
-/** Memoize a class method that takes a single argument. */
-export function memoize<const Fn extends (Arg: any) => unknown>(
-  levels?: 1,
-): (target: Fn) => Fn;
-export function memoize(levels?: 1 | 2) {
-  return levels === 2 ? memoize2() : memoize1();
+export function memoize(levels?: 1 | 2 | 3) {
+  return levels === 3 ? memoize3() : levels === 2 ? memoize2() : memoize1();
 }

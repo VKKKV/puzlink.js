@@ -116,8 +116,8 @@ export class Distribution<T extends PropertyKey> {
     return LogNum.sum(partials);
   }
 
-  /** Log probability of an observed distribution, via chi-squared. */
-  prob(observed: LogCounter<T>): LogNum {
+  /** Log probability that an unordered distribution is drawn from this. */
+  probUnordered(observed: LogCounter<T>): LogNum {
     const df = this.frequencies.size - 1;
     const z = (this.chi2(observed).toNum() - df) / Math.sqrt(2 * df);
     return LogNum.from(1 - normCdf(z));

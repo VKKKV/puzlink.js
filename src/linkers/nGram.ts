@@ -1,25 +1,27 @@
-import { LetterDistribution, VOWELS } from "../lib/letterDistribution.js";
+import { VOWELS } from "../lib/letterDistribution.js";
+import { LogNum } from "../lib/logNum.js";
 import { enumerate } from "../lib/util.js";
+import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker, PartialLink } from "./index.js";
 
 // TODO(maybe): preponderance of NEWS
 // TODO(maybe): preponderance of IVXLDCM
 
 type Props = {
-  distribution: LetterDistribution;
   slugs: string[];
+  wordlist: Wordlist;
 };
 
-function unusual({ distribution, slugs }: Props): PartialLink | null {
-  const all = slugs.join("");
-  const { high, low } = distribution.outliers(all);
+function unusual({ slugs, wordlist }: Props): PartialLink | null {
+  const all = Array.from(slugs.join(""));
+  const { high, low } = wordlist.letters.outliers(all);
   if (high.length > 0 || low.length > 0) {
     return {
       name: "unusual letter distribution",
-      logProb: distribution.prob(all),
+      logProb: wordlist.letters.probUnordered(all),
       description: [
-        ...(high ? [`over-represented: ${high}`] : []),
-        ...(low ? [`under-represented: ${low}`] : []),
+        ...(high.length > 0 ? [`over-represented: ${high.join(", ")}`] : []),
+        ...(low.length > 0 ? [`under-represented: ${low.join(", ")}`] : []),
       ],
     };
   }
@@ -28,40 +30,92 @@ function unusual({ distribution, slugs }: Props): PartialLink | null {
 
 function equalVowelPattern(
   start: boolean,
-  { distribution, slugs }: Props,
+  { slugs, wordlist }: Props,
 ): PartialLink | null {
   const minLength = Math.min(...slugs.map((s) => s.length));
   const shortest = slugs.find((s) => s.length === minLength)!;
   const pattern = Array.from(shortest, (letter) =>
     VOWELS.includes(letter) ? "V" : "C",
   ).join("");
-  for (const other of slugs) {
-    const offset = start ? 0 : other.length - shortest.length;
-    for (const [i] of enumerate(shortest)) {
-      if (VOWELS.includes(other[offset + i]!) !== (pattern[i] === "V")) {
-        return null;
+  const matchesVowelPattern = (other: string) => {
+    const offset = start ? 0 : other.length - minLength;
+    for (const [i, vc] of enumerate(pattern)) {
+      if (VOWELS.includes(other[offset + i]!) !== (vc === "V")) {
+        return false;
       }
     }
+    return true;
+  };
+  if (!slugs.every(matchesVowelPattern)) {
+    return null;
   }
   return {
     name: `${start ? "start" : "end"} with the same vowel-consonant pattern`,
-    logProb: distribution.probEqualVowelPattern(slugs.length, minLength),
+    logProb: wordlist[start ? "prefixes" : "suffixes"].probEqualVowelPattern(
+      slugs.length,
+      minLength,
+    ),
     description: [`all ${start ? "start" : "end"} with ${pattern}`],
   };
 }
 
-export function nGramLinker(distribution: LetterDistribution): Linker {
+function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
+  // The phenomenon we're interested in is if: for almost all slugs, there
+  // exists some other slug such that their suffix and prefix overlap.
+  const shared = new Map<string, { prefixOf: string; length: number }>();
+  for (const suffixOf of slugs) {
+    for (const prefixOf of slugs) {
+      if (prefixOf === suffixOf) {
+        continue;
+      }
+      let length = Math.min(prefixOf.length, suffixOf.length);
+      for (; length > 1; length--) {
+        if (prefixOf.slice(0, length) !== suffixOf.slice(-length)) {
+          continue;
+        }
+        const currentBest = shared.get(suffixOf)?.length ?? 0;
+        if (length > currentBest) {
+          shared.set(suffixOf, { prefixOf, length });
+        }
+      }
+    }
+  }
+
+  if (shared.size <= 1) {
+    return null;
+  }
+
+  return {
+    name: "multiple shared suffixes and prefixes",
+    // This is an underestimate because it assumes independence.
+    logProb: LogNum.prod(
+      Array.from(shared.values(), ({ length }) => {
+        return wordlist.probSharedAffix(length);
+      }),
+    ),
+    description: Array.from(
+      shared.entries(),
+      ([suffixOf, { prefixOf, length }]) =>
+        `${suffixOf.slice(0, -length)}${suffixOf.slice(-length).toUpperCase()} ${prefixOf
+          .slice(0, length)
+          .toUpperCase()}${prefixOf.slice(length)}`,
+    ),
+  };
+}
+
+// - at each index, there's exactly one repeated letter
+
+/** Links about the distribution of n-grams. */
+export function nGramLinker(wordlist: Wordlist): Linker {
   return {
     name: "n-grams",
     eval: (slugs) => {
-      const props = {
-        distribution,
-        slugs,
-      };
+      const props = { slugs, wordlist };
       return [
         unusual(props),
         equalVowelPattern(true, props),
         equalVowelPattern(false, props),
+        sharedAffixes(props),
       ].filter((l): l is PartialLink => l !== null);
     },
   };

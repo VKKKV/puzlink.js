@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import { memoize } from "./memoize.js";
 
-describe.only("memoize", () => {
+describe("memoize", () => {
   let fooCalls = 0;
   let barCalls = 0;
+  let bazCalls = 0;
 
   class FooBar {
     base: number;
@@ -23,11 +24,18 @@ describe.only("memoize", () => {
       barCalls++;
       return this.base + a + b;
     }
+
+    @memoize(3)
+    baz(a: number, b: number, c: number) {
+      bazCalls++;
+      return this.base + a + b + c;
+    }
   }
 
   beforeEach(() => {
     fooCalls = 0;
     barCalls = 0;
+    bazCalls = 0;
   });
 
   test("single instance", () => {
@@ -38,6 +46,9 @@ describe.only("memoize", () => {
     expect(fooBar.bar(1, 2)).toBe(3);
     expect(fooBar.bar(1, 2)).toBe(3);
     expect(barCalls).toBe(1);
+    expect(fooBar.baz(1, 2, 3)).toBe(6);
+    expect(fooBar.baz(1, 2, 3)).toBe(6);
+    expect(bazCalls).toBe(1);
   });
 
   test("two unshared instances", () => {

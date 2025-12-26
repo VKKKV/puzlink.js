@@ -3,7 +3,6 @@ import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
 import { caesar, interval } from "./util.js";
-import { Wordlist } from "./wordlist.js";
 
 export const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 export const VOWELS = "aeiou";
@@ -11,89 +10,92 @@ export const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 
 /**
  * Info about the letter distribution of a wordlist.
+ *
+ * All of these methods rely on letters being drawn iid. This is the case for
+ * letters that come from random indexing. This is *not* the case for things
+ * like random substrings.
  */
 export class LetterDistribution {
   readonly distribution: Distribution<string>;
-  private readonly wordlist: Wordlist;
   private readonly lengthToProbs: Map<
     number,
-    { word: LogNum; anagram: LogNum }
+    {
+      /** Log probability to get a word of this length. */
+      word: LogNum;
+      /** Log probability to get an anagram of a word of this length. */
+      anagram: LogNum;
+    }
   >;
 
-  constructor(wordlist: Wordlist) {
-    this.wordlist = wordlist;
-    const frequencies = wordlist.reduce(
-      {
-        letterCount: new Map<string, number>(),
-        total: 0,
-      },
-      (acc, slug) => {
-        for (const letter of slug) {
-          acc.letterCount.set(letter, (acc.letterCount.get(letter) ?? 0) + 1);
-          acc.total++;
-        }
-        return acc;
-      },
-    );
+  constructor(wordlist: Record<string, number>) {
+    const letterCount = new Map<string, number>();
+    let total = 0;
+
+    for (const word in wordlist) {
+      for (const letter of word) {
+        letterCount.set(letter, (letterCount.get(letter) ?? 0) + 1);
+        total++;
+      }
+    }
+
     this.distribution = new Distribution(
       new Map(
-        Array.from(frequencies.letterCount.entries(), ([letter, count]) => [
+        Array.from(letterCount.entries(), ([letter, count]) => [
           letter,
-          LogNum.fromFraction(count, frequencies.total),
+          LogNum.fromFraction(count, total),
         ]),
       ),
     );
-    this.lengthToProbs = this.wordlist.reduce(
-      new Map<number, { word: LogNum; anagram: LogNum }>(),
-      (acc, slug) => {
-        const prob = LogNum.prod(
-          Array.from(slug, (letter) => this.distribution.get(letter)),
-        );
 
-        const counts = new Map<string, number>();
-        for (const letter of slug) {
-          counts.set(letter, (counts.get(letter) ?? 0) + 1);
-        }
-        const perms = LogNum.fromFactorial(slug.length).div(
-          LogNum.prod(
-            Array.from(counts.values(), (count) => LogNum.fromFactorial(count)),
-          ),
-        );
+    this.lengthToProbs = new Map<number, { word: LogNum; anagram: LogNum }>();
 
-        if (!acc.has(slug.length)) {
-          acc.set(slug.length, {
-            word: LogNum.from(0),
-            anagram: LogNum.from(0),
-          });
-        }
-        acc.get(slug.length)!.word = acc.get(slug.length)!.word.add(prob);
-        acc.get(slug.length)!.anagram = acc
-          .get(slug.length)!
-          .anagram.add(prob.mul(perms));
+    for (const slug in wordlist) {
+      const prob = LogNum.prod(
+        Array.from(slug, (letter) => this.distribution.get(letter)),
+      );
 
-        return acc;
-      },
-    );
+      const counts = new Map<string, number>();
+      for (const letter of slug) {
+        counts.set(letter, (counts.get(letter) ?? 0) + 1);
+      }
+      const perms = LogNum.fromFactorial(slug.length).div(
+        LogNum.prod(
+          Array.from(counts.values(), (count) => LogNum.fromFactorial(count)),
+        ),
+      );
+
+      if (!this.lengthToProbs.has(slug.length)) {
+        this.lengthToProbs.set(slug.length, {
+          word: LogNum.from(0),
+          anagram: LogNum.from(0),
+        });
+      }
+      this.lengthToProbs.get(slug.length)!.word = this.lengthToProbs
+        .get(slug.length)!
+        .word.add(prob);
+      this.lengthToProbs.get(slug.length)!.anagram = this.lengthToProbs
+        .get(slug.length)!
+        .anagram.add(prob.mul(perms));
+    }
   }
 
-  static from(words: string[]): LetterDistribution {
-    return new LetterDistribution(Wordlist.from(words));
-  }
-
-  /** Log probability of a slug's distribution, via chi-squared. */
-  prob(slug: string): LogNum {
-    const counter = LogCounter.from(slug);
-    return this.distribution.prob(counter);
+  /**
+   * Log probability that a list of letters is iid drawn from this distribution,
+   * via chi-squared.
+   */
+  probUnordered(letters: string[]): LogNum {
+    const counter = LogCounter.from(letters);
+    return this.distribution.probUnordered(counter);
   }
 
   /** Over- and under-represented letters, at 2 sigma. */
-  outliers(slug: string): {
-    high: string;
-    low: string;
+  outliers(letters: string[]): {
+    high: string[];
+    low: string[];
   } {
-    const counter = LogCounter.from(slug);
+    const counter = LogCounter.from(letters);
     const { high, low } = this.distribution.outliers(counter);
-    return { high: Object.keys(high).join(""), low: Object.keys(low).join("") };
+    return { high: Object.keys(high), low: Object.keys(low) };
   }
 
   /**

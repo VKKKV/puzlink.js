@@ -1,5 +1,7 @@
+import { loadWordlist } from "cromulence";
 import { describe, expect, test } from "vitest";
-import { LetterBitset } from "./letterBitset.js";
+import { LetterBitset, LetterBitsets } from "./letterBitset.js";
+import { speedTest } from "./util.test.js";
 
 describe("LetterBitset", () => {
   test("index works", () => {
@@ -38,5 +40,16 @@ describe("LetterBitset", () => {
     expect(
       LetterBitset.from("mamba").transaddOf(LetterBitset.from("abba")),
     ).toBe(null);
+  });
+});
+
+describe("LetterBitsets", () => {
+  test.runIf(speedTest)("speed", async () => {
+    const wordlist = await loadWordlist();
+    const start = Date.now();
+    new LetterBitsets(wordlist);
+    const time = Date.now() - start;
+    expect(time).toBeLessThan(1000);
+    console.log(`LetterBitsets init: ${time.toString()}ms`);
   });
 });

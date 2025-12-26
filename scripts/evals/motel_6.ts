@@ -13,7 +13,7 @@ export default {
         THRONE
         ONESUN
       `,
-      expected: "TODO chain",
+      expected: "multiple shared suffixes and prefixes",
     },
   ],
 } satisfies EvalSuite;

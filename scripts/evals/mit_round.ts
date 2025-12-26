@@ -15,7 +15,7 @@ export default {
         MANIFESTO
         STOP CODON
       `,
-      expected: "TODO chain",
+      expected: "multiple shared suffixes and prefixes",
     },
   ],
 } satisfies EvalSuite;

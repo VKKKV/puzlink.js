@@ -1,6 +1,7 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
+import vitest from "@vitest/eslint-plugin";
 
 export default defineConfig([
   globalIgnores(["app", "dist"]),
@@ -19,6 +20,13 @@ export default defineConfig([
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
       },
+    },
+  },
+  {
+    files: ["**/*.test.ts"],
+    plugins: { vitest },
+    rules: {
+      ...vitest.configs.recommended.rules,
     },
   },
 ]);

@@ -65,3 +65,23 @@ export class LetterBitset {
     return other.transaddOf(this);
   }
 }
+
+/** A map from letter bitsets to words with that bitset. */
+export class LetterBitsets {
+  private letterCounters = new Map<bigint, string[]>();
+
+  constructor(wordlist: Record<string, number>) {
+    for (const word in wordlist) {
+      const bitset = LetterBitset.from(word).data;
+      if (!this.letterCounters.has(bitset)) {
+        this.letterCounters.set(bitset, []);
+      }
+      this.letterCounters.get(bitset)!.push(word);
+    }
+  }
+
+  /** Get the words whose bitset matches the given slug's bitset. */
+  get(slug: string) {
+    return this.letterCounters.get(LetterBitset.from(slug).data) ?? [];
+  }
+}

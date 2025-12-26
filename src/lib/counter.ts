@@ -1,9 +1,9 @@
 /** A map from items to counts. */
 export class Counter<T extends PropertyKey> {
-  private readonly counts: ReadonlyMap<T, number>;
+  private readonly counts: Map<T, number>;
 
-  constructor(counts: ReadonlyMap<T, number>, totalCache?: number) {
-    this.counts = counts;
+  constructor(counts?: Map<T, number>, totalCache?: number) {
+    this.counts = counts ?? new Map<T, number>();
     this.totalCache = totalCache;
   }
 
@@ -19,6 +19,22 @@ export class Counter<T extends PropertyKey> {
     }
 
     return new Counter(counts, total);
+  }
+
+  /** Add the given item to the counter. */
+  addOne(item: T): void {
+    this.counts.set(item, (this.counts.get(item) ?? 0) + 1);
+    if (this.totalCache !== undefined) {
+      this.totalCache += 1;
+    }
+  }
+
+  /** Add the given items to the counter. */
+  addMany(data: Iterable<T>): void {
+    this.totalCache = undefined;
+    for (const item of data) {
+      this.counts.set(item, (this.counts.get(item) ?? 0) + 1);
+    }
   }
 
   /** The number of distinct items. */

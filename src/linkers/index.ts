@@ -1,7 +1,6 @@
 import { answerLengthLogProbs } from "../data/answerLengths.js";
 import { featureLinkers } from "../features/index.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
-import { LetterDistribution } from "../lib/letterDistribution.js";
 import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import { indexingLinker } from "./indexing.js";
@@ -37,11 +36,10 @@ export type Linker = Readonly<{
 /** All linkers. */
 export function allLinkers(wordlist: Wordlist): Linker[] {
   const lengthDist = LengthDistribution.from(answerLengthLogProbs);
-  const letterDist = new LetterDistribution(wordlist);
   return [
     ...featureLinkers(wordlist),
-    indexingLinker(letterDist, wordlist),
+    indexingLinker(wordlist),
     lengthLinker(lengthDist),
-    nGramLinker(letterDist),
+    nGramLinker(wordlist),
   ];
 }

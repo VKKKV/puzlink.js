@@ -89,15 +89,25 @@ function Output({ input }: { input: string }) {
 
 // TODO: right now we stole these examples directly from puz.link; we should format them with newlines and spaces to make clear that it like, works
 const examples = [
+  // denizen of the deep, mitmh 2015
   "press hill apes nerds times ordinary mill",
+  // bubbles, mitmh 2015
   "chokechain hourhand lithograph shibboleth shortsighted thermophile",
+  // 10000 puzzle pyramid, mitmh 2015
   "amontillados blooming calcutta dilemma piazzas squareness",
+  // 10000 puzzle pyramid, mitmh 2015
   "antithetic crosshatches gaggle nonconsenting pneumococcal prestidigitation smogless trunnions",
+  // venntersections, mitmh 2014
   "grimaced formally questionable discouraged communicated chysalis saccharin",
+  // venntersections, mitmh 2014
   "thumbtacks monologue frigidities statuesque testimony satirizing flawed",
+  // finsey gillhone, mitmh 2015
   "arcdetriomphescalemodel uvwavedetector gearstick firstprize thiefgamemanual monopoly tuvalutravelguide",
+  // finsey gillhone, mitmh 2015
   "rib node emission lamp ward cent cam",
+  // pod of dolphins meta, mitmh 2015
   "citygates impulsive clickspam baptistry leviathan policecar coupdetat sforzando cartwheel",
+  // venntersections, mitmh 2014
   "lowered levitate inanimate paradise leveraged sizes tuxedo",
 ];
 
