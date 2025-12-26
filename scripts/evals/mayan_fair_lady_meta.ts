@@ -18,7 +18,7 @@ export default {
         PARIS
         AIRLINES
       `,
-      expected: "can insert h (10 / 11)",
+      expected: "can insert h",
     },
   ],
 } satisfies EvalSuite;

@@ -53,14 +53,20 @@ function unequalWithDistance(a: string, b: string, distance: number): Feature {
   };
 }
 
-function equalAnyDistanceTimes(distance: number, times: number): Feature {
+function equalAnyDistanceTimes(
+  distance: number,
+  times: number,
+  strict: boolean,
+): Feature {
   return {
-    name: `has equal letters with ${distance.toString()} letters between, ${times.toString()} times`,
+    name: strict
+      ? `has equal letters with ${distance.toString()} letters between, ${times.toString()} times`
+      : `has equal letters with ${distance.toString()} letters between, at least ${times.toString()} times`,
     property: (slug) => {
       const starts = interval(0, slug.length - distance - 1).filter((i) => {
         return slug[i] === slug[i + distance + 1];
       });
-      if (starts.length !== times) {
+      if (strict ? starts.length !== times : starts.length < times) {
         return null;
       }
       return printIndexSlug(
@@ -180,7 +186,12 @@ export function letterSequenceFeatures(): Feature[] {
     ...mapProduct(equalWithDistanceTimes, LETTERS, [0, 1, 2, 3], [1]),
     ...mapProduct(equalWithDistanceTimes, LETTERS, [0, 1], [2, 3]),
     ...mapProduct(unequalWithDistance, LETTERS, LETTERS, [0, 1]),
-    ...mapProduct(equalAnyDistanceTimes, [0, 1, 2, 3], [1, 2, 3]),
+    ...mapProduct(
+      equalAnyDistanceTimes,
+      [0, 1, 2, 3],
+      [1, 2, 3],
+      [true, false],
+    ),
     ...mapProduct(
       bigramOfTimes,
       [bigram.alpha, bigram.revAlpha],

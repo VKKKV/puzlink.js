@@ -1,8 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { Wordlist } from "../lib/wordlist.js";
-import { nGramLinker } from "./nGram.js";
+import { testLinkOptions } from "./index.js";
+import { otherLinker } from "./other.js";
 
-describe("n-gram linker", () => {
+describe("other linker", () => {
   const wordlist = Wordlist.from([
     "aaaaaaaa",
     "bb",
@@ -32,11 +33,11 @@ describe("n-gram linker", () => {
     // .
   ]);
   const link = (slugs: string[]) =>
-    nGramLinker(wordlist)
-      .eval(slugs)
+    otherLinker(wordlist)
+      .eval(slugs, testLinkOptions)
       .map((l) => [l.name, l.description]);
 
-  test("n-gram links", () => {
+  test("other links", () => {
     expect(link(["jjjjjqqqqqxxxxxzzzzz"])).toMatchInlineSnapshot(`
       [
         [

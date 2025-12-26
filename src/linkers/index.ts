@@ -1,11 +1,12 @@
 import { answerLengthLogProbs } from "../data/answerLengths.js";
 import { featureLinkers } from "../features/index.js";
+import type { LinkOptions } from "../index.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
 import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import { indexingLinker } from "./indexing.js";
 import { lengthLinker } from "./length.js";
-import { nGramLinker } from "./nGram.js";
+import { otherLinker } from "./other.js";
 
 /**
  * A PartialLink is the subset of Link that a Linker needs to return. We do
@@ -27,10 +28,10 @@ export type PartialLink = Readonly<{
   description: readonly string[];
 }>;
 
-/** A Linker is a function that takes a list of words and returns Links. */
+/** A Linker is a function that takes a list of slugs and returns Links. */
 export type Linker = Readonly<{
   name: string;
-  eval: (words: string[], ordered?: boolean) => PartialLink[];
+  eval: (slugs: string[], options: Required<LinkOptions>) => PartialLink[];
 }>;
 
 /** All linkers. */
@@ -40,6 +41,13 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
     ...featureLinkers(wordlist),
     indexingLinker(wordlist),
     lengthLinker(lengthDist),
-    nGramLinker(wordlist),
+    otherLinker(wordlist),
   ];
 }
+
+/** For testing purposes. */
+export const testLinkOptions: Required<LinkOptions> = {
+  limit: Infinity,
+  minFeatureRatio: 0,
+  ordered: true,
+};

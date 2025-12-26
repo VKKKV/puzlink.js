@@ -16,7 +16,7 @@ export default {
         UNSETTING
         ROLAND
       `,
-      expected: "has transdelete 1 (9 / 9)",
+      expected: "has transdelete 1",
     },
   ],
 } satisfies EvalSuite;

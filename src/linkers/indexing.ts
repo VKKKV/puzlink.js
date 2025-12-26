@@ -170,7 +170,7 @@ function paired({
 export function indexingLinker(wordlist: Wordlist): Linker {
   return {
     name: "indexing linker",
-    eval: (slugs, ordered) => {
+    eval: (slugs, { ordered }) => {
       const indices = Array.from(indicesFor(slugs, ordered));
       return indices.flatMap(({ indexText, indexed }) => {
         const props = {

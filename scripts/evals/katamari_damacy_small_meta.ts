@@ -15,7 +15,7 @@ export default {
         CUL DE SAC
         DIVERGED
       `,
-      expected: "starts and ends with the same 1 letters (6 / 7)",
+      expected: "starts and ends with the same 1 letters",
     },
   ],
 } as EvalSuite;

@@ -2,12 +2,13 @@ import { describe, expect, test } from "vitest";
 import { answerLengthLogProbs } from "../data/answerLengths.js";
 import { Distribution } from "../lib/distribution.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
+import { testLinkOptions } from "./index.js";
 import { lengthLinker } from "./length.js";
 
 describe("lengthLinker", () => {
   const link = (slugs: string[]) =>
     lengthLinker(new LengthDistribution(new Distribution(answerLengthLogProbs)))
-      .eval(slugs)
+      .eval(slugs, testLinkOptions)
       .map((l) => [l.name, ...l.description]);
 
   test("length links", () => {

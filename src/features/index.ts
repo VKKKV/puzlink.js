@@ -58,23 +58,25 @@ function featureLinker(
 
   return {
     name,
-    eval: (words) => {
-      const description = words.flatMap((word) => {
+    eval: (slugs, options) => {
+      const description = slugs.flatMap((word) => {
         const result = property(word, getProps(wordlist, word));
         return result ? [result] : [];
       });
-      // Should we report the feature? This isn't entirely straightforward.
-      // Super unlikely single-hits (like "can change to q" for 1/7) might
-      // overwhelm less likely all-hits (like "has transadd 1" for 7/7).
-      // TODO: adjust reporting heuristics; maybe via 'loose' prop on Feature?
+      if (
+        description.length !== 0 &&
+        description.length < options.minFeatureRatio * slugs.length
+      ) {
+        return [];
+      }
       const logProb = LogNum.binomialPValue(
         description.length,
-        words.length,
+        slugs.length,
         featureLogProb,
       );
       return [
         {
-          name: `${name} (${description.length.toString()} / ${words.length.toString()})`,
+          name: `${description.length.toString()}/${slugs.length.toString()} ${name}`,
           description,
           logProb,
         },

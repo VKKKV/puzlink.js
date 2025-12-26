@@ -1,11 +1,12 @@
 import { describe, expect, test } from "vitest";
 import { Wordlist } from "../lib/wordlist.js";
+import { testLinkOptions } from "./index.js";
 import { indexingLinker } from "./indexing.js";
 
 describe("LetterDistribution", () => {
   const link = (slugs: string[]) =>
     indexingLinker(Wordlist.from(["jhy", "owo", "hen", "mej"]))
-      .eval(slugs, true)
+      .eval(slugs, testLinkOptions)
       .map((l) => [l.name, ...l.description]);
 
   test("letter distribution links", () => {

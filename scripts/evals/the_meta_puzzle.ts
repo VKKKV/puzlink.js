@@ -12,7 +12,7 @@ export default {
         LITERACY
         RETAIN
       `,
-      expected: "can be broken into element symbols (5 / 5)",
+      expected: "can be broken into element symbols",
     },
     {
       slugs: `
@@ -27,7 +27,7 @@ export default {
         SELECTED
         SOLDIERED
       `,
-      expected: "has solfege substring (9 / 10)",
+      expected: "has solfege substring",
     },
     {
       slugs: `

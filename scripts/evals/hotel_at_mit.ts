@@ -14,7 +14,7 @@ export default {
         2. C(LIMA)TES
         4. DAMN (YANKEE)S
       `,
-      expected: "has nato alphabet substring (7 / 7)",
+      expected: "has nato alphabet substring",
     },
   ],
 } satisfies EvalSuite;

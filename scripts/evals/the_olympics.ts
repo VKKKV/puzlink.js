@@ -41,7 +41,7 @@ export default {
         SMALLAXE
         XMENHERO
       `,
-      expected: "has 1 x (8 / 8)",
+      expected: "has 1 x",
     },
     {
       slugs: `

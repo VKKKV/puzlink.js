@@ -12,7 +12,7 @@ type Props = {
   wordlist: Wordlist;
 };
 
-function unusual({ slugs, wordlist }: Props): PartialLink | null {
+function unusualLetters({ slugs, wordlist }: Props): PartialLink | null {
   const all = Array.from(slugs.join(""));
   const { high, low } = wordlist.letters.outliers(all);
   if (high.length > 0 || low.length > 0) {
@@ -60,8 +60,6 @@ function equalVowelPattern(
 }
 
 function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
-  // The phenomenon we're interested in is if: for almost all slugs, there
-  // exists some other slug such that their suffix and prefix overlap.
   const shared = new Map<string, { prefixOf: string; length: number }>();
   for (const suffixOf of slugs) {
     for (const prefixOf of slugs) {
@@ -103,16 +101,16 @@ function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
   };
 }
 
-// - at each index, there's exactly one repeated letter
+// TODO at each index, there's exactly one repeated letter
 
-/** Links about the distribution of n-grams. */
-export function nGramLinker(wordlist: Wordlist): Linker {
+/** Other links. */
+export function otherLinker(wordlist: Wordlist): Linker {
   return {
-    name: "n-grams",
+    name: "other links",
     eval: (slugs) => {
       const props = { slugs, wordlist };
       return [
-        unusual(props),
+        unusualLetters(props),
         equalVowelPattern(true, props),
         equalVowelPattern(false, props),
         sharedAffixes(props),

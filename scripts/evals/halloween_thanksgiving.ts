@@ -16,7 +16,7 @@ export default {
         TURBOCHARGER
         WARDROBE
       `,
-      expected: "has at least 1 b (7 / 9)",
+      expected: "has at least 1 b",
     },
   ],
 } satisfies EvalSuite;

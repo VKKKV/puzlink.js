@@ -36,6 +36,13 @@ export type LinkOptions = {
    */
   limit?: number | null;
   /**
+   * Only report features that are satisfied by either 0, or at least
+   * minFeatureRatio of the words.
+   *
+   * Defaults to 0.5.
+   */
+  minFeatureRatio?: number;
+  /**
    * Is the input in a particular order? Some of the links we use apply
    * only if the words have a given order. Defaults to true if the words
    * are NOT alphabetically sorted.
@@ -78,7 +85,7 @@ export class Puzlink {
   link(
     /** The words to link. See Puzlink.parse for how these are parsed. */
     words: string | readonly string[],
-    { limit = 10, ordered }: LinkOptions = {},
+    { limit = 10, minFeatureRatio = 0.5, ordered }: LinkOptions = {},
   ): Link[] {
     const slugs = Puzlink.parse(words);
 
@@ -88,9 +95,11 @@ export class Puzlink {
       ordered = !isSorted;
     }
 
+    const options = { limit, ordered, minFeatureRatio };
+
     return this.linkers
       .flatMap((linker) => {
-        const links = linker.eval(slugs, ordered);
+        const links = linker.eval(slugs, options);
         return links.map((link) => ({
           name: linker.name,
           ...link,
@@ -100,4 +109,6 @@ export class Puzlink {
       .sort((a, b) => (a.score > b.score ? -1 : 1))
       .slice(0, limit ?? Infinity);
   }
+
+  // TODO: clustering, pos/neg
 }

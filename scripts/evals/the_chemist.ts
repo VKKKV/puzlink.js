@@ -16,7 +16,7 @@ export default {
         KONA
         CROW
       `,
-      expected: "can be broken into element symbols (9 / 9)",
+      expected: "can be broken into element symbols",
     },
   ],
 } as EvalSuite;

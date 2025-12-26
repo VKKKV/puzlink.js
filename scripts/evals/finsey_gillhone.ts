@@ -16,7 +16,7 @@ export default {
         ADVERT
         CORSET
       `,
-      expected: "has 1 reverse alphabetical bigrams (9 / 9)",
+      expected: "has 1 reverse alphabetical bigrams",
     },
     {
       slugs: `
@@ -28,7 +28,7 @@ export default {
         MONOPOLY
         TUVALU TRAVEL GUIDE
       `,
-      expected: "has at least 2 sequential bigrams (7 / 7)",
+      expected: "has at least 2 sequential bigrams",
     },
     {
       slugs: `
@@ -37,7 +37,7 @@ export default {
         ACUPUNCTURE MANUAL
         LIQUEUR
       `,
-      expected: "has u with 1 letters between, 1 times (4 / 4)",
+      expected: "has u with 1 letters between, 1 times",
     },
     {
       slugs: `
@@ -69,7 +69,7 @@ export default {
         CENT
         CAM
       `,
-      expected: "can prepend 1 (7 / 7)",
+      expected: "can prepend 1",
     },
   ],
 } satisfies EvalSuite;

@@ -15,7 +15,7 @@ export default {
         TITHE
         DOUBLE DARE
       `,
-      expected: "starts with solfege (8 / 8)",
+      expected: "starts with solfege",
     },
   ],
 } satisfies EvalSuite;

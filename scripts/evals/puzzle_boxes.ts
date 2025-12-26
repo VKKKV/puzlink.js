@@ -19,7 +19,7 @@ export default {
         SPRINGBOARD
         WEAK INTERACTION
       `,
-      expected: "has morse code with 2 dashes (6 / 12)",
+      expected: "has morse code with 2 dashes",
     },
     {
       slugs: `
@@ -56,7 +56,7 @@ export default {
         STEP
         TERRA
       `,
-      expected: "has caesar shift (6 / 6)",
+      expected: "has caesar shift",
     },
     {
       slugs: `
@@ -69,7 +69,7 @@ export default {
         EASTER EGG
         ROUGHHOUSE
       `,
-      expected: "has equal letters with 0 letters between, 1 times (8 / 8)",
+      expected: "has equal letters with 0 letters between, 1 times",
     },
   ],
 } satisfies EvalSuite;
