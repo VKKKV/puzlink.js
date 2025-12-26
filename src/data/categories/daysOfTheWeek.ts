@@ -1,1 +1,9 @@
-export default ["fri", "mon", "sat", "sun", "thu", "tue", "wed"];
+export default [
+  "wed",
+  "tue",
+  "thu",
+  "sun",
+  "sat",
+  "mon",
+  "fri",
+];

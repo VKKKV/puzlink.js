@@ -7,9 +7,9 @@ class BaseAffixDistribution {
   /** Map from affix length to distribution of affixes of that length. */
   private readonly dist = new Map<number, Distribution<string>>();
 
-  constructor(affix: "prefix" | "suffix", wordlist: Record<string, number>) {
+  constructor(affix: "prefix" | "suffix", wordlist: string[]) {
     let maxLength = 0;
-    for (const word in wordlist) {
+    for (const word of wordlist) {
       maxLength = Math.max(maxLength, word.length);
     }
 
@@ -19,7 +19,7 @@ class BaseAffixDistribution {
       affixes.set(i, []);
     }
 
-    for (const word in wordlist) {
+    for (const word of wordlist) {
       for (let i = 1; i <= word.length; i++) {
         affixes
           .get(i)!
@@ -57,14 +57,14 @@ class BaseAffixDistribution {
 
 /** Info about the prefix distribution of a wordlist. */
 export class PrefixDistribution extends BaseAffixDistribution {
-  constructor(wordlist: Record<string, number>) {
+  constructor(wordlist: string[]) {
     super("prefix", wordlist);
   }
 }
 
 /** Info about the suffix distribution of a wordlist. */
 export class SuffixDistribution extends BaseAffixDistribution {
-  constructor(wordlist: Record<string, number>) {
+  constructor(wordlist: string[]) {
     super("suffix", wordlist);
   }
 }

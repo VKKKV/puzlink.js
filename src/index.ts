@@ -7,7 +7,7 @@ import { allLinkers } from "./linkers/index.js";
  * A Link is a relationship between a (possibly ordered) set of words, with how
  * strong it is quantified via its score.
  */
-export type Link = Readonly<{
+export type Link = {
   /** The name of the link. */
   name: string;
   /**
@@ -24,7 +24,7 @@ export type Link = Readonly<{
    * rounded to 1 decimal place.
    */
   score: number;
-}>;
+};
 
 /** Options for Puzlink.link(). */
 export type LinkOptions = {
@@ -81,7 +81,7 @@ export class Puzlink {
     return words.map((w) => slugify(w)).filter((w) => w.length > 0);
   }
 
-  /** Return all links for a list of words. */
+  /** Return links for a list of words, sorted by score. */
   link(
     /** The words to link. See Puzlink.parse for how these are parsed. */
     words: string | readonly string[],

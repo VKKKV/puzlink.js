@@ -4,9 +4,6 @@ import { enumerate } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker, PartialLink } from "./index.js";
 
-// TODO(maybe): preponderance of NEWS
-// TODO(maybe): preponderance of IVXLDCM
-
 type Props = {
   slugs: string[];
   wordlist: Wordlist;

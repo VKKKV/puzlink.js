@@ -8,20 +8,14 @@ describe("AffixDistribution", () => {
   test.runIf(speedTest)("speed", async () => {
     const wordlist = await loadWordlist();
     const start = Date.now();
-    new PrefixDistribution(wordlist);
-    new SuffixDistribution(wordlist);
+    new PrefixDistribution(Object.keys(wordlist));
+    new SuffixDistribution(Object.keys(wordlist));
     const time = Date.now() - start;
     expect(time).toBeLessThan(2000);
     console.log(`AffixDistribution init: ${time.toString()}ms`);
   });
 
-  const wordlist = {
-    abcdef: 0,
-    ghijkl: 0,
-    mnopqr: 0,
-    stuvwx: 0,
-    yzabcd: 0,
-  };
+  const wordlist = ["abcdef", "ghijkl", "mnopqr", "stuvwx", "yzabcd"];
   const prefixes = new PrefixDistribution(wordlist);
   const suffixes = new SuffixDistribution(wordlist);
 

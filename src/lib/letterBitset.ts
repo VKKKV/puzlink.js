@@ -1,6 +1,9 @@
 /**
  * A class that uses a single bigint to store counts for each lowercase letter,
  * for fast-ish comparison.
+ *
+ * Idea stolen from Collective.jl:
+ * https://github.com/rdeits/Collective.jl/blob/master/src/bitstally.jl
  */
 export class LetterBitset {
   private static readonly bits = 5n;
@@ -15,6 +18,9 @@ export class LetterBitset {
   /**
    * This is a (26 * 5)-bit integer; each 5-bit block is a count for a letter.
    * Unclear how efficient this'll be for different engines...
+   *
+   * Note that 26 * 5 = 130, so these *mostly* fit in 128-bit integers, unless
+   * there's more than 7 'z's.
    */
   readonly data: bigint;
 
@@ -39,15 +45,28 @@ export class LetterBitset {
     return new LetterBitset(data);
   }
 
-  index(letter: string) {
+  /** Count the number of times the given letter appears in this bitset. */
+  index(letter: string): number {
     return Number(
       (this.data >> LetterBitset.offsets[LetterBitset.toIndex(letter)]!) &
         LetterBitset.mask,
     );
   }
 
-  equals(other: LetterBitset) {
+  equals(other: LetterBitset): boolean {
     return this.data === other.data;
+  }
+
+  add(char: string): LetterBitset {
+    return new LetterBitset(
+      this.data + (LetterBitset.letterMasks[LetterBitset.toIndex(char)] ?? 0n),
+    );
+  }
+
+  sub(char: string): LetterBitset {
+    return new LetterBitset(
+      this.data - (LetterBitset.letterMasks[LetterBitset.toIndex(char)] ?? 0n),
+    );
   }
 
   /** If this + result == other, return result; else null. */
@@ -69,19 +88,36 @@ export class LetterBitset {
 /** A map from letter bitsets to words with that bitset. */
 export class LetterBitsets {
   private letterCounters = new Map<bigint, string[]>();
+  private lengths = new Set<number>();
 
-  constructor(wordlist: Record<string, number>) {
-    for (const word in wordlist) {
+  constructor(wordlist: string[]) {
+    for (const word of wordlist) {
       const bitset = LetterBitset.from(word).data;
       if (!this.letterCounters.has(bitset)) {
         this.letterCounters.set(bitset, []);
       }
       this.letterCounters.get(bitset)!.push(word);
+      this.lengths.add(word.length);
     }
   }
 
   /** Get the words whose bitset matches the given slug's bitset. */
-  get(slug: string) {
+  get(slug: string): string[] {
     return this.letterCounters.get(LetterBitset.from(slug).data) ?? [];
+  }
+
+  /** Find all substrings of the slug that anagram to a word's bitset. */
+  *matchSubstring(slug: string): Generator<{ start: number; words: string[] }> {
+    for (const length of this.lengths) {
+      let start = 0;
+      let bitset = LetterBitset.from(slug.slice(0, length));
+      for (; start + length <= slug.length; start++) {
+        const words = this.letterCounters.get(bitset.data);
+        if (words && words.length > 0) {
+          yield { start, words };
+        }
+        bitset = bitset.sub(slug[start] ?? "").add(slug[start + length] ?? "");
+      }
+    }
   }
 }

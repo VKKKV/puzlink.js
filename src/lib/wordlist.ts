@@ -24,10 +24,10 @@ export class Wordlist {
 
   constructor(wordlist: Record<string, number>) {
     this.cromulence = new Cromulence(wordlist);
-    this.bitsets = new LetterBitsets(wordlist);
-    this.letters = new LetterDistribution(wordlist);
-    this.prefixes = new PrefixDistribution(wordlist);
-    this.suffixes = new SuffixDistribution(wordlist);
+    this.bitsets = new LetterBitsets(Object.keys(wordlist));
+    this.letters = new LetterDistribution(Object.keys(wordlist));
+    this.prefixes = new PrefixDistribution(Object.keys(wordlist));
+    this.suffixes = new SuffixDistribution(Object.keys(wordlist));
   }
 
   static async download(): Promise<Wordlist> {

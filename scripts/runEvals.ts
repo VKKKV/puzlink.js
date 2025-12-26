@@ -182,7 +182,13 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
       result.actualRank ? ` top ${result.actualRank.toString()}` : " not found",
     );
   if (result.actualLink) {
-    lines.at(-1)!.push(chalk.gray(` (${result.actualLink.score.toFixed(1)})`));
+    lines
+      .at(-1)!
+      .push(
+        chalk.gray(
+          ` (${result.actualLink.score.toFixed(1)}, ${result.actualLink.name})`,
+        ),
+      );
   }
 
   for (let i = 0; i < args.limit && i < result.links.length; i++) {

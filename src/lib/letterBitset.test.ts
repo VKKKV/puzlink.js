@@ -47,9 +47,22 @@ describe("LetterBitsets", () => {
   test.runIf(speedTest)("speed", async () => {
     const wordlist = await loadWordlist();
     const start = Date.now();
-    new LetterBitsets(wordlist);
+    new LetterBitsets(Object.keys(wordlist));
     const time = Date.now() - start;
     expect(time).toBeLessThan(1000);
     console.log(`LetterBitsets init: ${time.toString()}ms`);
+  });
+
+  test("matchSubstring", () => {
+    const bitsets = new LetterBitsets(["aba", "baa", "caba", "daba"]);
+    expect(Array.from(bitsets.matchSubstring("abacabad"))).toEqual([
+      { start: 0, words: ["aba", "baa"] },
+      { start: 4, words: ["aba", "baa"] },
+      { start: 0, words: ["caba"] },
+      { start: 1, words: ["caba"] },
+      { start: 2, words: ["caba"] },
+      { start: 3, words: ["caba"] },
+      { start: 4, words: ["daba"] },
+    ]);
   });
 });

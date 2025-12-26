@@ -7,44 +7,40 @@ describe("LetterDistribution", () => {
   test.runIf(speedTest)("speed", async () => {
     const wordlist = await loadWordlist();
     const start = Date.now();
-    new LetterDistribution(wordlist);
+    new LetterDistribution(Object.keys(wordlist));
     const time = Date.now() - start;
     expect(time).toBeLessThan(1000);
     console.log(`LetterDistribution init: ${time.toString()}ms`);
   });
 
-  const dist = new LetterDistribution(
-    Object.fromEntries(
-      [
-        "aaaaaaaa",
-        "bb",
-        "ccc",
-        "dddd",
-        "eeeeeeeeeeeee",
-        "ff",
-        "gg",
-        "hhhhhh",
-        "iiiiiii",
-        // .
-        "k",
-        "llll",
-        "mm",
-        "nnnnnnn",
-        "oooooooo",
-        "pp",
-        // .
-        "rrrrrr",
-        "ssssss",
-        "ttttttttt",
-        "uuu",
-        "v",
-        "ww",
-        // .
-        "yy",
-        // .
-      ].map((s) => [s, 0] as const),
-    ),
-  );
+  const dist = new LetterDistribution([
+    "aaaaaaaa",
+    "bb",
+    "ccc",
+    "dddd",
+    "eeeeeeeeeeeee",
+    "ff",
+    "gg",
+    "hhhhhh",
+    "iiiiiii",
+    // .
+    "k",
+    "llll",
+    "mm",
+    "nnnnnnn",
+    "oooooooo",
+    "pp",
+    // .
+    "rrrrrr",
+    "ssssss",
+    "ttttttttt",
+    "uuu",
+    "v",
+    "ww",
+    // .
+    "yy",
+    // .
+  ]);
 
   test("probUnordered", () => {
     expect(

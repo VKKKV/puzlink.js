@@ -30,6 +30,7 @@ export default {
         LG CUP
         MORTGAGE
       `,
+      // expected: "has amino acid substring",
       expected: "unusual letter distribution",
     },
     {
@@ -46,6 +47,19 @@ export default {
         JEROME ROBBINS
       `,
       expected: "has nato alphabet anagram substring",
+    },
+    {
+      slugs: `
+        BRAINWASH
+        COTSWOLD LINE
+        CYNWYD LINE
+        INWARD-FACING
+        JOHN WAYNE
+        SLOT MACHINE
+        SWIMMER
+        SWORD COAST
+      `,
+      expected: "has compass directions substring, 2 times",
     },
     {
       slugs: `

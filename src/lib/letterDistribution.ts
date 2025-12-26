@@ -27,11 +27,11 @@ export class LetterDistribution {
     }
   >;
 
-  constructor(wordlist: Record<string, number>) {
+  constructor(wordlist: string[]) {
     const letterCount = new Map<string, number>();
     let total = 0;
 
-    for (const word in wordlist) {
+    for (const word of wordlist) {
       for (const letter of word) {
         letterCount.set(letter, (letterCount.get(letter) ?? 0) + 1);
         total++;
@@ -49,32 +49,32 @@ export class LetterDistribution {
 
     this.lengthToProbs = new Map<number, { word: LogNum; anagram: LogNum }>();
 
-    for (const slug in wordlist) {
+    for (const word of wordlist) {
       const prob = LogNum.prod(
-        Array.from(slug, (letter) => this.distribution.get(letter)),
+        Array.from(word, (letter) => this.distribution.get(letter)),
       );
 
       const counts = new Map<string, number>();
-      for (const letter of slug) {
+      for (const letter of word) {
         counts.set(letter, (counts.get(letter) ?? 0) + 1);
       }
-      const perms = LogNum.fromFactorial(slug.length).div(
+      const perms = LogNum.fromFactorial(word.length).div(
         LogNum.prod(
           Array.from(counts.values(), (count) => LogNum.fromFactorial(count)),
         ),
       );
 
-      if (!this.lengthToProbs.has(slug.length)) {
-        this.lengthToProbs.set(slug.length, {
+      if (!this.lengthToProbs.has(word.length)) {
+        this.lengthToProbs.set(word.length, {
           word: LogNum.from(0),
           anagram: LogNum.from(0),
         });
       }
-      this.lengthToProbs.get(slug.length)!.word = this.lengthToProbs
-        .get(slug.length)!
+      this.lengthToProbs.get(word.length)!.word = this.lengthToProbs
+        .get(word.length)!
         .word.add(prob);
-      this.lengthToProbs.get(slug.length)!.anagram = this.lengthToProbs
-        .get(slug.length)!
+      this.lengthToProbs.get(word.length)!.anagram = this.lengthToProbs
+        .get(word.length)!
         .anagram.add(prob.mul(perms));
     }
   }
