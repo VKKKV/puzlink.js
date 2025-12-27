@@ -1,7 +1,7 @@
 import type { EvalSuite } from "../runEvals.js";
 
 export default {
-  name: "steam_library",
+  name: "Steam Library",
   source:
     "https://puzzles.mit.edu/2024/mythstoryhunt.world/solutions/steam-library",
   cases: [

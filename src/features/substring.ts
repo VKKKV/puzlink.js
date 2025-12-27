@@ -112,7 +112,8 @@ function hasAnagram(category: Category): Feature {
     name: `has ${category.name} anagram substring`,
     property: (slug) => {
       const match = Array.from(bitsets.matchSubstring(slug));
-      if (match.length !== 1) {
+      const distinctWords = new Set(match.map((m) => m.words[0]!));
+      if (distinctWords.size !== 1) {
         return null;
       }
       const {
@@ -145,7 +146,7 @@ function hasChangeAny(category: Category): Feature {
       let matched: string | null = null;
       for (const { item, regex } of changes) {
         if (regex.exec(slug)) {
-          if (matched !== null) {
+          if (matched !== null && matched !== item) {
             return null;
           }
           matched = item;

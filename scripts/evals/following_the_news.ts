@@ -17,7 +17,7 @@ export default {
         HANSARDISE
         INTERPOSE
       `,
-      expected: "unusual letter distribution",
+      expected: "has compass directions substring, at least 3 times",
     },
   ],
 } satisfies EvalSuite;

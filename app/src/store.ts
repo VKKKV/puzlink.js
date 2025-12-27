@@ -30,8 +30,17 @@ const examples = [
   "lowered levitate inanimate paradise leveraged sizes tuxedo",
 ];
 
-const randomExample = () =>
-  examples[Math.floor(Math.random() * examples.length)].split(" ").join("\n");
+const initialLinkInput = (): string => {
+  const parsed = Puzlink.parse(
+    new URLSearchParams(new URL(window.location.href).search).get("input") ??
+      "",
+  );
+  return parsed.length > 0
+    ? parsed.join("\n")
+    : examples[Math.floor(Math.random() * examples.length)]
+        .split(" ")
+        .join("\n");
+};
 
 const worker = new PuzlinkWorker();
 const send = (input: WorkerInput) => {
@@ -83,7 +92,7 @@ type State = {
 
 const stateCreator: StateCreator<State> = (set, get) => ({
   inputID: null,
-  linkInput: randomExample(),
+  linkInput: initialLinkInput(),
   linkOptions: {},
 
   userOptions: {
@@ -100,6 +109,12 @@ const stateCreator: StateCreator<State> = (set, get) => ({
 
   setLinkInput: (value) => {
     set({ linkInput: value });
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("input")) {
+      url.searchParams.delete("input");
+      window.history.pushState(null, "", url.href);
+    }
   },
   setLinkOptions: (value) => {
     if (shallowEqual(get().linkOptions, value)) {

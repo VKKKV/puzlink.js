@@ -2,6 +2,7 @@ import { loadWordlist } from "cromulence";
 import { describe, expect, test } from "vitest";
 import { LetterBitset, LetterBitsets } from "./letterBitset.js";
 import { speedTest } from "./testUtils.js";
+import natoAlphabet from "../data/categories/natoAlphabet.js";
 
 describe("LetterBitset", () => {
   test("index works", () => {

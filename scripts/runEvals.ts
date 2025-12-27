@@ -23,6 +23,7 @@ const cli = meow(
       --description, -d        Show descriptions for each link
       --limit <num>, -l <num>  Number of links to print per failed case [default: ${DEFAULT_LIMIT.toString()}]
       --show-pass              Show cases that pass
+      --show-url               Show the URL for viewing a case in the app
       --watch, -w              Rerun on changes *on the eval files*
   `,
   {
@@ -43,6 +44,10 @@ const cli = meow(
         default: DEFAULT_LIMIT,
       },
       showPass: {
+        type: "boolean",
+        default: false,
+      },
+      showUrl: {
         type: "boolean",
         default: false,
       },
@@ -192,6 +197,17 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
       .push(
         chalk.gray(
           ` (${result.actualLink.score.toFixed(1)}, ${result.actualLink.name})`,
+        ),
+      );
+  }
+
+  if (args.showUrl) {
+    lines.push([" ".repeat(2)]);
+    lines
+      .at(-1)!
+      .push(
+        chalk.gray(
+          `http://localhost:5173/?input=${result.parsedSlugs.join(",")}`,
         ),
       );
   }
