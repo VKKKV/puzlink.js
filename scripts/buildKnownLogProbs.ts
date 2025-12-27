@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import { KnownLogProbs } from "../src/features/logProbCache.js";
-import { Puzlink } from "../src/index.js";
+import * as puzlink from "../src/index.js";
 
 const start = Date.now();
 
@@ -50,7 +50,7 @@ for (const line of oldFile.split("\n")) {
 }
 
 // This actually computes the new log probs:
-await Puzlink.download();
+await puzlink.download();
 
 for (const line of KnownLogProbs.dump()) {
   newFile.push(line);

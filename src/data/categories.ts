@@ -40,4 +40,3 @@ export const shortCategories = categories.filter((c) =>
 export const longCategories = categories.filter((c) =>
   c.items.some((item) => item.length >= 5),
 );
-

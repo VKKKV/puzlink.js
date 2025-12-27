@@ -1,10 +1,1 @@
-export default [
-  "w",
-  "sw",
-  "se",
-  "s",
-  "nw",
-  "ne",
-  "n",
-  "e",
-];
+export default ["w", "sw", "se", "s", "nw", "ne", "n", "e"];

@@ -59,6 +59,11 @@ export type LinkOptions = {
   ordered?: boolean;
 };
 
+/** Create a Puzlink instance by downloading the cromulence wordlist. */
+export async function download(): Promise<Puzlink> {
+  return new Puzlink(await loadWordlist());
+}
+
 export class Puzlink {
   linkers: Linker[];
 
@@ -66,10 +71,8 @@ export class Puzlink {
     this.linkers = allLinkers(new Wordlist(wordlist));
   }
 
-  /** Create a Puzlink instance by downloading the cromulence wordlist. */
-  static async download(): Promise<Puzlink> {
-    return new Puzlink(await loadWordlist());
-  }
+  static download = download;
+  static parse = parse;
 
   private *linkLazy(
     slugs: string[],

@@ -1,3 +1,5 @@
+// This is in a separate file for tree-shaking reasons.
+
 /**
  * Parse an input to a list of slugs.
  *
@@ -6,6 +8,7 @@
  */
 export function parse(words: string | readonly string[]): string[] {
   if (typeof words === "string") {
+    words = words.trim();
     if (words.includes("\n")) {
       words = words.split("\n");
     } else if (words.includes(",")) {

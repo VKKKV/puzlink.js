@@ -1,13 +1,30 @@
 {
   "name": "puzlink",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tool to find patterns among sets of words",
+  "keywords": [
+    "puzzles"
+  ],
+  "homepage": "https://github.com/cjquines/puzlink.js#readme",
+  "bugs": {
+    "url": "https://github.com/cjquines/puzlink.js/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cjquines/puzlink.js.git"
+  },
   "license": "MIT",
   "author": "CJ Quines <cj@cjquines.com>",
   "type": "module",
   "main": "dist/index.js",
+  "files": [
+    "dist/**/*",
+    "!dist/tsconfig.*",
+    "src/**/*",
+    "!src/**/*.test.ts"
+  ],
   "scripts": {
-    "build:categories": "tsx scripts/buildCategories.ts",
+    "build:categories": "tsx scripts/buildCategories.ts && prettier --write src/data/categories",
     "build:knownLogProbs": "tsx scripts/buildKnownLogProbs.ts",
     "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",
@@ -18,17 +35,6 @@
     "test:watch": "vitest watch",
     "typecheck": "tsc --noEmit"
   },
-  "keywords": [
-    "puzzles"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cjquines/puzlink.js.git"
-  },
-  "bugs": {
-    "url": "https://github.com/cjquines/puzlink.js/issues"
-  },
-  "homepage": "https://github.com/cjquines/puzlink.js#readme",
   "dependencies": {
     "cromulence": "^0.4.1",
     "simple-statistics": "^7.8.8"
