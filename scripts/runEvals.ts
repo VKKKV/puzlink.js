@@ -5,7 +5,7 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as url from "node:url";
 import type { Link } from "../src/index.js";
-import { Puzlink } from "../src/index.js";
+import { Puzlink, parse } from "../src/index.js";
 import { time } from "./util.js";
 
 const DEFAULT_LIMIT = 3;
@@ -153,7 +153,7 @@ function* runEvalSuite(
   suite: EvalSuite,
 ): Generator<EvalResult> {
   for (const { slugs, expected } of suite.cases) {
-    const parsedSlugs = Puzlink.parse(slugs);
+    const parsedSlugs = parse(slugs);
     const links = puzlink.link(parsedSlugs, { limit: null });
     const index = links.findIndex((link) => link.name.includes(expected));
     const status =
