@@ -29,6 +29,13 @@ export type Link = {
 /** Options for Puzlink.link(). */
 export type LinkOptions = {
   /**
+   * Whether to return links via a generator instead of a list. If true, links
+   * will be returned *unsorted*, and the limit option will be ignored.
+   *
+   * Defaults to false.
+   */
+  lazy?: boolean;
+  /**
    * Limit the number of links returned. Pass null or Infinity to return
    * all links.
    *
@@ -43,9 +50,10 @@ export type LinkOptions = {
    */
   minFeatureRatio?: number;
   /**
-   * Is the input in a particular order? Some of the links we use apply
-   * only if the words have a given order. Defaults to true if the words
-   * are NOT alphabetically sorted.
+   * Set to true if the input has a particular order. Some of the links we use
+   * apply only if the words have a given order.
+   *
+   * Defaults to true if the words are NOT alphabetically sorted.
    */
   ordered?: boolean;
 };
@@ -81,13 +89,55 @@ export class Puzlink {
     return words.map((w) => slugify(w)).filter((w) => w.length > 0);
   }
 
-  /** Return links for a list of words, sorted by score. */
+  private *linkLazy(
+    slugs: string[],
+    options: Required<LinkOptions>,
+  ): Generator<Link> {
+    for (const linker of this.linkers) {
+      for (const partialLink of linker.eval(slugs, options)) {
+        yield {
+          name: linker.name,
+          score: Math.round(partialLink.logProb.toLog() * -10) / 10,
+          ...partialLink,
+        };
+      }
+    }
+  }
+
+  /**
+   * Given a list of words, returns a list of links they share, sorted from
+   * highest to lowest score.
+   */
   link(
     /** The words to link. See Puzlink.parse for how these are parsed. */
     words: string | readonly string[],
-    { limit = 10, minFeatureRatio = 0.5, ordered }: LinkOptions = {},
-  ): Link[] {
+    options?: LinkOptions & { lazy?: false },
+  ): Link[];
+  /** Given a list of words, returns a generator of links they share. */
+  link(
+    /** The words to link. See Puzlink.parse for how these are parsed. */
+    words: string | readonly string[],
+    options?: LinkOptions & { lazy: true },
+  ): Generator<Link>;
+  link(
+    /** The words to link. See Puzlink.parse for how these are parsed. */
+    words: string | readonly string[],
+    {
+      lazy = false,
+      limit = 10,
+      minFeatureRatio = 0.5,
+      ordered,
+    }: LinkOptions = {},
+  ): Generator<Link> | Link[] {
     const slugs = Puzlink.parse(words);
+
+    if (slugs.length === 0) {
+      return lazy
+        ? (function* () {
+            // empty
+          })()
+        : [];
+    }
 
     if (ordered === undefined) {
       const sortedSlugs = slugs.slice().sort();
@@ -95,17 +145,13 @@ export class Puzlink {
       ordered = !isSorted;
     }
 
-    const options = { limit, ordered, minFeatureRatio };
+    const options = { lazy, limit, ordered, minFeatureRatio };
 
-    return this.linkers
-      .flatMap((linker) => {
-        const links = linker.eval(slugs, options);
-        return links.map((link) => ({
-          name: linker.name,
-          ...link,
-          score: Math.round(link.logProb.toLog() * -10) / 10,
-        }));
-      })
+    if (lazy) {
+      return this.linkLazy(slugs, options);
+    }
+
+    return Array.from(this.linkLazy(slugs, options))
       .sort((a, b) => (a.score > b.score ? -1 : 1))
       .slice(0, limit ?? Infinity);
   }

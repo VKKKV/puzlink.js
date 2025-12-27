@@ -12,7 +12,7 @@ import { otherLinker } from "./other.js";
  * A PartialLink is the subset of Link that a Linker needs to return. We do
  * some processing before it ends up being a Link. See Link for full details.
  */
-export type PartialLink = Readonly<{
+export type PartialLink = {
   /** A human-readable link name; defaults to the name of the linker. */
   name?: string;
   /**
@@ -26,13 +26,15 @@ export type PartialLink = Readonly<{
   logProb: LogNum;
   /** Any extra info to include in the link. Can be blank. */
   description: readonly string[];
-}>;
+};
 
-/** A Linker is a function that takes a list of slugs and returns Links. */
-export type Linker = Readonly<{
+/**
+ * A Linker is a function that takes a list of slugs and returns PartialLinks.
+ */
+export type Linker = {
   name: string;
   eval: (slugs: string[], options: Required<LinkOptions>) => PartialLink[];
-}>;
+};
 
 /** All linkers. */
 export function allLinkers(wordlist: Wordlist): Linker[] {
@@ -47,6 +49,7 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
 
 /** For testing purposes. */
 export const testLinkOptions: Required<LinkOptions> = {
+  lazy: false,
   limit: Infinity,
   minFeatureRatio: 0,
   ordered: true,

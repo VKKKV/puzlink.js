@@ -256,7 +256,12 @@ function swapAdjacent(): Feature {
     property: (slug, { wordlist }) => {
       const candidates: [candidate: string, i: number][] = [];
       for (const [i, [a, b]] of enumerate(windows(slug, 2))) {
-        candidates.push([`${slug.slice(0, i)}${b}${a}${slug.slice(i + 2)}`, i]);
+        if (a !== b) {
+          candidates.push([
+            `${slug.slice(0, i)}${b}${a}${slug.slice(i + 2)}`,
+            i,
+          ]);
+        }
       }
       const swapped = wordlist.filterWordsUnder(candidates, ([w]) => w);
       if (swapped.length === 0) {
