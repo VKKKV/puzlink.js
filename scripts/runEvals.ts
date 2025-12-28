@@ -226,7 +226,7 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
     }
 
     if (args.description) {
-      for (const line of result.links[i]!.description) {
+      for (const line of result.links[i]!.description?.split("\n") ?? []) {
         lines.push([" ".repeat(6)]);
         lines.at(-1)!.push((isExpectedLink ? chalk.white : chalk.gray)(line));
       }

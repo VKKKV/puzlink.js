@@ -2,6 +2,7 @@ import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
 import { Wordlist } from "../lib/wordlist.js";
 import type { Linker } from "../linkers/index.js";
+import * as T from "../templating/index.js";
 import { letterCountFeatures } from "./letterCount.js";
 import { letterSequenceFeatures } from "./letterSequence.js";
 import { KnownLogProbs } from "./logProbCache.js";
@@ -57,7 +58,7 @@ function featureLinker(
   }
 
   return {
-    name,
+    name: T.Text(name),
     eval: (slugs, options) => {
       const description = slugs.flatMap((word) => {
         const result = property(word, getProps(wordlist, word));
@@ -76,8 +77,12 @@ function featureLinker(
       );
       return [
         {
-          name: `${description.length.toString()}/${slugs.length.toString()} ${name}`,
-          description,
+          name: T.Text(
+            `${description.length.toString()}/${slugs.length.toString()} ${name}`,
+          ),
+          description: T.Table(
+            description.flatMap((d) => (d ? [T.Text(d)] : [])),
+          ),
           logProb,
         },
       ];

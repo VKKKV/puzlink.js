@@ -1,4 +1,6 @@
 import { renderInline, type Inline, type InlineRenderer } from "./inline.js";
+import type { ArrayLike } from "./util.js";
+import { toArray } from "./util.js";
 
 export type Cell = {
   type: "cell";
@@ -34,13 +36,13 @@ export type Row = {
   type: "row";
   cells: Cell[];
 };
-type CellLike = Cell | Inline;
-export function Row(options: never, cells: CellLike[]): Row;
-export function Row(cells: CellLike[]): Row;
-export function Row(cells: CellLike[]): Row {
+type CellLike = Inline | Cell;
+export function Row(options: never, cells: ArrayLike<CellLike>): Row;
+export function Row(cells: ArrayLike<CellLike>): Row;
+export function Row(cells: ArrayLike<CellLike>): Row {
   return {
     type: "row",
-    cells: cells.map((c) => {
+    cells: toArray(cells).map((c) => {
       return typeof c === "object" && "type" in c && c.type === "cell"
         ? c
         : Cell(c);
@@ -52,14 +54,18 @@ export type Table = {
   type: "table";
   /**
    * If true, then the first cell of each row should be interpreted as a
-   * potential sort of the slugs. Sortable tables MUST have each non-header
-   * row start with an input slug.
+   * potential sort of the slugs. Sortable tables MUST have the first rows
+   * each starting with an input slug, potentially with extra rows after.
    */
   sortable: boolean;
   columns: number;
   rows: Row[];
 };
-type RowLike = Row | CellLike[];
+
+type RowLike = Row | ArrayLike<CellLike>;
+const isRow = (r: RowLike): r is Row =>
+  typeof r === "object" && r !== null && "type" in r && r.type === "row";
+
 export function Table(options: { sortable?: boolean }, rows: RowLike[]): Table;
 export function Table(rows: RowLike[]): Table;
 export function Table(
@@ -68,9 +74,9 @@ export function Table(
 ): Table {
   const rows = (maybeRows ?? optionsOrRow) as RowLike[];
   const options = (maybeRows ? optionsOrRow : {}) as { sortable?: boolean };
-  const mappedRows = rows.map((r) => {
-    return typeof r === "object" && "type" in r ? r : Row(r);
-  });
+  const mappedRows = rows
+    .filter((r) => !!r)
+    .map((r) => (isRow(r) ? r : Row(r)));
   const columns = Math.max(...mappedRows.map((r) => r.cells.length));
 
   return {
@@ -91,26 +97,33 @@ type CellJoinedTable<I> = Omit<Table, "rows"> & {
 };
 
 /** A renderer for tables. */
-export type TableRenderer<I, T> = (table: CellJoinedTable<I>) => T;
+export type TableRenderer<I, T, Options extends object> = (
+  table: CellJoinedTable<I>,
+  options: Options,
+) => T;
 
 /** Render a table. */
-export function renderTable<I, T>(
-  inline: InlineRenderer<I>,
-  table: TableRenderer<I, T>,
+export function renderTable<I, T, Options extends object>(
+  inline: InlineRenderer<I, Options>,
+  table: TableRenderer<I, T, Options>,
   template: Table,
+  options: Options,
 ): T {
-  return table({
-    ...template,
-    rows: template.rows.map((row) => {
-      return {
-        ...row,
-        cells: row.cells.map((cell) => {
-          return {
-            ...cell,
-            rendered: renderInline(inline, cell.content),
-          };
-        }),
-      };
-    }),
-  });
+  return table(
+    {
+      ...template,
+      rows: template.rows.map((row) => {
+        return {
+          ...row,
+          cells: row.cells.map((cell) => {
+            return {
+              ...cell,
+              rendered: renderInline(inline, cell.content, options),
+            };
+          }),
+        };
+      }),
+    },
+    options,
+  );
 }

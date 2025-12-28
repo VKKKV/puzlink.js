@@ -15,7 +15,7 @@ import { otherLinker } from "./other.js";
  */
 export type PartialLink = {
   /** A human-readable link name; defaults to the name of the linker. */
-  name?: string;
+  name?: T.Inline;
   /**
    * Log prob we'd expect to see this link.
    *
@@ -26,15 +26,14 @@ export type PartialLink = {
    */
   logProb: LogNum;
   /** Any extra info to include in the link. Can be blank. */
-  description?: T.Table | string[];
-  // TODO: migrate the rest of the links to templating
+  description?: T.Table;
 };
 
 /**
  * A Linker is a function that takes a list of slugs and returns PartialLinks.
  */
 export type Linker = {
-  name: string;
+  name: T.Inline;
   eval: (slugs: string[], options: Required<LinkOptions>) => PartialLink[];
 };
 
@@ -50,10 +49,24 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
 }
 
 /** For testing purposes. */
-export const testLinkOptions: Required<LinkOptions> = {
-  jsonDescription: false,
-  lazy: false,
-  limit: Infinity,
-  minFeatureRatio: 0,
-  ordered: true,
-};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function testLinker<Args extends any[]>(
+  linkerFn: (...args: Args) => Linker,
+  ...args: Args
+) {
+  const linker = linkerFn(...args);
+  return function link(slugs: string[]) {
+    return linker
+      .eval(slugs, {
+        jsonOutput: false,
+        lazy: false,
+        limit: Infinity,
+        minFeatureRatio: 0,
+        ordered: true,
+      })
+      .map((l) => [
+        T.renderToText(l.name ?? linker.name),
+        l.description && T.renderToText(l.description),
+      ]);
+  };
+}

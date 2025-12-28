@@ -1,9 +1,10 @@
 export {
   Count,
+  Fraction,
   Highlight,
-  Index,
   Indices,
   Inflect,
+  Join,
   Ordinal,
   Slug,
   Text,

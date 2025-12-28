@@ -3,20 +3,21 @@ import { renderInline } from "./inline.js";
 import type { Table, TableRenderer } from "./table.js";
 import { renderTable } from "./table.js";
 
-export type Renderer<I, T> = {
-  (inline: Inline): I;
-  (table: Table): T;
-  (template: Inline | Table): I | T;
+export type Renderer<I, T, Options extends object> = {
+  (inline: Inline, options?: Options): I;
+  (table: Table, options?: Options): T;
+  (template: Inline | Table, options?: Options): I | T;
 };
 
-export function makeRenderer<I, T>(
-  inline: InlineRenderer<I>,
-  table: TableRenderer<I, T>,
-): Renderer<I, T> {
-  return function render(template) {
+export function makeRenderer<I, T, Options extends object>(
+  defaultOptions: Options,
+  inline: InlineRenderer<I, Options>,
+  table: TableRenderer<I, T, Options>,
+): Renderer<I, T, Options> {
+  return function render(template, options = defaultOptions) {
     if (template.type === "table") {
-      return renderTable(inline, table, template);
+      return renderTable(inline, table, template, options);
     }
-    return renderInline(inline, template);
-  } as Renderer<I, T>;
+    return renderInline(inline, template, options);
+  } as Renderer<I, T, Options>;
 }

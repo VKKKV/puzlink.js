@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { Wordlist } from "../lib/wordlist.js";
-import * as T from "../templating/index.js";
-import { testLinkOptions } from "./index.js";
+import { testLinker } from "./index.js";
 import { otherLinker } from "./other.js";
 
 describe("other linker", () => {
@@ -33,21 +32,14 @@ describe("other linker", () => {
     "yy",
     // .
   ]);
-  const link = (slugs: string[]) =>
-    otherLinker(wordlist)
-      .eval(slugs, testLinkOptions)
-      .map((l) => [
-        l.name,
-        T.renderToText((l.description as T.Table | undefined) ?? T.Text("")),
-      ]);
+  const link = testLinker(otherLinker, wordlist);
 
   test("other links", () => {
     expect(link(["jjjjjqqqqqxxxxxzzzzz"])).toMatchInlineSnapshot(`
       [
         [
           "unusual letter distribution",
-          "over-represented  j, q, x, z
-      under-represented",
+          "over-represented j q x z",
         ],
         [
           "start with the same vowel-consonant pattern",
@@ -66,8 +58,7 @@ describe("other linker", () => {
       [
         [
           "unusual letter distribution",
-          "over-represented  f, g, j
-      under-represented",
+          "over-represented f g j",
         ],
         [
           "multiple shared suffixes and prefixes",

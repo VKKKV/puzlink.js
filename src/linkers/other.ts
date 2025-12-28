@@ -15,11 +15,17 @@ function unusualLetters({ slugs, wordlist }: Props): PartialLink | null {
   const { high, low } = wordlist.letters.outliers(all);
   if (high.length > 0 || low.length > 0) {
     return {
-      name: "unusual letter distribution",
+      name: T.Text("unusual letter distribution"),
       logProb: wordlist.letters.probUnordered(all),
       description: T.Table([
-        [T.Text("over-represented"), T.Slug(high.join(", "))],
-        [T.Text("under-represented"), T.Slug(low.join(", "))],
+        high.length > 0 && [
+          T.Text("over-represented"),
+          ...high.map((letter) => T.Slug(letter)),
+        ],
+        low.length > 0 && [
+          T.Text("under-represented"),
+          ...low.map((letter) => T.Slug(letter)),
+        ],
       ]),
     };
   }
@@ -48,13 +54,16 @@ function equalVowelPattern(
     return null;
   }
   return {
-    name: `${start ? "start" : "end"} with the same vowel-consonant pattern`,
+    name: T.Join([
+      start ? "start" : "end",
+      "with the same vowel-consonant pattern",
+    ]),
     logProb: wordlist[start ? "prefixes" : "suffixes"].probEqualVowelPattern(
       slugs.length,
       minLength,
     ),
     description: T.Table([
-      [T.Slug(pattern)],
+      T.Slug(pattern),
       ...slugs.map((slug) => [
         T.Highlight(
           slug,
@@ -90,7 +99,7 @@ function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
   }
 
   return {
-    name: "multiple shared suffixes and prefixes",
+    name: T.Text("multiple shared suffixes and prefixes"),
     // This is an underestimate because it assumes independence.
     logProb: LogNum.prod(
       Array.from(shared.values(), ({ length }) => {
@@ -113,7 +122,7 @@ function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
 /** Other links. */
 export function otherLinker(wordlist: Wordlist): Linker {
   return {
-    name: "other links",
+    name: T.Text("other links"),
     eval: (slugs) => {
       const props = { slugs, wordlist };
       return [

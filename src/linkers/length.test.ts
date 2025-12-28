@@ -2,35 +2,35 @@ import { describe, expect, test } from "vitest";
 import { answerLengthLogProbs } from "../data/answerLengths.js";
 import { Distribution } from "../lib/distribution.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
-import { testLinkOptions } from "./index.js";
+import { testLinker } from "./index.js";
 import { lengthLinker } from "./length.js";
 
 describe("lengthLinker", () => {
-  const link = (slugs: string[]) =>
-    lengthLinker(new LengthDistribution(new Distribution(answerLengthLogProbs)))
-      .eval(slugs, testLinkOptions)
-      .map((l) => [l.name, l.description]);
+  const link = testLinker(
+    lengthLinker,
+    new LengthDistribution(new Distribution(answerLengthLogProbs)),
+  );
 
   test("length links", () => {
     expect(link(["aa", "bb", "cc"])).toMatchInlineSnapshot(`
       [
         [
           "all lengths equal",
-          [
-            "all lengths are 2",
-          ],
+          "aa 2
+      bb 2
+      cc 2",
         ],
         [
           "all lengths are even",
-          [
-            "all lengths are even",
-          ],
+          "aa 2
+      bb 2
+      cc 2",
         ],
         [
           "all lengths are equal mod 3",
-          [
-            "all lengths are equal mod 3",
-          ],
+          "aa 2
+      bb 2
+      cc 2",
         ],
       ]
     `);
@@ -38,17 +38,15 @@ describe("lengthLinker", () => {
       [
         [
           "only two lengths",
-          [
-            "length 1: a, b",
-            "length 2: cc, dd",
-          ],
+          "a  1
+      b  1
+      cc 2
+      dd 2",
         ],
         [
           "lengths can be paired",
-          [
-            "a and b",
-            "cc and dd",
-          ],
+          "a  b  1
+      cc dd 2",
         ],
       ]
     `);
@@ -56,19 +54,19 @@ describe("lengthLinker", () => {
       [
         [
           "all lengths are equal mod 3",
-          [
-            "all lengths are equal mod 3",
-          ],
+          "a       1
+      bbbb    4
+      fffffff 7",
         ],
       ]
     `);
-    expect(link(["aa", "bbb", "cccc"])).toMatchInlineSnapshot(`
+    expect(link(["aa", "cccc", "bbb"])).toMatchInlineSnapshot(`
       [
         [
           "lengths are consecutive",
-          [
-            "lengths are 2, 3, 4",
-          ],
+          "aa   2
+      bbb  3
+      cccc 4",
         ],
       ]
     `);

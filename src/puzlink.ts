@@ -16,7 +16,7 @@ export type Link = {
    * Any additional information about the link. Typically, this would be an
    * explanation for why the words satisfy the given link.
    */
-  description: string | string[];
+  description?: string;
   /**
    * The score of the link. A higher score means it's more likely to be
    * important (because it's less likely to happen by chance).
@@ -26,7 +26,9 @@ export type Link = {
    * rounded to 1 decimal place.
    */
   score: number;
-  /** Structured link description. See LinkOptions.jsonDescription. */
+  /** Structured link name. See LinkOptions.jsonOutput. */
+  jsonName?: T.Inline;
+  /** Structured link description. See LinkOptions.jsonOutput. */
   jsonDescription?: T.Table;
 };
 
@@ -39,7 +41,7 @@ export type LinkOptions = {
    *
    * Defaults to false.
    */
-  jsonDescription?: boolean;
+  jsonOutput?: boolean;
   /**
    * Whether to return links via a generator instead of a list. If true, links
    * will be returned *unsorted*, and the limit option will be ignored.
@@ -90,26 +92,18 @@ export class Puzlink {
     options: Required<LinkOptions>,
   ): Generator<Link> {
     for (const linker of this.linkers) {
-      for (const partialLink of linker.eval(slugs, options)) {
-        const { name, logProb, description: rawDescription } = partialLink;
+      for (const link of linker.eval(slugs, options)) {
+        const jsonName = link.name ?? linker.name;
+        const jsonDescription = link.description;
 
         yield {
-          name: name ?? linker.name,
-          score: Math.round(logProb.toLog() * -10) / 10,
-          ...(Array.isArray(rawDescription)
-            ? {
-                description: rawDescription,
-              }
-            : rawDescription
-              ? {
-                  description: T.renderToText(rawDescription),
-                  ...(options.jsonDescription && {
-                    jsonDescription: rawDescription,
-                  }),
-                }
-              : {
-                  description: [],
-                }),
+          name: T.renderToText(jsonName),
+          score: Math.round(link.logProb.toLog() * -10) / 10,
+          ...(jsonDescription && {
+            description: T.renderToText(jsonDescription),
+          }),
+          ...(options.jsonOutput && { jsonName }),
+          ...(options.jsonOutput && jsonDescription && { jsonDescription }),
         };
       }
     }
@@ -133,11 +127,11 @@ export class Puzlink {
   link(
     words: string | readonly string[],
     {
+      jsonOutput = false,
       lazy = false,
       limit = 10,
       minFeatureRatio = 0.5,
       ordered,
-      jsonDescription = false,
     }: LinkOptions = {},
   ): Generator<Link> | Link[] {
     const slugs = parse(words);
@@ -156,7 +150,7 @@ export class Puzlink {
       ordered = !isSorted;
     }
 
-    const options = { jsonDescription, lazy, limit, ordered, minFeatureRatio };
+    const options = { jsonOutput, lazy, limit, ordered, minFeatureRatio };
 
     if (lazy) {
       return this.linkLazy(slugs, options);

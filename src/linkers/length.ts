@@ -1,5 +1,6 @@
 import type { LengthDistribution } from "../lib/lengthDistribution.js";
 import { getArithmeticSequenceInfo } from "../lib/util.js";
+import * as T from "../templating/index.js";
 import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
@@ -9,15 +10,22 @@ type Props = {
   slugs: string[];
 };
 
-function allEqual({ distribution, lengthSet }: Props): PartialLink | null {
+function lengthRows(slugs: string[]): T.Row[] {
+  return slugs.map((slug) => T.Row([T.Slug(slug), T.Text(slug.length)]));
+}
+
+function allEqual({
+  distribution,
+  lengthSet,
+  slugs,
+}: Props): PartialLink | null {
   if (lengthSet.size !== 1) {
     return null;
   }
-  const [length] = Array.from(lengthSet) as [number];
   return {
-    name: "all lengths equal",
-    logProb: distribution.probEqual(lengthSet.size),
-    description: [`all lengths are ${length.toString()}`],
+    name: T.Text("all lengths equal"),
+    logProb: distribution.probEqual(slugs.length),
+    description: T.Table(lengthRows(slugs)),
   };
 }
 
@@ -32,49 +40,57 @@ function onlyTwo({
   const [a, b] = Array.from(lengthSet) as [number, number];
   const aLength = slugs.filter((w) => w.length === a);
   const bLength = slugs.filter((w) => w.length === b);
-  const aLogProb = distribution.probEqual(aLength.length);
-  const bLogProb = distribution.probEqual(bLength.length);
   return {
-    name: "only two lengths",
-    logProb: aLogProb.mul(bLogProb),
-    description: [
-      `length ${a.toString()}: ${aLength.join(", ")}`,
-      `length ${b.toString()}: ${bLength.join(", ")}`,
-    ],
+    name: T.Text("only two lengths"),
+    logProb: distribution.probTwoDistinct(slugs.length),
+    description: T.Sortable([...lengthRows(aLength), ...lengthRows(bLength)]),
   };
 }
 
-function equalMod2({ distribution, lengths }: Props): PartialLink | null {
+function equalMod2({
+  distribution,
+  lengths,
+  slugs,
+}: Props): PartialLink | null {
   if (new Set(lengths.map((l) => l % 2)).size !== 1) {
     return null;
   }
   const parity = lengths[0]! % 2;
   return {
-    name: `all lengths are ${parity === 0 ? "even" : "odd"}`,
-    logProb: distribution.probEqualMod2(lengths.length),
-    description: [`all lengths are ${parity === 0 ? "even" : "odd"}`],
+    name: T.Join(["all lengths are", parity === 0 ? "even" : "odd"]),
+    logProb: distribution.probEqualMod2(slugs.length),
+    description: T.Table(lengthRows(slugs)),
   };
 }
 
-function equalMod3({ distribution, lengths }: Props): PartialLink | null {
+function equalMod3({
+  distribution,
+  lengths,
+  slugs,
+}: Props): PartialLink | null {
   if (new Set(lengths.map((l) => l % 3)).size !== 1) {
     return null;
   }
   return {
-    name: "all lengths are equal mod 3",
-    logProb: distribution.probEqualMod3(lengths.length),
-    description: [`all lengths are equal mod 3`],
+    name: T.Text("all lengths are equal mod 3"),
+    logProb: distribution.probEqualMod3(slugs.length),
+    description: T.Table(lengthRows(slugs)),
   };
 }
 
-function consecutive({ distribution, lengths }: Props): PartialLink | null {
+function consecutive({
+  distribution,
+  lengths,
+  slugs,
+}: Props): PartialLink | null {
   if (getArithmeticSequenceInfo(lengths)?.step !== 1) {
     return null;
   }
+  const sorted = slugs.sort((a, b) => a.length - b.length);
   return {
-    name: "lengths are consecutive",
-    logProb: distribution.probConsecutive(lengths.length),
-    description: [`lengths are ${lengths.join(", ")}`],
+    name: T.Text("lengths are consecutive"),
+    logProb: distribution.probConsecutive(slugs.length),
+    description: T.Sortable(lengthRows(sorted)),
   };
 }
 
@@ -89,22 +105,26 @@ function paired({ distribution, slugs }: Props): PartialLink | null {
   const lengthCounter = new Set(
     Array.from(byLength.values(), (slugs) => slugs.length),
   );
-  if (lengthCounter.size === 1 && Array.from(lengthCounter)[0] === 2) {
-    return {
-      name: "lengths can be paired",
-      logProb: distribution.probPaired(slugs.length),
-      description: Array.from(byLength.entries(), ([, slugs]) => {
-        return slugs.join(" and ");
-      }),
-    };
+  if (lengthCounter.size > 1 || Array.from(lengthCounter)[0] !== 2) {
+    return null;
   }
-  return null;
+  return {
+    name: T.Text("lengths can be paired"),
+    logProb: distribution.probPaired(slugs.length),
+    description: T.Table(
+      Array.from(byLength.entries(), ([length, slugs]) => [
+        T.Slug(slugs[0]!),
+        T.Slug(slugs[1]!),
+        T.Text(length),
+      ]),
+    ),
+  };
 }
 
 /** Length-based linker. */
 export function lengthLinker(distribution: LengthDistribution): Linker {
   return {
-    name: "slug lengths",
+    name: T.Text("slug lengths"),
     eval: (slugs) => {
       const lengths = slugs.map((w) => w.length).sort();
       const lengthSet = new Set(lengths);
