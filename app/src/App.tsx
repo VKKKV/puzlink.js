@@ -14,11 +14,15 @@ function LinkDisplay({ link, rank }: { link: Link; rank: number }) {
           <span className="link-score">{link.score.toFixed(1)}</span>
         </div>
       </summary>
-      <ul className="link-description">
-        {link.description.map((line, i) => (
-          <li key={i}>{line}</li>
-        ))}
-      </ul>
+      {Array.isArray(link.description) ? (
+        <ul className="link-description">
+          {link.description.map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ul>
+      ) : (
+        <div className="link-description">{link.description}</div>
+      )}
     </details>
   );
 }

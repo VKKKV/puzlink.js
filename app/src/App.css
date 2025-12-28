@@ -120,6 +120,7 @@
     font-family: "IBM Plex Mono", monospace;
     margin: 0;
     padding: 0 0.5em 0.5em;
+    white-space: pre-wrap;
 
     li {
       list-style-type: none;

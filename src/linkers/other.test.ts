@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { Wordlist } from "../lib/wordlist.js";
+import * as T from "../templating/index.js";
 import { testLinkOptions } from "./index.js";
 import { otherLinker } from "./other.js";
 
@@ -35,28 +36,28 @@ describe("other linker", () => {
   const link = (slugs: string[]) =>
     otherLinker(wordlist)
       .eval(slugs, testLinkOptions)
-      .map((l) => [l.name, l.description]);
+      .map((l) => [
+        l.name,
+        T.renderToText((l.description as T.Table | undefined) ?? T.Text("")),
+      ]);
 
   test("other links", () => {
     expect(link(["jjjjjqqqqqxxxxxzzzzz"])).toMatchInlineSnapshot(`
       [
         [
           "unusual letter distribution",
-          [
-            "over-represented: j, q, x, z",
-          ],
+          "over-represented  j, q, x, z
+      under-represented",
         ],
         [
           "start with the same vowel-consonant pattern",
-          [
-            "all start with CCCCCCCCCCCCCCCCCCCC",
-          ],
+          "CCCCCCCCCCCCCCCCCCCC
+      JJJJJQQQQQXXXXXZZZZZ",
         ],
         [
           "end with the same vowel-consonant pattern",
-          [
-            "all end with CCCCCCCCCCCCCCCCCCCC",
-          ],
+          "CCCCCCCCCCCCCCCCCCCC
+      JJJJJQQQQQXXXXXZZZZZ",
         ],
       ]
     `);
@@ -65,16 +66,13 @@ describe("other linker", () => {
       [
         [
           "unusual letter distribution",
-          [
-            "over-represented: f, g, j",
-          ],
+          "over-represented  f, g, j
+      under-represented",
         ],
         [
           "multiple shared suffixes and prefixes",
-          [
-            "abcDEF DEFghi",
-            "defGHI GHIjkl",
-          ],
+          "abcDEF DEFghi
+      defGHI GHIjkl",
         ],
       ]
     `);

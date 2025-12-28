@@ -1,7 +1,8 @@
 import { VOWELS } from "../lib/letterDistribution.js";
 import { LogNum } from "../lib/logNum.js";
-import { enumerate } from "../lib/util.js";
+import { enumerate, interval } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
+import * as T from "../templating/index.js";
 import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
@@ -16,10 +17,10 @@ function unusualLetters({ slugs, wordlist }: Props): PartialLink | null {
     return {
       name: "unusual letter distribution",
       logProb: wordlist.letters.probUnordered(all),
-      description: [
-        ...(high.length > 0 ? [`over-represented: ${high.join(", ")}`] : []),
-        ...(low.length > 0 ? [`under-represented: ${low.join(", ")}`] : []),
-      ],
+      description: T.Table([
+        [T.Text("over-represented"), T.Slug(high.join(", "))],
+        [T.Text("under-represented"), T.Slug(low.join(", "))],
+      ]),
     };
   }
   return null;
@@ -52,7 +53,15 @@ function equalVowelPattern(
       slugs.length,
       minLength,
     ),
-    description: [`all ${start ? "start" : "end"} with ${pattern}`],
+    description: T.Table([
+      [T.Slug(pattern)],
+      ...slugs.map((slug) => [
+        T.Highlight(
+          slug,
+          start ? interval(0, minLength - 1) : interval(-minLength, -1),
+        ),
+      ]),
+    ]),
   };
 }
 
@@ -88,12 +97,13 @@ function sharedAffixes({ slugs, wordlist }: Props): PartialLink | null {
         return wordlist.probSharedAffix(length);
       }),
     ),
-    description: Array.from(
-      shared.entries(),
-      ([suffixOf, { prefixOf, length }]) =>
-        `${suffixOf.slice(0, -length)}${suffixOf.slice(-length).toUpperCase()} ${prefixOf
-          .slice(0, length)
-          .toUpperCase()}${prefixOf.slice(length)}`,
+    description: T.Table(
+      Array.from(shared.entries(), ([suffixOf, { prefixOf, length }]) =>
+        T.Row([
+          T.Highlight(suffixOf, interval(-length, -1)),
+          T.Highlight(prefixOf, interval(0, length - 1)),
+        ]),
+      ),
     ),
   };
 }

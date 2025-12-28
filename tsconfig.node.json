@@ -9,6 +9,8 @@
 
     "module": "nodenext",
 
+    "noEmit": true,
+
     "checkJs": true,
 
     "erasableSyntaxOnly": true,

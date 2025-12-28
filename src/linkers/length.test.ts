@@ -9,22 +9,28 @@ describe("lengthLinker", () => {
   const link = (slugs: string[]) =>
     lengthLinker(new LengthDistribution(new Distribution(answerLengthLogProbs)))
       .eval(slugs, testLinkOptions)
-      .map((l) => [l.name, ...l.description]);
+      .map((l) => [l.name, l.description]);
 
   test("length links", () => {
     expect(link(["aa", "bb", "cc"])).toMatchInlineSnapshot(`
       [
         [
           "all lengths equal",
-          "all lengths are 2",
+          [
+            "all lengths are 2",
+          ],
         ],
         [
           "all lengths are even",
-          "all lengths are even",
+          [
+            "all lengths are even",
+          ],
         ],
         [
           "all lengths are equal mod 3",
-          "all lengths are equal mod 3",
+          [
+            "all lengths are equal mod 3",
+          ],
         ],
       ]
     `);
@@ -32,13 +38,17 @@ describe("lengthLinker", () => {
       [
         [
           "only two lengths",
-          "length 1: a, b",
-          "length 2: cc, dd",
+          [
+            "length 1: a, b",
+            "length 2: cc, dd",
+          ],
         ],
         [
           "lengths can be paired",
-          "a and b",
-          "cc and dd",
+          [
+            "a and b",
+            "cc and dd",
+          ],
         ],
       ]
     `);
@@ -46,7 +56,9 @@ describe("lengthLinker", () => {
       [
         [
           "all lengths are equal mod 3",
-          "all lengths are equal mod 3",
+          [
+            "all lengths are equal mod 3",
+          ],
         ],
       ]
     `);
@@ -54,7 +66,9 @@ describe("lengthLinker", () => {
       [
         [
           "lengths are consecutive",
-          "lengths are 2, 3, 4",
+          [
+            "lengths are 2, 3, 4",
+          ],
         ],
       ]
     `);

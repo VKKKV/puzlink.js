@@ -33,7 +33,7 @@
     "test:evals": "tsx scripts/runEvals.ts",
     "test:speed": "SPEED_TEST=true vitest run",
     "test:watch": "vitest watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --build tsconfig.json"
   },
   "dependencies": {
     "cromulence": "^0.4.1",

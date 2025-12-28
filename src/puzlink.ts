@@ -3,6 +3,7 @@ import { Wordlist } from "./lib/wordlist.js";
 import type { Linker } from "./linkers/index.js";
 import { allLinkers } from "./linkers/index.js";
 import { parse } from "./parse.js";
+import * as T from "./templating/index.js";
 
 /**
  * A Link is a relationship between a (possibly ordered) set of words, with how
@@ -15,7 +16,7 @@ export type Link = {
    * Any additional information about the link. Typically, this would be an
    * explanation for why the words satisfy the given link.
    */
-  description: readonly string[];
+  description: string | string[];
   /**
    * The score of the link. A higher score means it's more likely to be
    * important (because it's less likely to happen by chance).
@@ -25,10 +26,20 @@ export type Link = {
    * rounded to 1 decimal place.
    */
   score: number;
+  /** Structured link description. See LinkOptions.jsonDescription. */
+  jsonDescription?: T.Table;
 };
 
 /** Options for Puzlink.link(). */
 export type LinkOptions = {
+  /**
+   * Set to true to return the raw description of the link, in a structured
+   * JSON format. Useful for custom rendering. See `templating/index.ts` for
+   * the types.
+   *
+   * Defaults to false.
+   */
+  jsonDescription?: boolean;
   /**
    * Whether to return links via a generator instead of a list. If true, links
    * will be returned *unsorted*, and the limit option will be ignored.
@@ -80,10 +91,25 @@ export class Puzlink {
   ): Generator<Link> {
     for (const linker of this.linkers) {
       for (const partialLink of linker.eval(slugs, options)) {
+        const { name, logProb, description: rawDescription } = partialLink;
+
         yield {
-          name: linker.name,
-          score: Math.round(partialLink.logProb.toLog() * -10) / 10,
-          ...partialLink,
+          name: name ?? linker.name,
+          score: Math.round(logProb.toLog() * -10) / 10,
+          ...(Array.isArray(rawDescription)
+            ? {
+                description: rawDescription,
+              }
+            : rawDescription
+              ? {
+                  description: T.renderToText(rawDescription),
+                  ...(options.jsonDescription && {
+                    jsonDescription: rawDescription,
+                  }),
+                }
+              : {
+                  description: [],
+                }),
         };
       }
     }
@@ -111,6 +137,7 @@ export class Puzlink {
       limit = 10,
       minFeatureRatio = 0.5,
       ordered,
+      jsonDescription = false,
     }: LinkOptions = {},
   ): Generator<Link> | Link[] {
     const slugs = parse(words);
@@ -129,7 +156,7 @@ export class Puzlink {
       ordered = !isSorted;
     }
 
-    const options = { lazy, limit, ordered, minFeatureRatio };
+    const options = { jsonDescription, lazy, limit, ordered, minFeatureRatio };
 
     if (lazy) {
       return this.linkLazy(slugs, options);

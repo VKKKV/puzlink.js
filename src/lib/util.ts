@@ -148,3 +148,18 @@ export function getArithmeticSequenceInfo(terms: number[]): {
   }
   return { start, step, last: terms.at(-1)! };
 }
+
+/** Accumulate a function over an iterable. */
+export function accumulate<T, R>(
+  iter: Iterable<T>,
+  initial: R,
+  fn: (acc: R, item: T) => R,
+): R[] {
+  const result = [];
+  let acc = initial;
+  for (const item of iter) {
+    acc = fn(acc, item);
+    result.push(acc);
+  }
+  return result;
+}

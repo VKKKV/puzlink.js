@@ -4,6 +4,7 @@ import type { LinkOptions } from "../index.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
 import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
+import * as T from "../templating/index.js";
 import { indexingLinker } from "./indexing.js";
 import { lengthLinker } from "./length.js";
 import { otherLinker } from "./other.js";
@@ -25,7 +26,8 @@ export type PartialLink = {
    */
   logProb: LogNum;
   /** Any extra info to include in the link. Can be blank. */
-  description: readonly string[];
+  description?: T.Table | string[];
+  // TODO: migrate the rest of the links to templating
 };
 
 /**
@@ -49,6 +51,7 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
 
 /** For testing purposes. */
 export const testLinkOptions: Required<LinkOptions> = {
+  jsonDescription: false,
   lazy: false,
   limit: Infinity,
   minFeatureRatio: 0,
