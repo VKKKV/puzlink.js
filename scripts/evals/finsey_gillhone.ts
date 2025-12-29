@@ -16,7 +16,7 @@ export default {
         ADVERT
         CORSET
       `,
-      expected: "has 1 reverse alphabetical bigrams",
+      expected: "has 1 reverse alphabetical bigram",
     },
     {
       slugs: `
@@ -37,7 +37,7 @@ export default {
         ACUPUNCTURE MANUAL
         LIQUEUR
       `,
-      expected: "has u with 1 letters between, 1 times",
+      expected: "has u?u as a substring",
     },
     {
       slugs: `
@@ -69,7 +69,7 @@ export default {
         CENT
         CAM
       `,
-      expected: "can prepend 1",
+      expected: "can prepend a letter",
     },
   ],
 } satisfies EvalSuite;

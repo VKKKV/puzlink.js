@@ -13,7 +13,7 @@ export default {
         SHORTSIGHTED
         THERMOPHILE
       `,
-      expected: "has 2 h",
+      expected: "has exactly 2 'h's",
     },
   ],
 } satisfies EvalSuite;

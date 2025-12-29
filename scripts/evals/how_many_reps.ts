@@ -7,7 +7,7 @@ export default {
   cases: [
     {
       slugs: `MEDICARE OMELET SOMEONE SUBMERSED LIGAMENTS ARCHIMEDES GROOMSMEN ASTRODOME AMSTERDAMER`,
-      expected: "has m and e with 0 letters between",
+      expected: "has me as a substring",
     },
     {
       slugs: `DOGWHISTLE RETWEETING MICHAELBAY FABRIFIBRA SOLIDFOODS LABORATORY TIMOCRATIC`,

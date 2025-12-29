@@ -20,7 +20,7 @@ export default {
         SUSURRANT
         PARTITION
       `,
-      expected: "has equal letters with 1 letters between, at least 2 times",
+      expected: "has 2 pairs of equal letters, separated by 1 letter",
     },
     {
       slugs: `
@@ -33,7 +33,7 @@ export default {
         WALKED ON TIPTOE
         WENT FOR BROKE
       `,
-      expected: "has 2 o",
+      expected: "has exactly 2 'o's",
     },
   ],
 } satisfies EvalSuite;

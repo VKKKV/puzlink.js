@@ -1,5 +1,6 @@
 export {
   Count,
+  CountSlug,
   Fraction,
   Highlight,
   Indices,
@@ -8,6 +9,7 @@ export {
   Ordinal,
   Slug,
   Text,
+  Times,
 } from "./inline.js";
 export type { Inline, InlineRenderer } from "./inline.js";
 export { makeRenderer } from "./renderer.js";

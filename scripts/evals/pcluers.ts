@@ -12,7 +12,7 @@ export default {
         FEET
         DOGEARS
       `,
-      expected: "can insert 1",
+      expected: "can insert a letter",
     },
     {
       slugs: `
@@ -26,7 +26,7 @@ export default {
         BECAME
         DEAD
       `,
-      expected: "1st letters are consecutive",
+      expected: "0th letters are consecutive",
     },
     {
       slugs: `
@@ -36,7 +36,7 @@ export default {
         SKEIN
         GOUGE
       `,
-      expected: "diagonal are a word",
+      expected: "diagonal letters form a word",
     },
     {
       slugs: `
@@ -60,7 +60,7 @@ export default {
         HOTELS
         WEEDS
       `,
-      expected: "has transadd 1",
+      expected: "has transadd",
     },
   ],
 } satisfies EvalSuite;

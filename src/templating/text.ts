@@ -8,8 +8,6 @@ export const renderToText = makeRenderer(
     maxWidth: Infinity,
   },
   {
-    count: (count, one, other) =>
-      `${count.toString()} ${count === 1 ? one : other}`,
     fraction: (numerator, denominator) =>
       `${numerator.toString()}/${denominator.toString()}`,
     highlight: (slug, indices) => {
@@ -22,16 +20,34 @@ export const renderToText = makeRenderer(
       }
       return capitalized.join("");
     },
-    indices: (indices) => indices.join(" "),
-    inflect: (count, one, other) => (count === 1 ? one : other),
+    indices: (indices) => indices.join(", "),
     join: (strings) => strings.join(" "),
     ordinal: (rank) => {
       const count = ordinal.select(rank);
-      const suffix = count === "one" ? "st" : count === "two" ? "nd" : "th";
+      const suffix =
+        count === "one"
+          ? "st"
+          : count === "two"
+            ? "nd"
+            : count === "few"
+              ? "rd"
+              : "th";
       return `${rank.toString()}${suffix}`;
     },
-    slug: (slug) => slug,
+    slug: (count, slug) => (count === 1 ? slug : `'${slug}'s`),
     text: (text) => text,
+    times: (count) => {
+      switch (count) {
+        case 1:
+          return "once";
+        case 2:
+          return "twice";
+        case 3:
+          return "thrice";
+        default:
+          return `${count.toString()} times`;
+      }
+    },
   },
   (table, options) => {
     const widthPerColumn = interval(0, table.columns).map((c) =>

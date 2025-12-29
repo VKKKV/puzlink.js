@@ -16,7 +16,7 @@ export default {
         SFORZANDO
         CARTWHEEL
       `,
-      expected: "has 1 letters, each repeating at least 2 times",
+      expected: "has a letter that appears at least twice",
     },
   ],
 } satisfies EvalSuite;

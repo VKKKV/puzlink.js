@@ -1,13 +1,8 @@
 import { morseLetter } from "../data/morse.js";
 import { scrabbleLetterScore } from "../data/scrabble.js";
 import { VOWELS } from "../lib/letterDistribution.js";
-import {
-  enumerate,
-  interval,
-  mapProduct,
-  printIndexSlug,
-  windows,
-} from "../lib/util.js";
+import { enumerate, interval, mapProduct, windows } from "../lib/util.js";
+import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
 /**
@@ -26,48 +21,66 @@ function mirrorDiff(slug: string): number {
 
 function palindrome(): Feature {
   return {
-    name: "is palindrome",
+    name: T.Text("is palindrome"),
     property: (slug) => {
       if (mirrorDiff(slug) !== 0) return null;
-      const letters = Array.from(slug);
-      if (letters.length % 2 === 0) {
-        letters.splice(letters.length / 2, 0, "|");
-      } else {
-        letters.splice(Math.floor(letters.length / 2) + 1, 0, "|");
-        letters.splice(Math.floor(letters.length / 2) - 1, 0, "|");
-      }
-      return letters.join("");
+      const middle = Math.floor(slug.length / 2);
+      return T.Row([
+        T.Highlight(
+          slug,
+          slug.length % 2 === 0 ? [middle - 1, middle] : [middle],
+        ),
+        T.Indices(middle),
+        T.Slug(slug[middle]!),
+      ]);
     },
   };
 }
 
 function changeToPalindrome(): Feature {
   return {
-    name: "is one change to a palindrome",
+    name: T.Text("is one change to a palindrome"),
     property: (slug) => {
-      if (mirrorDiff(slug) !== 1) {
-        return null;
-      }
-      const letters = Array.from(slug);
-      if (letters.length % 2 === 0) {
-        letters.splice(letters.length / 2, 0, "|");
-      } else {
-        letters.splice(Math.floor(letters.length / 2) + 1, 0, "|");
-        letters.splice(Math.floor(letters.length / 2) - 1, 0, "|");
-      }
-      return letters.join("");
+      if (mirrorDiff(slug) !== 1) return null;
+      const mismatchIndex = Array.from(slug).findIndex(
+        (letter, i) => letter !== slug[slug.length - i - 1],
+      );
+      const middle = Math.floor(slug.length / 2);
+      return T.Row([
+        T.Highlight(
+          slug,
+          slug.length % 2 === 0
+            ? [mismatchIndex, middle - 1, middle]
+            : [mismatchIndex, middle],
+        ),
+        T.Indices(mismatchIndex),
+        T.Slug(slug[mismatchIndex]!),
+        T.Indices(slug.length - mismatchIndex - 1),
+        T.Slug(slug[slug.length - mismatchIndex - 1]!),
+      ]);
     },
   };
 }
 
 function deleteToPalindrome(): Feature {
   return {
-    name: "is one deletion to a palindrome",
+    name: T.Text("is one deletion to a palindrome"),
     property: (slug) => {
       for (const i of interval(0, slug.length - 1)) {
         const candidate = `${slug.slice(0, i)}${slug.slice(i + 1)}`;
         if (mirrorDiff(candidate) === 0) {
-          return `${slug} delete ${slug[i]!} = ${candidate}`;
+          const middle = Math.floor(candidate.length / 2);
+          return T.Row([
+            T.Highlight(slug, [i]),
+            T.Indices(i),
+            T.Slug(slug[i]!),
+            T.Highlight(
+              candidate,
+              candidate.length % 2 === 0 ? [middle - 1, middle] : [middle],
+            ),
+            T.Collapsible(T.Indices(middle)),
+            T.Collapsible(T.Slug(candidate[middle]!)),
+          ]);
         }
       }
       return null;
@@ -77,7 +90,7 @@ function deleteToPalindrome(): Feature {
 
 function hill(): Feature {
   return {
-    name: "is a hill",
+    name: T.Text("is a hill"),
     property: (slug) => {
       const codes = Array.from(slug, (letter) => letter.charCodeAt(0));
       const max = Math.max(...codes);
@@ -88,20 +101,21 @@ function hill(): Feature {
       for (const [a, b] of windows(codes.slice(peak), 2)) {
         if (a < b) return null;
       }
-
-      const letters = Array.from(slug);
       const peakEnd = codes.findLastIndex((code) => code === max);
-      letters.splice(peak, 0, "<");
-      letters.splice(peakEnd + 2, 0, ">");
 
-      return letters.join("");
+      return T.Row([
+        T.Highlight(slug, interval(peak, peakEnd)),
+        T.Indices(peak),
+        T.Slug(slug[peak]!),
+        peak !== peakEnd && T.Indices(peakEnd),
+      ]);
     },
   };
 }
 
 function valley(): Feature {
   return {
-    name: "is a valley",
+    name: T.Text("is a valley"),
     property: (slug) => {
       const codes = Array.from(slug, (letter) => letter.charCodeAt(0));
       const min = Math.min(...codes);
@@ -113,19 +127,21 @@ function valley(): Feature {
         if (a > b) return null;
       }
 
-      const letters = Array.from(slug);
       const troughEnd = codes.findLastIndex((code) => code === min);
-      letters.splice(trough, 0, ">");
-      letters.splice(troughEnd + 2, 0, "<");
 
-      return letters.join("");
+      return T.Row([
+        T.Highlight(slug, interval(trough, troughEnd)),
+        T.Indices(trough),
+        T.Slug(slug[trough]!),
+        trough !== troughEnd && T.Indices(troughEnd),
+      ]);
     },
   };
 }
 
 function alternatingVowels(): Feature {
   return {
-    name: "alternates vowels and consonants",
+    name: T.Text("alternates vowels and consonants"),
     property: (slug) => {
       let wasVowel = VOWELS.includes(slug[0]!);
       const vowelIndices = wasVowel ? [0] : [];
@@ -139,43 +155,55 @@ function alternatingVowels(): Feature {
         }
         wasVowel = isVowel;
       }
-      return printIndexSlug(slug, vowelIndices);
+      return T.Row([
+        T.Highlight(slug, vowelIndices),
+        T.Indices(vowelIndices.includes(0) ? 0 : 1),
+      ]);
     },
   };
 }
 
 function scrabbleScore(n: number): Feature {
   return {
-    name: `has scrabble score ${n.toString()}`,
+    name: T.Join(["has scrabble score", n]),
     property: (slug) => {
       const points = Array.from(slug, (letter) => scrabbleLetterScore[letter]!);
       const score = points.reduce((a, b) => a + b, 0);
-      return score === n
-        ? `${slug}: ${points.join("+")} = ${n.toString()}`
-        : null;
+      if (score !== n) {
+        return null;
+      }
+      return T.Row([
+        T.Slug(slug),
+        T.Text(score.toString()),
+        ...points.map((p) => T.Text(p)),
+      ]);
     },
   };
 }
 
 function morseEqual(): Feature {
   return {
-    name: "has morse code with equal dot/dash count",
+    name: T.Join(["has morse code with equal dot/dash count"]),
     property: (slug) => {
       const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
         " ",
       );
       const dotCount = Array.from(morse).filter((c) => c === ".").length;
       const dashCount = Array.from(morse).filter((c) => c === "-").length;
-      return dotCount === dashCount
-        ? `${slug} has ${dotCount.toString()} dots/dashes: ${morse}`
-        : null;
+      if (dotCount !== dashCount) {
+        return null;
+      }
+      return T.Row([T.Slug(slug), T.Text(dotCount), T.Slug(morse)]);
     },
   };
 }
 
-function morseCount(kind: { name: string; chars: string }, n: number): Feature {
+function morseCount(
+  kind: { one: string; other: string; chars: string },
+  n: number,
+): Feature {
   return {
-    name: `has morse code with ${n.toString()} ${kind.name}`,
+    name: T.Join(["has morse code with", T.Count(n, kind.one, kind.other)]),
     property: (slug) => {
       const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
         " ",
@@ -183,9 +211,10 @@ function morseCount(kind: { name: string; chars: string }, n: number): Feature {
       const count = Array.from(morse).filter((c) =>
         kind.chars.includes(c),
       ).length;
-      return count === n
-        ? `${slug} has ${count.toString()} ${kind.name}: ${morse}`
-        : null;
+      if (count !== n) {
+        return null;
+      }
+      return T.Row([T.Slug(slug), T.Text(count), T.Slug(morse)]);
     },
   };
 }
@@ -204,9 +233,9 @@ export function otherFeatures(): Feature[] {
     ...mapProduct(
       morseCount,
       [
-        { name: "dots", chars: "." },
-        { name: "dashes", chars: "-" },
-        { name: "dots and dashes", chars: ".-" },
+        { chars: ".", one: "dot", other: "dots" },
+        { chars: "-", one: "dash", other: "dashes" },
+        { chars: ".-", one: "dot or dash", other: "dots and dashes" },
       ],
       interval(1, 40),
     ),

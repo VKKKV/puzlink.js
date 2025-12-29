@@ -6,15 +6,16 @@ import {
   mapProduct,
   windows,
 } from "../lib/util.js";
+import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
 function prependWith(letter: string): Feature {
   return {
-    name: `can prepend ${letter}`,
+    name: T.Join(["can prepend", letter]),
     property: (slug, { wordlist }) => {
       const prepended = `${letter}${slug}`;
       return wordlist.isWord(prepended)
-        ? `${letter} + ${slug} = ${prepended}`
+        ? T.Row([T.Slug(slug), T.Slug(letter), T.Slug(prepended)])
         : null;
     },
   };
@@ -22,25 +23,35 @@ function prependWith(letter: string): Feature {
 
 function prependAny(): Feature {
   return {
-    name: "can prepend 1",
+    name: T.Text("can prepend a letter"),
     property: (slug, { wordlist }) => {
       const prepended = wordlist.filterWords(
         Array.from(LETTERS).map((letter) => `${letter}${slug}`),
       );
-      return prepended.length === 0
-        ? null
-        : `1 + ${slug} = ${prepended.join(", ")}`;
+      if (prepended.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = prepended;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first![0]!),
+        T.Slug(first!),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p[0]!)),
+          T.Collapsible(T.Slug(p)),
+        ]),
+      ]);
     },
   };
 }
 
 function appendWith(letter: string): Feature {
   return {
-    name: `can append ${letter}`,
+    name: T.Join(["can append", letter]),
     property: (slug, { wordlist }) => {
       const appended = `${slug}${letter}`;
       return wordlist.isWord(appended)
-        ? `${slug} + ${letter} = ${appended}`
+        ? T.Row([T.Slug(slug), T.Slug(letter), T.Slug(appended)])
         : null;
     },
   };
@@ -48,59 +59,97 @@ function appendWith(letter: string): Feature {
 
 function appendAny(): Feature {
   return {
-    name: "can append 1",
+    name: T.Text("can append a letter"),
     property: (slug, { wordlist }) => {
       const appended = wordlist.filterWords(
         Array.from(LETTERS).map((letter) => `${slug}${letter}`),
       );
-      return appended.length === 0
-        ? null
-        : `${slug} + 1 = ${appended.join(", ")}`;
+      if (appended.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = appended;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first!.at(-1)!),
+        T.Slug(first!),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p.at(-1)!)),
+          T.Collapsible(T.Slug(p)),
+        ]),
+      ]);
     },
   };
 }
 
 function insertWith(letter: string): Feature {
   return {
-    name: `can insert ${letter}`,
+    name: T.Join(["can insert", letter]),
     property: (slug, { wordlist }) => {
-      const allInserted = [];
+      const allInserted: [index: number, inserted: string][] = [];
       for (let i = 0; i <= slug.length; i++) {
-        allInserted.push(`${slug.slice(0, i)}${letter}${slug.slice(i)}`);
+        allInserted.push([i, `${slug.slice(0, i)}${letter}${slug.slice(i)}`]);
       }
-      const inserted = wordlist.filterWords(allInserted);
-      return inserted.length === 0
-        ? null
-        : `${slug} insert ${letter} = ${inserted.join(", ")}`;
+      const inserted = wordlist.filterWordsUnder(allInserted, (p) => p[1]);
+      if (inserted.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = inserted;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(letter),
+        T.Indices(first![0]),
+        T.Slug(first![1]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Indices(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+        ]),
+      ]);
     },
   };
 }
 
 function insertAny(): Feature {
   return {
-    name: "can insert 1",
+    name: T.Text("can insert a letter"),
     property: (slug, { wordlist }) => {
-      const allInserted = [];
+      const allInserted: [letter: string, index: number, inserted: string][] =
+        [];
       for (let i = 0; i <= slug.length; i++) {
         for (const letter of LETTERS) {
-          allInserted.push(`${slug.slice(0, i)}${letter}${slug.slice(i)}`);
+          allInserted.push([
+            letter,
+            i,
+            `${slug.slice(0, i)}${letter}${slug.slice(i)}`,
+          ]);
         }
       }
-      const inserted = wordlist.filterWords(allInserted);
-      return inserted.length === 0
-        ? null
-        : `${slug} insert 1 = ${inserted.join(", ")}`;
+      const inserted = wordlist.filterWordsUnder(allInserted, (p) => p[2]);
+      if (inserted.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = inserted;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first![0]),
+        T.Indices(first![1]),
+        T.Slug(first![2]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p[0])),
+          T.Collapsible(T.Indices(p[1])),
+          T.Collapsible(T.Slug(p[2])),
+        ]),
+      ]);
     },
   };
 }
 
 function behead(): Feature {
   return {
-    name: "can behead 1",
+    name: T.Text("can behead"),
     property: (slug, { wordlist }) => {
       const beheaded = slug.slice(1);
       return wordlist.isWord(beheaded)
-        ? `${slug} behead 1 = ${beheaded}`
+        ? T.Row([T.Slug(slug), T.Slug(slug[0]!), T.Slug(beheaded)])
         : null;
     },
   };
@@ -108,11 +157,11 @@ function behead(): Feature {
 
 function curtail(): Feature {
   return {
-    name: "can curtail 1",
+    name: T.Text("can curtail"),
     property: (slug, { wordlist }) => {
       const curtailed = slug.slice(0, -1);
       return wordlist.isWord(curtailed)
-        ? `${slug} curtail 1 = ${curtailed}`
+        ? T.Row([T.Slug(slug), T.Slug(slug.at(-1)!), T.Slug(curtailed)])
         : null;
     },
   };
@@ -120,108 +169,181 @@ function curtail(): Feature {
 
 function deleteWith(letter: string): Feature {
   return {
-    name: `can delete ${letter}`,
+    name: T.Join(["can delete", letter]),
     property: (slug, { wordlist }) => {
-      const allDeleted = [];
+      const allDeleted: [index: number, deleted: string][] = [];
       for (const [i, c] of enumerate(slug)) {
         if (c === letter) {
-          allDeleted.push(`${slug.slice(0, i)}${slug.slice(i + 1)}`);
+          allDeleted.push([i, `${slug.slice(0, i)}${slug.slice(i + 1)}`]);
         }
       }
-      const deleted = wordlist.filterWords(allDeleted);
-      return deleted.length === 0
-        ? null
-        : `${slug} delete ${letter} = ${deleted.join(", ")}`;
+      const deleted = wordlist.filterWordsUnder(allDeleted, (p) => p[1]);
+      if (deleted.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = deleted;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(letter),
+        T.Indices(first![0]),
+        T.Slug(first![1]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Indices(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+        ]),
+      ]);
     },
   };
 }
 
 function deleteAny(): Feature {
   return {
-    name: "can delete 1",
+    name: T.Text("can delete a letter"),
     property: (slug, { wordlist }) => {
-      const allDeleted = [];
-      for (const [i] of enumerate(slug)) {
-        allDeleted.push(`${slug.slice(0, i)}${slug.slice(i + 1)}`);
+      const allDeleted: [index: number, letter: string, deleted: string][] = [];
+      for (const [i, letter] of enumerate(slug)) {
+        allDeleted.push([i, letter, `${slug.slice(0, i)}${slug.slice(i + 1)}`]);
       }
-      const deleted = wordlist.filterWords(allDeleted);
-      return deleted.length === 0
-        ? null
-        : `${slug} delete 1 = ${deleted.join(", ")}`;
+      const deleted = wordlist.filterWordsUnder(allDeleted, (p) => p[2]);
+      if (deleted.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = deleted;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first![1]),
+        T.Indices(first![0]),
+        T.Slug(first![2]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p[1])),
+          T.Collapsible(T.Indices(p[0])),
+          T.Collapsible(T.Slug(p[2])),
+        ]),
+      ]);
     },
   };
 }
 
 function takeOddOrEven(): Feature {
   return {
-    name: "can take odd or even letters",
+    name: T.Text("can take odd or even letters"),
     property: (slug, { wordlist }) => {
-      const odd = Array.from(slug)
-        .filter((_, i) => i % 2 === 1)
-        .join("");
-      const even = Array.from(slug)
-        .filter((_, i) => i % 2 === 0)
-        .join("");
+      const oddIndices = Array.from(slug, (_, i) => i).filter(
+        (i) => i % 2 === 1,
+      );
+      const evenIndices = Array.from(slug, (_, i) => i).filter(
+        (i) => i % 2 === 0,
+      );
+      const odd = oddIndices.map((i) => slug[i]).join("");
+      const even = evenIndices.map((i) => slug[i]).join("");
       const isOdd = wordlist.isWord(odd);
       const isEven = wordlist.isWord(even);
       if (!isOdd && !isEven) {
         return null;
       }
       if (isOdd && isEven) {
-        return `${slug} take odd = ${odd}; take even = ${even}`;
+        return T.Row([
+          T.Highlight(slug, oddIndices),
+          T.Text("odd"),
+          T.Slug(odd),
+          T.Collapsible(T.Highlight(slug, evenIndices)),
+          T.Collapsible(T.Text("even")),
+          T.Collapsible(T.Slug(even)),
+        ]);
       }
       return isOdd
-        ? `${slug} take odd = ${odd}`
-        : `${slug} take even = ${even}`;
+        ? T.Row([T.Highlight(slug, oddIndices), T.Text("odd"), T.Slug(odd)])
+        : T.Row([T.Highlight(slug, evenIndices), T.Text("even"), T.Slug(even)]);
     },
   };
 }
 
 function changeTo(letter: string): Feature {
   return {
-    name: `can change to ${letter}`,
+    name: T.Join(["can change a letter to", letter]),
     property: (slug, { wordlist }) => {
-      const allChanged = [];
+      const allChanged: [index: number, from: string, changed: string][] = [];
       for (const [i, c] of enumerate(slug)) {
         if (c !== letter) {
-          allChanged.push(`${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`);
+          allChanged.push([
+            i,
+            c,
+            `${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`,
+          ]);
         }
       }
-      const changed = wordlist.filterWords(allChanged);
-      return changed.length === 0
-        ? null
-        : `${slug} change to ${letter} = ${changed.join(", ")}`;
+      const changed = wordlist.filterWordsUnder(allChanged, (p) => p[2]);
+      if (changed.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = changed;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(letter),
+        T.Indices(first![0]),
+        T.Slug(first![1]),
+        T.Slug(first![2]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Indices(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+          T.Collapsible(T.Slug(p[2])),
+        ]),
+      ]);
     },
   };
 }
 
 function changeAny(): Feature {
   return {
-    name: "can change 1",
+    name: T.Text("can change a letter"),
     property: (slug, { wordlist }) => {
-      const allChanged = [];
+      const allChanged: [
+        index: number,
+        from: string,
+        to: string,
+        changed: string,
+      ][] = [];
       for (const [i, c] of enumerate(slug)) {
         for (const letter of LETTERS) {
           if (c !== letter) {
-            allChanged.push(`${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`);
+            allChanged.push([
+              i,
+              c,
+              letter,
+              `${slug.slice(0, i)}${letter}${slug.slice(i + 1)}`,
+            ]);
           }
         }
       }
-      const changed = wordlist.filterWords(allChanged);
-      return changed.length === 0
-        ? null
-        : `${slug} change 1 = ${changed.join(", ")}`;
+      const changed = wordlist.filterWordsUnder(allChanged, (p) => p[3]);
+      if (changed.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = changed;
+      return T.Row([
+        T.Slug(slug),
+        T.Indices(first![0]),
+        T.Slug(first![1]),
+        T.Slug(first![2]),
+        T.Slug(first![3]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Indices(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+          T.Collapsible(T.Slug(p[2])),
+          T.Collapsible(T.Slug(p[3])),
+        ]),
+      ]);
     },
   };
 }
 
 function reverse(): Feature {
   return {
-    name: "can reverse",
+    name: T.Text("can reverse"),
     property: (slug, { wordlist }) => {
       const reversed = slug.split("").reverse().join("");
       return wordlist.isWord(reversed)
-        ? `${slug} reversed = ${reversed}`
+        ? T.Row([T.Slug(slug), T.Slug(reversed)])
         : null;
     },
   };
@@ -229,7 +351,7 @@ function reverse(): Feature {
 
 function rotate(): Feature {
   return {
-    name: "can rotate",
+    name: T.Text("can rotate"),
     property: (slug, { wordlist }) => {
       const candidates: [candidate: string, n: number][] = [];
       for (let n = 1; n < slug.length; n++) {
@@ -241,18 +363,22 @@ function rotate(): Feature {
       }
       const [first, ...rest] = rotates;
       const [rotated, n] = first!;
-      const nStr =
-        n > slug.length / 2 ? (n - slug.length).toString() : n.toString();
-      return `${slug} rotate ${nStr} = ${rotated}${
-        rest.length > 0 ? ` (alt: ${rest.map((t) => t[0]).join(", ")})` : ""
-      }`;
+      return T.Row([
+        T.Slug(slug),
+        T.Text(n > slug.length / 2 ? n - slug.length : n),
+        T.Slug(rotated),
+        ...rest.flatMap(([other, m]) => [
+          T.Collapsible(T.Text(m > slug.length / 2 ? m - slug.length : m)),
+          T.Collapsible(T.Slug(other)),
+        ]),
+      ]);
     },
   };
 }
 
 function swapAdjacent(): Feature {
   return {
-    name: "can swap adjacent letters",
+    name: T.Text("can swap adjacent letters"),
     property: (slug, { wordlist }) => {
       const candidates: [candidate: string, i: number][] = [];
       for (const [i, [a, b]] of enumerate(windows(slug, 2))) {
@@ -268,24 +394,39 @@ function swapAdjacent(): Feature {
         return null;
       }
       const [first, ...rest] = swapped;
-      const swapIndices = `${(first![1] + 1).toString()}, ${(first![1] + 2).toString()}`;
-      return `${slug} swap ${swapIndices} = ${first![0]}${
-        rest.length > 0 ? ` (alt: ${rest.map((t) => t[0]).join(", ")})` : ""
-      }`;
+      const [swap, i] = first!;
+      return T.Row([
+        T.Slug(slug),
+        T.Indices(i),
+        T.Slug(slug[i]!),
+        T.Slug(slug[i + 1]!),
+        T.Slug(swap),
+        ...rest.flatMap(([other, i]) => [
+          T.Collapsible(T.Indices(i)),
+          T.Collapsible(T.Slug(slug[i]!)),
+          T.Collapsible(T.Slug(slug[i + 1]!)),
+          T.Collapsible(T.Slug(other)),
+        ]),
+      ]);
     },
   };
 }
 
 function swapEnds(): Feature {
   return {
-    name: "can swap ends",
+    name: T.Text("can swap ends"),
     property: (slug, { wordlist }) => {
       if (slug.length < 2) {
         return null;
       }
       const candidate = `${slug.at(-1)!}${slug.slice(1, -1)}${slug.at(0)!}`;
       return wordlist.isWord(candidate)
-        ? `${slug} swap ends = ${candidate}`
+        ? T.Row([
+            T.Slug(slug),
+            T.Slug(slug.at(0)!),
+            T.Slug(slug.at(-1)!),
+            T.Slug(candidate),
+          ])
         : null;
     },
   };
@@ -293,53 +434,76 @@ function swapEnds(): Feature {
 
 function anagram(): Feature {
   return {
-    name: "is anagram",
+    name: T.Text("is anagram"),
     property: (slug, { wordlist }) => {
       const anagrams = wordlist.anagrams(slug);
-      return anagrams.length === 0
-        ? null
-        : `${slug} anagrammed = ${anagrams.join(", ")}`;
+      if (anagrams.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = anagrams;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first!),
+        ...rest.map((a) => T.Collapsible(T.Slug(a))),
+      ]);
     },
   };
 }
 
 function transaddWith(letter: string): Feature {
   return {
-    name: `has transadd ${letter}`,
+    name: T.Join(["has transadd with", letter]),
     property: (slug, { wordlist }) => {
       const transadds = wordlist.anagrams(`${slug}${letter}`, {
         loose: true,
       });
-      return transadds.length === 0
-        ? null
-        : `${slug} transadd ${letter} = ${transadds.join(", ")}`;
+      if (transadds.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = transadds;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(letter),
+        T.Slug(first!),
+        ...rest.map((t) => T.Collapsible(T.Slug(t))),
+      ]);
     },
   };
 }
 
 function transaddAny(): Feature {
   return {
-    name: "has transadd 1",
+    name: T.Text("has transadd"),
     property: (slug, { wordlist }) => {
-      const allTransadds = [];
+      const allTransadds: [letter: string, transadd: string][] = [];
       for (const letter of LETTERS) {
         for (const transadd of wordlist.anagrams(`${slug}${letter}`, {
           loose: true,
         })) {
-          allTransadds.push(transadd);
+          allTransadds.push([letter, transadd]);
         }
       }
-      const transadds = wordlist.filterWords(allTransadds);
-      return transadds.length === 0
-        ? null
-        : `${slug} transadd 1 = ${transadds.join(", ")}`;
+      const transadds = wordlist.filterWordsUnder(allTransadds, (p) => p[1]);
+      if (transadds.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = transadds;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first![0]),
+        T.Slug(first![1]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+        ]),
+      ]);
     },
   };
 }
 
 function transdeleteWith(letter: string): Feature {
   return {
-    name: `has transdelete ${letter}`,
+    name: T.Join(["has transdelete with", letter]),
     property: (slug, { wordlist }) => {
       if (!slug.includes(letter)) {
         return null;
@@ -347,36 +511,56 @@ function transdeleteWith(letter: string): Feature {
       const transdeletes = wordlist.anagrams(slug.replace(letter, ""), {
         loose: true,
       });
-      return transdeletes.length === 0
-        ? null
-        : `${slug} transdelete ${letter} = ${transdeletes.join(", ")}`;
+      if (transdeletes.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = transdeletes;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(letter),
+        T.Slug(first!),
+        ...rest.map((t) => T.Collapsible(T.Slug(t))),
+      ]);
     },
   };
 }
 
 function transdeleteAny(): Feature {
   return {
-    name: "has transdelete 1",
+    name: T.Text("has transdelete"),
     property: (slug, { wordlist }) => {
-      const allTransdeletes = [];
+      const allTransdeletes: [letter: string, transdelete: string][] = [];
       for (const letter of new Set(slug)) {
         for (const transdelete of wordlist.anagrams(slug.replace(letter, ""), {
           loose: true,
         })) {
-          allTransdeletes.push(transdelete);
+          allTransdeletes.push([letter, transdelete]);
         }
       }
-      const transdeletes = wordlist.filterWords(allTransdeletes);
-      return transdeletes.length === 0
-        ? null
-        : `${slug} transdelete 1 = ${transdeletes.join(", ")}`;
+      const transdeletes = wordlist.filterWordsUnder(
+        allTransdeletes,
+        (p) => p[1],
+      );
+      if (transdeletes.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = transdeletes;
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first![0]),
+        T.Slug(first![1]),
+        ...rest.flatMap((p) => [
+          T.Collapsible(T.Slug(p[0])),
+          T.Collapsible(T.Slug(p[1])),
+        ]),
+      ]);
     },
   };
 }
 
 function caesarShift(): Feature {
   return {
-    name: "has caesar shift",
+    name: T.Text("has caesar shift"),
     property: (slug, { wordlist }) => {
       const candidates: [candidate: string, n: number][] = [
         ...interval(-12, -1),
@@ -388,9 +572,15 @@ function caesarShift(): Feature {
       }
       const [first, ...rest] = shifted;
       const [shiftedSlug, n] = first!;
-      return `${slug} caesar shift ${n.toString()} = ${shiftedSlug}${
-        rest.length > 0 ? ` (alt: ${rest.map((t) => t[0]).join(", ")})` : ""
-      }`;
+      return T.Row([
+        T.Slug(slug),
+        T.Text(n),
+        T.Slug(shiftedSlug),
+        ...rest.flatMap(([other, m]) => [
+          T.Collapsible(T.Text(m)),
+          T.Collapsible(T.Slug(other)),
+        ]),
+      ]);
     },
   };
 }

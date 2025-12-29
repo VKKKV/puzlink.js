@@ -14,7 +14,7 @@ export default {
         PATRICI(A A)RQUE(TT)E
         N(EE)DLE(SS)
       `,
-      expected: "has equal letters with 0 letters between, at least 1 times",
+      expected: "has at least 1 double letter",
     },
   ],
 } satisfies EvalSuite;

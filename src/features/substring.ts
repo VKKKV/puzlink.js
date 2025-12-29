@@ -5,7 +5,8 @@ import {
   type Category,
 } from "../data/categories.js";
 import { LetterBitsets } from "../lib/letterBitset.js";
-import { capitalizeAt, interval, mapProduct } from "../lib/util.js";
+import { interval, mapProduct } from "../lib/util.js";
+import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
 // TODO(maybe): looking for long substrings that are words; we need a good heuristic for these, because we e.g. don't want to report that UNDERSCORE is a substring of UNDERSCORES, but we do want to report STRANGE is a substring of FOREST RANGER
@@ -13,14 +14,18 @@ import type { Feature } from "./index.js";
 function containsOne(category: Category): Feature {
   const regex = new RegExp(category.items.join("|"));
   return {
-    name: `has ${category.name} substring`,
+    name: T.Join(["has", category.name, "substring"]),
     property: (slug) => {
       const match = regex.exec(slug);
       if (!match) {
         return null;
       }
       const indices = interval(match.index, match.index + match[0].length - 1);
-      return `${slug} contains ${match[0]}: ${capitalizeAt(slug, indices)}`;
+      return T.Row([
+        T.Highlight(slug, indices),
+        T.Slug(match[0]),
+        T.Indices(indices[0]),
+      ]);
     },
   };
 }
@@ -32,9 +37,13 @@ function containsTimes(
 ): Feature {
   const regex = new RegExp(category.items.join("|"), "g");
   return {
-    name: strict
-      ? `has ${category.name} substring, ${times.toString()} times`
-      : `has ${category.name} substring, at least ${times.toString()} times`,
+    name: T.Join([
+      "has",
+      !strict && "at least",
+      times,
+      category.name,
+      T.Inflect(times, "substring", "substrings"),
+    ]),
     property: (slug) => {
       const matches = [];
 
@@ -51,7 +60,16 @@ function containsTimes(
       const indices = matches.flatMap((m) =>
         interval(m.index, m.index + m[0].length - 1),
       );
-      return `${slug} contains ${matches.map((m) => m[0]).join(", ")}: ${capitalizeAt(slug, indices)}`;
+      const [first, ...rest] = matches;
+      return T.Row([
+        T.Highlight(slug, indices),
+        T.Slug(first![0]),
+        T.Indices(first!.index),
+        ...rest.flatMap((m) => [
+          T.Collapsible(T.Slug(m[0])),
+          T.Collapsible(T.Indices(m.index)),
+        ]),
+      ]);
     },
   };
 }
@@ -59,13 +77,17 @@ function containsTimes(
 function startsWithOne(category: Category): Feature {
   const regex = new RegExp(`^(${category.items.join("|")})`);
   return {
-    name: `starts with ${category.name}`,
+    name: T.Join(["starts with", category.name]),
     property: (slug) => {
       const match = regex.exec(slug);
       if (!match) {
         return null;
       }
-      return `${slug} starts with ${match[0]}`;
+      return T.Row([
+        T.Highlight(slug, interval(0, match[0].length - 1)),
+        T.Slug(match[0]),
+        T.Indices(match[0].length - 1),
+      ]);
     },
   };
 }
@@ -73,13 +95,20 @@ function startsWithOne(category: Category): Feature {
 function endsWithOne(category: Category): Feature {
   const regex = new RegExp(`(${category.items.join("|")})$`);
   return {
-    name: `ends with ${category.name}`,
+    name: T.Join(["ends with", category.name]),
     property: (slug) => {
       const match = regex.exec(slug);
       if (!match) {
         return null;
       }
-      return `${slug} ends with ${match[0]}`;
+      return T.Row([
+        T.Highlight(
+          slug,
+          interval(slug.length - match[0].length, slug.length - 1),
+        ),
+        T.Slug(match[0]),
+        T.Indices(slug.length - match[0].length),
+      ]);
     },
   };
 }
@@ -87,7 +116,7 @@ function endsWithOne(category: Category): Feature {
 function canBeBrokenInto(category: Category): Feature {
   const regex = new RegExp(`^(${category.items.join("|")})+$`);
   return {
-    name: `can be broken into ${category.name}`,
+    name: T.Join(["can be broken into", category.name]),
     property: (slug) => {
       let match = regex.exec(slug);
       if (!match) {
@@ -101,7 +130,12 @@ function canBeBrokenInto(category: Category): Feature {
         remaining = remaining.slice(0, -suffix.length);
         match = regex.exec(remaining);
       }
-      return `${slug} = ${parts.reverse().join(" ")}`;
+      const [first, ...rest] = parts.reverse();
+      return T.Row([
+        T.Slug(slug),
+        T.Slug(first!),
+        ...rest.flatMap((p) => [T.Collapsible(T.Slug(p))]),
+      ]);
     },
   };
 }
@@ -109,7 +143,7 @@ function canBeBrokenInto(category: Category): Feature {
 function hasAnagram(category: Category): Feature {
   const bitsets = new LetterBitsets(category.items);
   return {
-    name: `has ${category.name} anagram substring`,
+    name: T.Join(["has", category.name, "anagram substring"]),
     property: (slug) => {
       const match = Array.from(bitsets.matchSubstring(slug));
       const distinctWords = new Set(match.map((m) => m.words[0]!));
@@ -120,7 +154,12 @@ function hasAnagram(category: Category): Feature {
         start,
         words: [word],
       } = match[0]!;
-      return `${slug} has anagram ${word!}: ${capitalizeAt(slug, interval(start, start + word!.length - 1))}`;
+      return T.Row([
+        T.Highlight(slug, interval(start, start + word!.length - 1)),
+        T.Slug(word!),
+        T.Indices(start),
+        T.Slug(slug.slice(start, start + word!.length)),
+      ]);
     },
   };
 }
@@ -136,7 +175,7 @@ function hasChangeAny(category: Category): Feature {
   }));
   const regex = new RegExp(`(${changes.map((c) => c.regex.source).join("|")})`);
   return {
-    name: `has ${category.name} change 1 substring`,
+    name: T.Join(["has", category.name, "with 1 change as substring"]),
     property: (slug) => {
       const match = regex.exec(slug);
       if (!match) {
@@ -153,7 +192,18 @@ function hasChangeAny(category: Category): Feature {
         }
       }
       const { index } = match;
-      return `${slug} has change 1 of ${matched!}: ${capitalizeAt(slug, interval(index, index + matched!.length - 1))}`;
+      const wrongIndex = Array.from(match[0]).findIndex(
+        (c, i) => c !== matched![i],
+      );
+      if (matched === null || wrongIndex === -1) {
+        return null;
+      }
+      return T.Row([
+        T.Highlight(slug, interval(index, index + matched.length - 1)),
+        T.Slug(matched),
+        T.Slug(match[0][wrongIndex]!),
+        T.Slug(matched[wrongIndex]!),
+      ]);
     },
   };
 }

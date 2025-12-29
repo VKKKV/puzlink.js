@@ -7,7 +7,7 @@ export default {
   cases: [
     {
       slugs: `"advent", "achilles", "binary", "norway", "bubbly", "yacht", "anchor"`,
-      expected: "has 1 reverse alphabetical bigrams",
+      expected: "has 1 reverse alphabetical bigram",
     },
   ],
 } satisfies EvalSuite;

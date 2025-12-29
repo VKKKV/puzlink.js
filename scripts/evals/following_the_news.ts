@@ -17,7 +17,7 @@ export default {
         HANSARDISE
         INTERPOSE
       `,
-      expected: "has compass directions substring, at least 3 times",
+      expected: "has at least 3 compass directions substrings",
     },
   ],
 } satisfies EvalSuite;

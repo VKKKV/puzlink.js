@@ -19,7 +19,7 @@ export default {
         - TRENDY WALLET
         - TURQUOISE GEM
       `,
-      expected: "4th letters are consecutive",
+      expected: "3rd letters are consecutive",
     },
   ],
 } satisfies EvalSuite;

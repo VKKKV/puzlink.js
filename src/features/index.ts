@@ -24,12 +24,9 @@ type Props = {
  */
 export type Feature = {
   /** The name of the feature; will be used for the linker name. */
-  name: string;
-  /**
-   * If the `slug` has the feature, returns a description with `slug` as the
-   * subject. This is an elaboration on the feature name.
-   */
-  property: (slug: string, props: Props) => string | null;
+  name: T.Inline;
+  /** If the `slug` has the feature, returns a description. */
+  property: (slug: string, props: Props) => T.Row | null;
 };
 
 function getProps(wordlist: Wordlist, slug: string): Props {
@@ -45,7 +42,7 @@ function featureLinker(
   wordlist: Wordlist,
   { name, property }: Feature,
 ): Linker | null {
-  let featureLogProb = KnownLogProbs.get(name, () => {
+  let featureLogProb = KnownLogProbs.get(T.renderToText(name), () => {
     return wordlist.logProb(
       (word) => property(word, getProps(wordlist, word)) !== null,
     );
@@ -58,7 +55,7 @@ function featureLinker(
   }
 
   return {
-    name: T.Text(name),
+    name,
     eval: (slugs, options) => {
       const description = slugs.flatMap((word) => {
         const result = property(word, getProps(wordlist, word));
@@ -77,12 +74,8 @@ function featureLinker(
       );
       return [
         {
-          name: T.Text(
-            `${description.length.toString()}/${slugs.length.toString()} ${name}`,
-          ),
-          description: T.Table(
-            description.flatMap((d) => (d ? [T.Text(d)] : [])),
-          ),
+          name: T.Join([T.Fraction(description.length, slugs.length), name]),
+          description: T.Table(description),
           logProb,
         },
       ];
@@ -117,7 +110,12 @@ export function makeFeatureGetter(
     for (const feature of features) {
       const property = feature.property(slug, getProps(wordlist, slug));
       if (property) {
-        properties[feature.name] = property;
+        properties[T.renderToText(feature.name)] = property.cells
+          .map((c) => {
+            const content = T.renderToText(c.content);
+            return c.collapsible ? `(${content})` : content;
+          })
+          .join(" | ");
       }
     }
     return properties;

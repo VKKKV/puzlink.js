@@ -18,7 +18,7 @@ export default {
         COULDHAVEBEEN
         BOBBYHENDRICKS
       `,
-      expected: "has 1 letters, each repeating 3 times",
+      expected: "has a letter that appears thrice",
     },
   ],
 } as EvalSuite;

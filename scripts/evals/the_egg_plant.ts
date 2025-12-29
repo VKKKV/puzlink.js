@@ -6,7 +6,7 @@ export default {
   cases: [
     {
       slugs: `"cardioid", "liqueur", "naiads", "paleoecology", "tenuous", "breathtaking", "hangnail", "topspin", "wardrobe", "worldly"`,
-      expected: "has equal letters with 1 letters between, 1 times",
+      expected: "has 1 pair of equal letters, separated by 1 letter",
     },
     // are these reasonable...
     // {

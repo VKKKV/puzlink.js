@@ -14,11 +14,11 @@ export default {
     },
     {
       slugs: `"lowered", "levitate", "leveraged", "lynx", "lightly", "lengths", "legislator"`,
-      expected: "1st letters are equal",
+      expected: "0th letters are equal",
     },
     {
       slugs: `"levitate", "inanimate", "sizes", "lightly", "crocodile", "legislator", "carousels"`,
-      expected: "has repeated consonants",
+      expected: "has a consonant that appears at least twice",
     },
     {
       slugs: `"questionable", "businesswoman", "exhaustion", "discouraged", "communicated", "hallucinogen", "sequoia"`,
@@ -30,7 +30,7 @@ export default {
     },
     {
       slugs: `"formally", "thinnest", "businesswoman", "communicated", "hallucinogen", "saccharin", "cellophane"`,
-      expected: "has equal letters with 0 letters between",
+      expected: "has exactly 1 double letter",
     },
     {
       slugs: `"thumbtacks", "monologue", "frigidities", "statuesque", "testimony", "satirizing", "flawed"`,
@@ -38,11 +38,11 @@ export default {
     },
     {
       slugs: `"thumbtacks", "monologue", "testimony", "camel", "meteorology", "trampoline", "achievement"`,
-      expected: "has 1 m",
+      expected: "has exactly 1 m",
     },
     {
       slugs: `"monologue", "frigidities", "satirizing", "meteorology", "avalance", "achievement", "constitute"`,
-      expected: "has 1 letters, each repeating at least 3 times",
+      expected: "has a letter that appears at least thrice",
     },
     {
       slugs: `"philharmonic", "mischievous", "alphabet", "restaurant", "leeching", "mushroom", "pioneer"`,
@@ -54,11 +54,11 @@ export default {
     },
     {
       slugs: `"philharmonic", "mischievous", "leeching", "loophole", "toothpaste", "alcoholic", "narwhal"`,
-      expected: "5th letters are equal",
+      expected: "4th letters are equal",
     },
     {
       slugs: `"mischievous", "alphabet", "mushroom", "toothpaste", "seventeenth", "narwhal", "chromosome"`,
-      expected: "has 3 consonants in a row",
+      expected: "has 3 consecutive consonants",
     },
   ],
 } satisfies EvalSuite;

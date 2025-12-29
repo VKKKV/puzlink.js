@@ -16,7 +16,7 @@ export default {
     },
     {
       slugs: `ALMOST, BIOPSY, CHIMP, FILMS, GHOST, TUX`,
-      expected: "has at least 1 reverse alphabetical bigrams",
+      expected: "has 0 reverse alphabetical bigrams",
     },
     {
       slugs: `BALKED, BAR SPOON, HIGH NOON, KLUTZY, ONYX, POSTED`,

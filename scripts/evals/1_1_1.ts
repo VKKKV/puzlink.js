@@ -6,7 +6,7 @@ export default {
   cases: [
     {
       slugs: `STRIFE SEAMAN NIX ETCH POST QUEER-ART FOO TALKS REPAYS STU HUMF UNDERHID SIXTEENS BOWMEN`,
-      expected: "has transdelete 1",
+      expected: "has transdelete",
     },
   ],
 } satisfies EvalSuite;

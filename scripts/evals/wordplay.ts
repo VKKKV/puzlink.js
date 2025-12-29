@@ -23,11 +23,11 @@ export default {
     },
     {
       slugs: `"hitchhiker", "kaashoek", "jellystone", "kierkegaard", "metallica", "maastrict", "menschheit"`,
-      expected: "has equal letters with 0 letters between",
+      expected: "has exactly 1 double letter",
     },
     {
       slugs: `"aime", "eye", "eerie", "riaa", "oahu", "oeis"`,
-      expected: "has 1 unique consonants",
+      expected: "has a unique consonant",
     },
   ],
 } satisfies EvalSuite;

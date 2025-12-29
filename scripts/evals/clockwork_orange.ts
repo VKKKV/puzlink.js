@@ -16,7 +16,7 @@ export default {
         SACROSANCT
         IMPROMPTU
       `,
-      expected: "has 1 bigrams, each repeating 2 times",
+      expected: "has a bigram that appears twice",
     },
   ],
 } satisfies EvalSuite;

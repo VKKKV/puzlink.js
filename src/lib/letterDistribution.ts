@@ -8,6 +8,13 @@ export const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 export const VOWELS = "aeiou";
 export const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 
+export type LetterKind = { one: string; other: string; letters: string };
+export const letterKind = {
+  consonant: { one: "consonant", other: "consonants", letters: CONSONANTS },
+  letter: { one: "letter", other: "letters", letters: LETTERS },
+  vowel: { one: "vowel", other: "vowels", letters: VOWELS },
+} as const satisfies Record<string, LetterKind>;
+
 /**
  * Info about the letter distribution of a wordlist.
  *

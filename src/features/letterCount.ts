@@ -1,121 +1,214 @@
-import { Counter } from "../lib/counter.js";
-import { CONSONANTS, LETTERS, VOWELS } from "../lib/letterDistribution.js";
+import type { LetterKind } from "../lib/letterDistribution.js";
+import { LETTERS, letterKind } from "../lib/letterDistribution.js";
 import {
-  capitalizeAt,
   getArithmeticSequenceInfo,
   interval,
   mapProduct,
-  windows,
 } from "../lib/util.js";
+import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
 function withTimes(letter: string, times: number, strict: boolean): Feature {
   return {
-    name: strict
-      ? `has ${times.toString()} ${letter}`
-      : `has at least ${times.toString()} ${letter}`,
+    name: T.Join([
+      strict ? "has exactly" : "has at least",
+      T.CountSlug(times, letter),
+    ]),
     property: (slug, { letterIndices }) => {
       const starts = letterIndices.get(letter);
       if (strict ? starts.length !== times : starts.length < times) {
         return null;
       }
-      return capitalizeAt(slug, starts);
+      return T.Row([
+        T.Highlight(slug, starts),
+        ...starts.slice(0, times).map((i) => T.Indices(i)),
+        ...starts.slice(times).map((i) => T.Collapsible(T.Indices(i))),
+      ]);
     },
   };
 }
 
-function uniqueOf(
-  kind: { name: string; letters: string },
-  times: number,
-): Feature {
+function uniqueOf(kind: LetterKind, times: number): Feature {
   return {
-    name: `has ${times.toString()} unique ${kind.name}`,
+    name: T.Join([
+      "has",
+      times === 1 ? "a" : times,
+      "unique",
+      T.Inflect(times, kind.one, kind.other),
+    ]),
     property: (slug, { letterIndices }) => {
-      const unique = letterIndices
-        .filterKeys((letter) => kind.letters.includes(letter))
-        .sort()
-        .join("");
+      const unique = letterIndices.filterKeys((letter) =>
+        kind.letters.includes(letter),
+      );
       if (unique.length !== times) {
         return null;
       }
-      return `${slug} ${kind.name}: ${unique}`;
+      if (times === 1) {
+        const [letter] = unique as [string];
+        const indices = letterIndices.get(letter);
+        return T.Row([
+          T.Highlight(slug, indices),
+          T.Slug(letter),
+          ...letterIndices.get(letter).map((i) => T.Collapsible(T.Indices(i))),
+        ]);
+      }
+      if (times === 2) {
+        const [a, b] = unique as [string, string];
+        const aIndices = letterIndices.get(a);
+        const bIndices = letterIndices.get(b);
+        return T.Row([
+          T.Highlight(slug, [...aIndices, ...bIndices]),
+          T.Slug(a),
+          T.Indices(aIndices),
+          T.Slug(b),
+          T.Indices(bIndices),
+        ]);
+      }
+      const indices = Array.from(slug).flatMap((letter, i) =>
+        kind.letters.includes(letter) ? [i] : [],
+      );
+      const letters = Array.from(slug)
+        .map((letter) => (kind.letters.includes(letter) ? letter : ""))
+        .join("");
+      return T.Row([
+        T.Highlight(slug, indices),
+        T.Slug(unique.join("")),
+        T.Slug(letters),
+      ]);
     },
   };
 }
 
 function nGramRepeatsTimes(
-  kind: { name: string; n: number },
+  kind: { one: string; other: string; n: number },
   count: number,
   repeats: number,
   strict: boolean,
 ): Feature {
   return {
-    name: strict
-      ? `has ${count.toString()} ${kind.name}, each repeating ${repeats.toString()} times`
-      : `has ${count.toString()} ${kind.name}, each repeating at least ${repeats.toString()} times`,
+    name:
+      count === 1
+        ? T.Join([
+            "has a",
+            kind.one,
+            "that appears",
+            !strict && "at least",
+            T.Times(repeats),
+          ])
+        : T.Join([
+            "has",
+            count,
+            `${kind.other},`,
+            "each appearing",
+            !strict && "at least",
+            T.Times(repeats),
+          ]),
     property: (slug) => {
-      const counts = Counter.from(
-        Array.from(windows(slug, kind.n), (w) => w.join("")),
-      );
-      const nGrams = counts.filterKeys((_, count) =>
-        strict ? count === repeats : count >= repeats,
+      const nGramToIndices = new Map<string, number[]>();
+      for (const i of interval(0, slug.length - kind.n + 1)) {
+        const nGram = slug.slice(i, i + kind.n);
+        if (!nGramToIndices.has(nGram)) {
+          nGramToIndices.set(nGram, []);
+        }
+        nGramToIndices.get(nGram)!.push(i);
+      }
+      const nGrams = Array.from(nGramToIndices.entries()).filter(
+        ([, indices]) =>
+          strict ? indices.length === repeats : indices.length >= repeats,
       );
       if (nGrams.length !== count) {
         return null;
       }
-      return `${slug}: ${nGrams.join(", ")}`;
+      if (count === 1) {
+        const [nGram, indices] = nGrams[0]!;
+        return T.Row([
+          T.Highlight(slug, indices),
+          T.Slug(nGram),
+          ...indices.map((i) => T.Collapsible(T.Indices(i))),
+        ]);
+      }
+      return T.Row([
+        T.Highlight(
+          slug,
+          nGrams.flatMap(([, indices]) => indices),
+        ),
+        ...nGrams.map(([nGram]) => T.Slug(nGram)),
+      ]);
     },
   };
 }
 
-function repeatedOf(kind: { name: string; letters: string }): Feature {
+function repeatedOf(kind: LetterKind): Feature {
   return {
-    name: `has repeated ${kind.name}`,
+    name: T.Join(["has a", kind.one, "that appears at least twice"]),
     property: (slug, { letterIndices }) => {
       const repeated = letterIndices.filterKeys(
         (letter, indices) =>
           kind.letters.includes(letter) && indices.length >= 2,
       );
-      return repeated.length > 0 ? `${slug}: ${repeated.join(", ")}` : null;
+      if (repeated.length === 0) {
+        return null;
+      }
+      const [first, ...rest] = repeated as [string, ...string[]];
+      return T.Row([
+        T.Highlight(slug, letterIndices.get(first)),
+        T.Slug(first),
+        T.Indices(letterIndices.get(first)),
+        ...rest.flatMap((letter) => [
+          T.Collapsible(T.Slug(letter)),
+          T.Collapsible(T.Indices(letterIndices.get(letter))),
+        ]),
+      ]);
     },
   };
 }
 
 function equalCounts(): Feature {
   return {
-    name: "has equal letter counts",
+    name: T.Text("has equal letter counts"),
     property: (slug, { letterIndices }) => {
       const countSet = letterIndices.countSet();
-      return countSet.size === 1
-        ? `${slug} letter counts are all ${Array.from(countSet)[0]!.toString()}`
-        : null;
+      if (countSet.size !== 1) {
+        return null;
+      }
+      return T.Row([T.Slug(slug), T.Text(Array.from(countSet)[0]!)]);
     },
   };
 }
 
 function twoCounts(): Feature {
   return {
-    name: "has one of two letter counts",
+    name: T.Text("has one of two letter counts"),
     property: (slug, { letterIndices }) => {
       const countSet = letterIndices.countSet();
       if (countSet.size !== 2) {
         return null;
       }
-      const [a, b] = Array.from(countSet) as [number, number];
-      const aLetters = letterIndices.filterKeys(
+      let [a, b] = Array.from(countSet) as [number, number];
+      let aLetters = letterIndices.filterKeys(
         (_, indices) => indices.length === a,
       );
-      const bLetters = letterIndices.filterKeys(
+      let bLetters = letterIndices.filterKeys(
         (_, indices) => indices.length === b,
       );
-      return `${slug} letter counts are ${a.toString()} (${aLetters.sort().join("")}) or ${b.toString()} (${bLetters.sort().join("")})`;
+      if (a > b) {
+        [a, b] = [b, a];
+        [aLetters, bLetters] = [bLetters, aLetters];
+      }
+      return T.Row([
+        T.Slug(slug),
+        T.Text(a),
+        T.Slug(aLetters.sort().join("")),
+        T.Text(b),
+        T.Slug(bLetters.sort().join("")),
+      ]);
     },
   };
 }
 
 function arithmeticSequenceCounts(): Feature {
   return {
-    name: "has letter counts in arithmetic sequence",
+    name: T.Text("has letter counts in arithmetic sequence"),
     property: (slug, { letterIndices }) => {
       const sortedCounts = Array.from(letterIndices.counts()).sort(
         ([, a], [, b]) => a - b,
@@ -123,9 +216,16 @@ function arithmeticSequenceCounts(): Feature {
       if (!getArithmeticSequenceInfo(sortedCounts.map(([, c]) => c))) {
         return null;
       }
-      const letters = sortedCounts.map(([l]) => l).join(", ");
-      const counts = sortedCounts.map(([, c]) => c).join(", ");
-      return `${slug} letter counts of ${letters} are ${counts}`;
+      const [first, ...rest] = sortedCounts;
+      return T.Row([
+        T.Slug(slug),
+        T.Text(first![1]),
+        T.Slug(first![0]),
+        ...rest.flatMap(([l, c]) => [
+          T.Collapsible(T.Text(c)),
+          T.Collapsible(T.Slug(l)),
+        ]),
+      ]);
     },
   };
 }
@@ -137,36 +237,21 @@ function arithmeticSequenceCounts(): Feature {
 export function letterCountFeatures(): Feature[] {
   return [
     ...mapProduct(withTimes, LETTERS, interval(1, 5), [true, false]),
-    ...mapProduct(
-      uniqueOf,
-      [{ name: "vowels", letters: VOWELS }],
-      interval(0, 5),
-    ),
-    ...mapProduct(
-      uniqueOf,
-      [{ name: "consonants", letters: CONSONANTS }],
-      interval(1, 15),
-    ),
-    ...mapProduct(
-      uniqueOf,
-      [{ name: "letters", letters: LETTERS }],
-      interval(1, 26),
-    ),
+    ...mapProduct(uniqueOf, [letterKind.vowel], interval(0, 5)),
+    ...mapProduct(uniqueOf, [letterKind.consonant], interval(1, 15)),
+    ...mapProduct(uniqueOf, [letterKind.letter], interval(1, 26)),
     ...mapProduct(
       nGramRepeatsTimes,
       [
-        { name: "letters", n: 1 },
-        { name: "bigrams", n: 2 },
-        { name: "trigrams", n: 3 },
+        { n: 1, one: "letter", other: "letters" },
+        { n: 2, one: "bigram", other: "bigrams" },
+        { n: 3, one: "trigram", other: "trigrams" },
       ],
       interval(1, 5),
       interval(2, 4),
       [true, false],
     ),
-    ...mapProduct(repeatedOf, [
-      { name: "vowels", letters: VOWELS },
-      { name: "consonants", letters: CONSONANTS },
-    ]),
+    ...mapProduct(repeatedOf, [letterKind.vowel, letterKind.consonant]),
     equalCounts(),
     twoCounts(),
     arithmeticSequenceCounts(),

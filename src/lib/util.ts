@@ -1,26 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-/** Capitalizes the letters of a slug at the given indices. */
-export function capitalizeAt(slug: string, indices: number[]): string {
-  const capitalized = [];
-  for (let i = 0; i < slug.length; i++) {
-    capitalized.push(indices.includes(i) ? slug[i]!.toUpperCase() : slug[i]!);
-  }
-  return capitalized.join("");
-}
-
-/** Prints the index of a slug at the given indices. */
-export function printIndexSlug(slug: string, indices: number[]): string {
-  indices = Array.from(new Set(indices)).sort((a, b) => a - b);
-  const isInterval =
-    indices.length > 2 &&
-    Math.max(...indices) - Math.min(...indices) === indices.length - 1;
-  const indexString = isInterval
-    ? `${Math.min(...indices).toString()}..${Math.max(...indices).toString()}`
-    : `${indices.slice(0, 5).join(", ")}${indices.length > 5 ? ", ..." : ""}`;
-  return `index(${slug}, ${indexString}) = ${capitalizeAt(slug, indices)}`;
-}
-
 /** Returns an array of numbers from start to end (inclusive). */
 export function interval(start: number, end: number, step = 1): number[] {
   const result = [];

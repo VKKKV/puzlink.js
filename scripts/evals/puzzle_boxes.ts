@@ -59,7 +59,7 @@ export default {
         SWIMMER
         SWORD COAST
       `,
-      expected: "has compass directions substring, 2 times",
+      expected: "has 2 compass direction substrings",
     },
     {
       slugs: `
@@ -83,7 +83,7 @@ export default {
         EASTER EGG
         ROUGHHOUSE
       `,
-      expected: "has equal letters with 0 letters between, 1 times",
+      expected: "has exactly 1 double letter",
     },
   ],
 } satisfies EvalSuite;

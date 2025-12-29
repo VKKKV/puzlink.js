@@ -17,7 +17,7 @@ export default {
         SUBSTITUTE
         TORCHWOOD
       `,
-      expected: "has 3 o",
+      expected: "has exactly 3 'o's",
     },
   ],
 } satisfies EvalSuite;

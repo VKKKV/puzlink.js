@@ -77,7 +77,7 @@ export function Table(
   const mappedRows = rows
     .filter((r) => !!r)
     .map((r) => (isRow(r) ? r : Row(r)));
-  const columns = Math.max(...mappedRows.map((r) => r.cells.length));
+  const columns = Math.max(0, ...mappedRows.map((r) => r.cells.length));
 
   return {
     type: "table",

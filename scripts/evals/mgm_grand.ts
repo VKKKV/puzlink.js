@@ -14,7 +14,7 @@ export default {
         TATAMI
         TERRE HAUTE
       `,
-      expected: "has 1 bigrams, each repeating 2 times",
+      expected: "has a bigram that appears twice",
     },
   ],
 } satisfies EvalSuite;
