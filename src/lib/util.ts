@@ -15,24 +15,50 @@ type Product<A extends Iterable<any>[]> = A extends [infer First, ...infer Rest]
       ? [F, ...Product<Rest>]
       : never
     : never
-  : [];
+  : number extends A["length"]
+    ? A extends Iterable<infer F>[]
+      ? F[]
+      : never
+    : [];
+
+/** A fixed-length tuple with the given fill. */
+export type TupleOf<
+  Dimensions extends number,
+  Fill,
+  Tuple extends readonly unknown[] = [],
+> = number extends Dimensions
+  ? Fill[]
+  : Dimensions extends Tuple["length"]
+    ? Tuple
+    : TupleOf<Dimensions, Fill, [...Tuple, Fill]>;
 
 /** Cartesian product of iterables. */
-function* product<const Args extends Iterable<any>[]>(
-  ...args: Args
-): Generator<Product<Args>> {
-  if (args.length === 1) {
-    for (const arg of args[0]!) {
-      yield [arg] as Product<Args>;
+export function* product<const Iters extends Iterable<any>[]>(
+  iters: Iters,
+): Generator<Product<Iters>> {
+  if (iters.length === 1) {
+    for (const arg of iters[0]!) {
+      yield [arg] as unknown as Product<Iters>;
     }
     return;
   }
-  const [first, ...rest] = args;
+  const [first, ...rest] = iters;
   for (const a of first!) {
-    for (const b of product(...rest)) {
-      yield [a, ...b] as Product<Args>;
+    for (const b of product(rest)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      yield [a, ...b] as Product<Iters>;
     }
   }
+}
+
+/** Returns the cartesian product of iterables raised to the given power. */
+export function* power<Item, const Power extends number>(
+  iter: Iterable<Item>,
+  power: Power,
+): Generator<TupleOf<Power, Item>> {
+  const arr = Array.from(iter);
+  const iters = Array.from({ length: power }, () => arr);
+  yield* product(iters) as Generator<any>;
 }
 
 type IterMap<A extends any[]> = A extends [infer First, ...infer Rest]
@@ -44,7 +70,7 @@ export function* mapProduct<const Args extends any[], R>(
   fn: (...args: Args) => R,
   ...args: IterMap<Args>
 ): Generator<R> {
-  for (const arg of product(...args)) {
+  for (const arg of product(args)) {
     yield fn(...(arg as unknown as Args));
   }
 }

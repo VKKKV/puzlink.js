@@ -1,6 +1,6 @@
 import { Cromulence, loadWordlist, logProbToZipf } from "cromulence";
 import { PrefixDistribution, SuffixDistribution } from "./affixDistribution.js";
-import { LetterBitsets } from "./letterBitset.js";
+import { LetterBitCounters } from "./letterBitCounter.js";
 import { LetterDistribution } from "./letterDistribution.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
@@ -13,8 +13,8 @@ import { memoize } from "./memoize.js";
  */
 export class Wordlist {
   private cromulence: Cromulence;
-  /** A map from letter bitsets to words with that bitset. */
-  private bitsets: LetterBitsets;
+  /** A map from letter bitCounters to words with that bitCounter. */
+  private bitCounters: LetterBitCounters;
   /** The letter distribution of the wordlist. */
   letters: LetterDistribution;
   /** The prefix distribution of the wordlist. */
@@ -24,7 +24,7 @@ export class Wordlist {
 
   constructor(wordlist: Record<string, number>) {
     this.cromulence = new Cromulence(wordlist);
-    this.bitsets = new LetterBitsets(Object.keys(wordlist));
+    this.bitCounters = new LetterBitCounters(Object.keys(wordlist));
     this.letters = new LetterDistribution(Object.keys(wordlist));
     this.prefixes = new PrefixDistribution(Object.keys(wordlist));
     this.suffixes = new SuffixDistribution(Object.keys(wordlist));
@@ -64,6 +64,11 @@ export class Wordlist {
     return result;
   }
 
+  /** The number of wordlist items. */
+  get length(): number {
+    return Object.keys(this.cromulence.wordlist).length;
+  }
+
   /**
    * Get the log prob that a wordlist item, drawn uniformly at random,
    * satisfies the given property. This is NOT weighted by zipf!
@@ -72,8 +77,7 @@ export class Wordlist {
     // TODO: maybe tweak the weights here to get better results?
     // if we do so, do the same thing in letterDistribution
     const count = this.reduce(0, (acc, slug) => acc + (property(slug) ? 1 : 0));
-    const total = Object.keys(this.cromulence.wordlist).length;
-    return LogNum.fromFraction(count, total);
+    return LogNum.fromFraction(count, this.length);
   }
 
   /** Returns true if the given slug is in the wordlist. */
@@ -135,7 +139,7 @@ export class Wordlist {
       threshold = 0,
     }: { loose?: boolean; threshold?: number } = {},
   ): string[] {
-    return this.bitsets
+    return this.bitCounters
       .get(slug)
       .filter((word) => loose || word !== slug)
       .map((word) => [word, this.cromulence.wordlist[word]!] as const)

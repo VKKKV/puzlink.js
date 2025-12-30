@@ -1,11 +1,11 @@
 import { loadWordlist } from "cromulence";
 import { describe, expect, test } from "vitest";
-import { LetterBitset, LetterBitsets } from "./letterBitset.js";
+import { LetterBitCounter, LetterBitCounters } from "./letterBitCounter.js";
 import { speedTest } from "./testUtils.js";
 
-describe("LetterBitset", () => {
+describe("LetterBitCounter", () => {
   test("index works", () => {
-    const mask = LetterBitset.from("abacabadabacaba");
+    const mask = LetterBitCounter.from("abacabadabacaba");
 
     expect(mask.index("a")).toBe(8);
     expect(mask.index("b")).toBe(4);
@@ -15,47 +15,49 @@ describe("LetterBitset", () => {
   });
 
   test("equals works", () => {
-    expect(LetterBitset.from("abba").equals(LetterBitset.from("baba"))).toBe(
-      true,
-    );
-    expect(LetterBitset.from("aba").equals(LetterBitset.from("baba"))).toBe(
-      false,
-    );
+    expect(
+      LetterBitCounter.from("abba").equals(LetterBitCounter.from("baba")),
+    ).toBe(true);
+    expect(
+      LetterBitCounter.from("aba").equals(LetterBitCounter.from("baba")),
+    ).toBe(false);
   });
 
   test("transadd and transdelete work", () => {
     expect(
-      LetterBitset.from("bamba").transaddOf(LetterBitset.from("abba")),
+      LetterBitCounter.from("bamba").transaddOf(LetterBitCounter.from("abba")),
     ).toBe("m");
     expect(
-      LetterBitset.from("abba").transdeleteOf(LetterBitset.from("bamba")),
+      LetterBitCounter.from("abba").transdeleteOf(
+        LetterBitCounter.from("bamba"),
+      ),
     ).toBe("m");
 
     expect(
-      LetterBitset.from("abba").transaddOf(LetterBitset.from("mamba")),
+      LetterBitCounter.from("abba").transaddOf(LetterBitCounter.from("mamba")),
     ).toBe(null);
     expect(
-      LetterBitset.from("abba").transaddOf(LetterBitset.from("abba")),
+      LetterBitCounter.from("abba").transaddOf(LetterBitCounter.from("abba")),
     ).toBe(null);
     expect(
-      LetterBitset.from("mamba").transaddOf(LetterBitset.from("abba")),
+      LetterBitCounter.from("mamba").transaddOf(LetterBitCounter.from("abba")),
     ).toBe(null);
   });
 });
 
-describe("LetterBitsets", () => {
+describe("LetterBitCounters", () => {
   test.runIf(speedTest)("speed", async () => {
     const wordlist = await loadWordlist();
     const start = Date.now();
-    new LetterBitsets(Object.keys(wordlist));
+    new LetterBitCounters(Object.keys(wordlist));
     const time = Date.now() - start;
     expect(time).toBeLessThan(1000);
-    console.log(`LetterBitsets init: ${time.toString()}ms`);
+    console.log(`LetterBitCounters init: ${time.toString()}ms`);
   });
 
   test("matchSubstring", () => {
-    const bitsets = new LetterBitsets(["aba", "baa", "caba", "daba"]);
-    expect(Array.from(bitsets.matchSubstring("abacabad"))).toEqual([
+    const bitCounters = new LetterBitCounters(["aba", "baa", "caba", "daba"]);
+    expect(Array.from(bitCounters.matchSubstring("abacabad"))).toEqual([
       { start: 0, words: ["aba", "baa"] },
       { start: 4, words: ["aba", "baa"] },
       { start: 0, words: ["caba"] },

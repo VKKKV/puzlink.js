@@ -4,7 +4,7 @@ import {
   shortCategories,
   type Category,
 } from "../data/categories.js";
-import { LetterBitsets } from "../lib/letterBitset.js";
+import { LetterBitCounters } from "../lib/letterBitCounter.js";
 import { interval, mapProduct } from "../lib/util.js";
 import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
@@ -141,11 +141,11 @@ function canBeBrokenInto(category: Category): Feature {
 }
 
 function hasAnagram(category: Category): Feature {
-  const bitsets = new LetterBitsets(category.items);
+  const bitCounters = new LetterBitCounters(category.items);
   return {
     name: T.Join(["has", category.name, "anagram substring"]),
     property: (slug) => {
-      const match = Array.from(bitsets.matchSubstring(slug));
+      const match = Array.from(bitCounters.matchSubstring(slug));
       const distinctWords = new Set(match.map((m) => m.words[0]!));
       if (distinctWords.size !== 1) {
         return null;

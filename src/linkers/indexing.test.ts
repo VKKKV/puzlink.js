@@ -25,7 +25,7 @@ describe("LetterDistribution", () => {
       yeLlow -4 l",
         ],
         [
-          "-3th letters are consecutive",
+          "-3rd letters are consecutive",
           "yelLow -3 l
       heMlo  -3 m
       jeNlo  -3 n",
@@ -79,7 +79,7 @@ describe("LetterDistribution", () => {
       jeNlo  2 n",
         ],
         [
-          "3th letters are equal",
+          "3rd letters are equal",
           "hemLo  3 l
       yelLow 3 l
       jenLo  3 l",

@@ -5,13 +5,13 @@
  * Idea stolen from Collective.jl:
  * https://github.com/rdeits/Collective.jl/blob/master/src/bitstally.jl
  */
-export class LetterBitset {
+export class LetterBitCounter {
   private static readonly bits = 5n;
-  private static readonly mask = (1n << LetterBitset.bits) - 1n;
+  private static readonly mask = (1n << LetterBitCounter.bits) - 1n;
   private static readonly offsets = Array(26)
     .fill(0)
-    .map((_, i) => LetterBitset.bits * BigInt(i));
-  private static readonly letterMasks = LetterBitset.offsets.map(
+    .map((_, i) => LetterBitCounter.bits * BigInt(i));
+  private static readonly letterMasks = LetterBitCounter.offsets.map(
     (x) => 1n << x,
   );
 
@@ -40,83 +40,90 @@ export class LetterBitset {
   static from(slug: string) {
     let data = 0n;
     for (const char of slug) {
-      data += LetterBitset.letterMasks[this.toIndex(char)]!;
+      data += LetterBitCounter.letterMasks[this.toIndex(char)]!;
     }
-    return new LetterBitset(data);
+    return new LetterBitCounter(data);
   }
 
-  /** Count the number of times the given letter appears in this bitset. */
+  /** Count the number of times the given letter appears in this bitcounter. */
   index(letter: string): number {
     return Number(
-      (this.data >> LetterBitset.offsets[LetterBitset.toIndex(letter)]!) &
-        LetterBitset.mask,
+      (this.data >>
+        LetterBitCounter.offsets[LetterBitCounter.toIndex(letter)]!) &
+        LetterBitCounter.mask,
     );
   }
 
-  equals(other: LetterBitset): boolean {
+  equals(other: LetterBitCounter): boolean {
     return this.data === other.data;
   }
 
-  add(char: string): LetterBitset {
-    return new LetterBitset(
-      this.data + (LetterBitset.letterMasks[LetterBitset.toIndex(char)] ?? 0n),
+  add(char: string): LetterBitCounter {
+    return new LetterBitCounter(
+      this.data +
+        (LetterBitCounter.letterMasks[LetterBitCounter.toIndex(char)] ?? 0n),
     );
   }
 
-  sub(char: string): LetterBitset {
-    return new LetterBitset(
-      this.data - (LetterBitset.letterMasks[LetterBitset.toIndex(char)] ?? 0n),
+  sub(char: string): LetterBitCounter {
+    return new LetterBitCounter(
+      this.data -
+        (LetterBitCounter.letterMasks[LetterBitCounter.toIndex(char)] ?? 0n),
     );
   }
 
   /** If this + result == other, return result; else null. */
-  transaddOf(other: LetterBitset) {
+  transaddOf(other: LetterBitCounter) {
     const diff = this.data - other.data;
-    const index = LetterBitset.letterMasks.findIndex((mask) => diff === mask);
+    const index = LetterBitCounter.letterMasks.findIndex(
+      (mask) => diff === mask,
+    );
     if (index === -1) {
       return null;
     }
-    return LetterBitset.fromIndex(index);
+    return LetterBitCounter.fromIndex(index);
   }
 
   /** If this - result == other, return result; else null. */
-  transdeleteOf(other: LetterBitset) {
+  transdeleteOf(other: LetterBitCounter) {
     return other.transaddOf(this);
   }
 }
 
-/** A map from letter bitsets to words with that bitset. */
-export class LetterBitsets {
+/** A map from letter bitcounters to words with that bitcounter. */
+export class LetterBitCounters {
   private letterCounters = new Map<bigint, string[]>();
   private lengths = new Set<number>();
 
   constructor(wordlist: string[]) {
     for (const word of wordlist) {
-      const bitset = LetterBitset.from(word).data;
-      if (!this.letterCounters.has(bitset)) {
-        this.letterCounters.set(bitset, []);
+      const bitcounter = LetterBitCounter.from(word).data;
+      if (!this.letterCounters.has(bitcounter)) {
+        this.letterCounters.set(bitcounter, []);
       }
-      this.letterCounters.get(bitset)!.push(word);
+      this.letterCounters.get(bitcounter)!.push(word);
       this.lengths.add(word.length);
     }
   }
 
-  /** Get the words whose bitset matches the given slug's bitset. */
+  /** Get the words whose bitcounter matches the given slug's bitcounter. */
   get(slug: string): string[] {
-    return this.letterCounters.get(LetterBitset.from(slug).data) ?? [];
+    return this.letterCounters.get(LetterBitCounter.from(slug).data) ?? [];
   }
 
-  /** Find all substrings of the slug that anagram to a word's bitset. */
+  /** Find all substrings of the slug that anagram to a word's bitcounter. */
   *matchSubstring(slug: string): Generator<{ start: number; words: string[] }> {
     for (const length of this.lengths) {
       let start = 0;
-      let bitset = LetterBitset.from(slug.slice(0, length));
+      let bitcounter = LetterBitCounter.from(slug.slice(0, length));
       for (; start + length <= slug.length; start++) {
-        const words = this.letterCounters.get(bitset.data);
+        const words = this.letterCounters.get(bitcounter.data);
         if (words && words.length > 0) {
           yield { start, words };
         }
-        bitset = bitset.sub(slug[start] ?? "").add(slug[start + length] ?? "");
+        bitcounter = bitcounter
+          .sub(slug[start] ?? "")
+          .add(slug[start + length] ?? "");
       }
     }
   }

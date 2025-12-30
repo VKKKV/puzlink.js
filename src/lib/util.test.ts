@@ -1,7 +1,27 @@
 import { describe, expect, test } from "vitest";
-import { caesar, interval, mapProduct, ordinal, windows } from "./util.js";
+import {
+  caesar,
+  interval,
+  mapProduct,
+  ordinal,
+  power,
+  windows,
+} from "./util.js";
 
 describe("util", () => {
+  test("power", () => {
+    expect(Array.from(power([0, 1], 3))).toEqual([
+      [0, 0, 0],
+      [0, 0, 1],
+      [0, 1, 0],
+      [0, 1, 1],
+      [1, 0, 0],
+      [1, 0, 1],
+      [1, 1, 0],
+      [1, 1, 1],
+    ]);
+  });
+
   test("mapProduct, interval", () => {
     expect(interval(0, 5, 2)).toEqual([0, 2, 4]);
 
