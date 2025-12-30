@@ -1,27 +1,7 @@
 import { describe, expect, test } from "vitest";
-import {
-  caesar,
-  interval,
-  mapProduct,
-  ordinal,
-  power,
-  windows,
-} from "./util.js";
+import { caesar, interval, mapProduct, windows } from "./util.js";
 
 describe("util", () => {
-  test("power", () => {
-    expect(Array.from(power([0, 1], 3))).toEqual([
-      [0, 0, 0],
-      [0, 0, 1],
-      [0, 1, 0],
-      [0, 1, 1],
-      [1, 0, 0],
-      [1, 0, 1],
-      [1, 1, 0],
-      [1, 1, 1],
-    ]);
-  });
-
   test("mapProduct, interval", () => {
     expect(interval(0, 5, 2)).toEqual([0, 2, 4]);
 
@@ -29,23 +9,6 @@ describe("util", () => {
     expect(Array.from(mapProduct(fn, [0, 5], interval(0, 4)))).toEqual(
       interval(0, 9),
     );
-  });
-
-  test("ordinal", () => {
-    expect(ordinal(-13)).toBe("-13th");
-    expect(ordinal(-12)).toBe("-12th");
-    expect(ordinal(-11)).toBe("-11th");
-    expect(ordinal(-3)).toBe("-3rd");
-    expect(ordinal(-2)).toBe("-2nd");
-    expect(ordinal(-1)).toBe("-1st");
-    expect(ordinal(0)).toBe("0th");
-    expect(ordinal(1)).toBe("1st");
-    expect(ordinal(2)).toBe("2nd");
-    expect(ordinal(3)).toBe("3rd");
-    expect(ordinal(4)).toBe("4th");
-    expect(ordinal(11)).toBe("11th");
-    expect(ordinal(12)).toBe("12th");
-    expect(ordinal(13)).toBe("13th");
   });
 
   test("caesar", () => {

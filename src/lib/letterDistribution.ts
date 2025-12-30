@@ -6,7 +6,7 @@ import { caesar, interval } from "./util.js";
 
 export const LETTERS = "abcdefghijklmnopqrstuvwxyz";
 export const VOWELS = "aeiou";
-export const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
+const CONSONANTS = "bcdfghjklmnpqrstvwxyz";
 
 export type LetterKind = { one: string; other: string; letters: string };
 export const letterKind = {

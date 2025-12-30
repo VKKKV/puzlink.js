@@ -33,7 +33,7 @@ export type TupleOf<
     : TupleOf<Dimensions, Fill, [...Tuple, Fill]>;
 
 /** Cartesian product of iterables. */
-export function* product<const Iters extends Iterable<any>[]>(
+function* product<const Iters extends Iterable<any>[]>(
   iters: Iters,
 ): Generator<Product<Iters>> {
   if (iters.length === 1) {
@@ -51,16 +51,6 @@ export function* product<const Iters extends Iterable<any>[]>(
   }
 }
 
-/** Returns the cartesian product of iterables raised to the given power. */
-export function* power<Item, const Power extends number>(
-  iter: Iterable<Item>,
-  power: Power,
-): Generator<TupleOf<Power, Item>> {
-  const arr = Array.from(iter);
-  const iters = Array.from({ length: power }, () => arr);
-  yield* product(iters) as Generator<any>;
-}
-
 type IterMap<A extends any[]> = A extends [infer First, ...infer Rest]
   ? [Iterable<First>, ...IterMap<Rest>]
   : [];
@@ -73,21 +63,6 @@ export function* mapProduct<const Args extends any[], R>(
   for (const arg of product(args)) {
     yield fn(...(arg as unknown as Args));
   }
-}
-
-/** Returns the ordinal suffix of the given number. */
-export function ordinal(n: number): string {
-  const suffix =
-    Math.abs(n) % 100 >= 11 && Math.abs(n) % 100 <= 14
-      ? "th"
-      : Math.abs(n) % 10 === 1
-        ? "st"
-        : Math.abs(n) % 10 === 2
-          ? "nd"
-          : Math.abs(n) % 10 === 3
-            ? "rd"
-            : "th";
-  return `${n.toString()}${suffix}`;
 }
 
 const aCharCode = "a".charCodeAt(0);

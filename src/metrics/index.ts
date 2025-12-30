@@ -19,7 +19,7 @@ type Props = {
   wordlist: Wordlist;
 };
 
-export function getProps(wordlist: Wordlist, slug: string): Props {
+function getProps(wordlist: Wordlist, slug: string): Props {
   return { letterIndices: LetterIndices.from(slug), wordlist };
 }
 
