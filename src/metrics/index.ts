@@ -1,15 +1,18 @@
+import { metricLogProbs } from "../data/metricLogProbs.js";
 import { Bitset } from "../lib/bitset.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
+import { MetricLogProbCache } from "../lib/logProbCache.js";
 import { enumerate, interval, windows } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
-import type { Linker, PartialLink } from "../linkers/index.js";
+import type { Linker } from "../linkers/index.js";
 import * as T from "../templating/index.js";
-import { ConeLogProbs } from "./coneLogProb.js";
 import { letterCountMetrics } from "./letterCount.js";
 import { letterSequenceMetrics } from "./letterSequence.js";
 import { otherMetrics } from "./other.js";
 import { substringMetrics } from "./substring.js";
+
+export const MetricLogProbs = new MetricLogProbCache(metricLogProbs);
 
 type Props = {
   letterIndices: LetterIndices;
@@ -21,11 +24,8 @@ export function getProps(wordlist: Wordlist, slug: string): Props {
 }
 
 /**
- * A Metric is a function that assigns a slug to a non-negative integer.
- *
- * Metrics are used to build features, of the form:
- *   - has exactly <value> of ..., and
- *   - has at least <value> of ...
+ * A Metric assigns a slug to a non-negative integer. Metrics are used to build
+ * features of the form: "has {exactly, at least} <value> ...".
  *
  * Representing features as metrics lets us deduplicate reported features, and
  * makes computing features for high-cardinality metrics take less time.
@@ -50,30 +50,45 @@ export type Metric = {
   };
 };
 
-type FeatureCone = { vertex: number; strict: boolean };
+/**
+ * A range of scores. If strict, this is { vertex }. Otherwise, this is
+ * [vertex, inf).
+ */
+type FeatureRange = { vertex: number; strict: boolean };
 
 /**
  * Turns a list of scores into a list of (vertex, strict) pairs to construct
- * Features out of. Because some Features cones contain others, we only need to
+ * Features out of. Because some Features ranges contain others, we only need to
  * report the smallest Features that contain each subset of scores, because
  * these are the best-scoring ones.
  */
-export function getFeatureCones(
-  /** Map from a score to the bitset of slug indices that have it. */
-  scores: Map<number, bigint>,
-): Map<bigint, FeatureCone[]> {
-  const setToCones = new Map<bigint, FeatureCone[]>([[0n, []]]);
-  const push = (cone: FeatureCone, contained: bigint) => {
-    if (!setToCones.has(contained)) {
-      setToCones.set(contained, []);
+export function getFeatureRanges(
+  scores: number[],
+): Map<bigint, FeatureRange[]> {
+  const scoreToBitset = new Map<number, bigint>();
+  for (const [i, score] of enumerate(scores)) {
+    scoreToBitset.set(
+      score,
+      (scoreToBitset.get(score) ?? 0n) | (1n << BigInt(i)),
+    );
+  }
+
+  const setToRanges = new Map<bigint, FeatureRange[]>([[0n, []]]);
+  const push = (range: FeatureRange, contained: bigint) => {
+    if (!setToRanges.has(contained)) {
+      setToRanges.set(contained, []);
     }
-    setToCones.get(contained)!.push(cone);
+    setToRanges.get(contained)!.push(range);
   };
 
-  const sorted = [...scores.entries(), [Infinity, 0n] as const].sort(
+  const sorted = [...scoreToBitset.entries(), [Infinity, 0n] as const].sort(
     (a, b) => a[0] - b[0],
   );
-  let restIndices = Array.from(scores.values()).reduce((a, b) => a | b, 0n);
+  const allIndices = Array.from(scoreToBitset.values()).reduce(
+    (a, b) => a | b,
+    0n,
+  );
+  let restIndices = allIndices;
   for (const [[a, aIndices], [b]] of windows(sorted, 2)) {
     if (b < Infinity) {
       push({ vertex: a, strict: false }, restIndices);
@@ -88,87 +103,66 @@ export function getFeatureCones(
     }
   }
 
-  return setToCones;
+  // There is exactly one pair of complementary feature ranges: (0, true) and
+  // (1, false). If both are present, we keep only (0, true).
+  const zeroScore = scoreToBitset.get(0);
+  if (zeroScore) {
+    setToRanges.delete(allIndices & ~zeroScore);
+  }
+
+  return setToRanges;
 }
 
 /** Create the Linker for a Metric. */
 function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
-  const { metricName, name, score } = metric;
+  const linkerName = T.renderToText(metric.metricName);
 
-  ConeLogProbs.fill(T.renderToText(metricName), () => {
-    let maxVector = 0;
-    const counts: Record<number, number> = {};
-    wordlist.reduce(undefined, (_, slug) => {
-      const vector = score(slug, getProps(wordlist, slug)).score;
-      maxVector = Math.max(maxVector, vector);
-      counts[vector] = (counts[vector] ?? 0) + 1;
-      return undefined;
+  MetricLogProbs.fill(linkerName, () => {
+    const counts = wordlist.reduce(new Map<number, number>(), (acc, slug) => {
+      const vector = metric.score(slug, getProps(wordlist, slug)).score;
+      return acc.set(vector, (acc.get(vector) ?? 0) + 1);
     });
-    return {
-      maxVector,
-      logProbs: Object.fromEntries(
-        Object.entries(counts).map(([vector, count]) => [
-          vector,
-          LogNum.fromFraction(count, wordlist.length),
-        ]),
-      ),
-    };
+    return interval(0, Math.max(...counts.keys())).map((i) =>
+      LogNum.fromFraction(counts.get(i) ?? 0, wordlist.length),
+    );
   });
 
   return {
-    name: metricName,
-    eval: (slugs) => {
-      const links: PartialLink[] = [];
-      const scores = slugs.map((slug) => score(slug, getProps(wordlist, slug)));
-      // TODO: this pattern appears so often, we should make it an indices class
-      const scoreToBitset = new Map<number, bigint>();
-      for (const [i, { score }] of enumerate(scores)) {
-        scoreToBitset.set(
-          score,
-          (scoreToBitset.get(score) ?? 0n) | (1n << BigInt(i)),
-        );
-      }
-      const bitsetToCones = getFeatureCones(scoreToBitset);
-      for (const [bitset, cones] of bitsetToCones) {
+    name: metric.metricName,
+    eval: function* (slugs) {
+      const scores = slugs.map((slug) =>
+        metric.score(slug, getProps(wordlist, slug)),
+      );
+      const bitsetToRanges = getFeatureRanges(scores.map((x) => x.score));
+      for (const [bitset, ranges] of bitsetToRanges) {
         const indices = Array.from(new Bitset(bitset).entries());
-        let bestCone: FeatureCone | undefined;
-        let bestLogProb = LogNum.from(1);
-        for (const cone of cones) {
-          const featureLogProb = LogNum.min([
-            ConeLogProbs.total(
-              T.renderToText(metricName),
-              cone.vertex,
-              cone.strict,
-            ),
-            LogNum.from(1),
-          ]);
+        const rangeLogProbs = ranges.map((range) => {
           const logProb = LogNum.binomialPValue(
             indices.length,
             slugs.length,
-            featureLogProb,
+            LogNum.min([
+              MetricLogProbs.get(linkerName, range.vertex, range.strict),
+              LogNum.from(1),
+            ]),
           );
-          if (logProb.lt(bestLogProb)) {
-            bestCone = cone;
-            bestLogProb = logProb;
-          }
-        }
-        if (bestCone === undefined) {
+          return { range, logProb };
+        });
+        const { range, logProb } =
+          LogNum.minBy(rangeLogProbs, (x) => x.logProb) ?? {};
+        if (!range || !logProb) {
           continue;
         }
-        links.push({
+        yield {
           name: T.Join([
             T.Fraction(indices.length, slugs.length),
-            name(bestCone.vertex, bestCone.strict),
+            metric.name(range.vertex, range.strict),
           ]),
-          logProb: bestLogProb,
+          logProb,
           description: T.Table(
-            indices.map((i) =>
-              scores[i]!.describe(bestCone.vertex, bestCone.strict),
-            ),
+            indices.map((i) => scores[i]!.describe(range.vertex, range.strict)),
           ),
-        });
+        };
       }
-      return links;
     },
   };
 }

@@ -137,6 +137,22 @@ export class LogNum {
     return new LogNum(Math.min(...values.map((x) => x.data)));
   }
 
+  static minBy<T>(values: T[], fn: (x: T) => LogNum): T | undefined {
+    if (values.length === 0) {
+      return undefined;
+    }
+    let min = fn(values[0]!);
+    let minIndex = 0;
+    for (let i = 1; i < values.length; i++) {
+      const value = fn(values[i]!);
+      if (value.lt(min)) {
+        min = value;
+        minIndex = i;
+      }
+    }
+    return values[minIndex];
+  }
+
   static sum(values: LogNum[]): LogNum {
     // Strip zeroes first:
     values = values.filter((x) => x.data !== -Infinity);
@@ -171,7 +187,8 @@ export class LogNum {
     trials: number,
     frequency: LogNum,
   ): LogNum {
-    const expected = trials * frequency.toNum();
+    const clamped = Math.max(-10, Math.min(frequency.toLog(), 0));
+    const expected = trials * LogNum.fromExp(clamped).toNum();
     const probs = [];
 
     if (successes > expected) {

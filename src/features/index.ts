@@ -1,14 +1,21 @@
+import { featureLogProbs } from "../data/featureLogProbs.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
+import { FeatureLogProbCache } from "../lib/logProbCache.js";
 import { Wordlist } from "../lib/wordlist.js";
 import type { Linker } from "../linkers/index.js";
 import * as T from "../templating/index.js";
 import { letterCountFeatures } from "./letterCount.js";
 import { letterSequenceFeatures } from "./letterSequence.js";
-import { KnownLogProbs } from "./logProbCache.js";
 import { otherFeatures } from "./other.js";
 import { substringFeatures } from "./substring.js";
 import { wordplayFeatures } from "./wordplay.js";
+
+/**
+ * Computing feature LogProbs can be expensive; so we've precomputed some
+ * cached values.
+ */
+export const FeatureLogProbs = new FeatureLogProbCache(featureLogProbs);
 
 type Props = {
   letterIndices: LetterIndices;
@@ -42,17 +49,12 @@ function featureLinker(
   wordlist: Wordlist,
   { name, property }: Feature,
 ): Linker | null {
-  let featureLogProb = KnownLogProbs.get(T.renderToText(name), () => {
+  const key = T.renderToText(name);
+  FeatureLogProbs.fill(key, () => {
     return wordlist.logProb(
       (word) => property(word, getProps(wordlist, word)) !== null,
     );
   });
-  if (featureLogProb.toLog() === -Infinity) {
-    // We can't meaningfully make linkers out of zero-probability things,
-    // so just set it to something very small.
-    featureLogProb = LogNum.fromExp(-10);
-    return null;
-  }
 
   return {
     name,
@@ -70,7 +72,7 @@ function featureLinker(
       const logProb = LogNum.binomialPValue(
         description.length,
         slugs.length,
-        featureLogProb,
+        LogNum.max([FeatureLogProbs.get(key), LogNum.from(-10)]),
       );
       return [
         {

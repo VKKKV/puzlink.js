@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "build:categories": "tsx scripts/buildCategories.ts && prettier --write src/data/categories",
-    "build:knownLogProbs": "tsx scripts/buildKnownLogProbs.ts",
+    "build:logProbs": "tsx scripts/buildLogProbs.ts && prettier --write src/data",
     "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",
     "lint": "eslint",

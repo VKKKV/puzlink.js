@@ -35,7 +35,10 @@ export type PartialLink = {
  */
 export type Linker = {
   name: T.Inline;
-  eval: (slugs: string[], options: Required<LinkOptions>) => PartialLink[];
+  eval: (
+    slugs: string[],
+    options: Required<LinkOptions>,
+  ) => Iterable<PartialLink>;
 };
 
 /** All linkers. */
@@ -58,17 +61,18 @@ export function testLinker<Args extends any[]>(
 ) {
   const linker = linkerFn(...args);
   return function link(slugs: string[]) {
-    return linker
-      .eval(slugs, {
+    return Array.from(
+      linker.eval(slugs, {
         jsonOutput: false,
         lazy: false,
         limit: Infinity,
         minFeatureRatio: 0,
         ordered: true,
-      })
-      .map((l) => [
+      }),
+      (l) => [
         T.renderToText(l.name ?? linker.name),
         l.description && T.renderToText(l.description),
-      ]);
+      ],
+    );
   };
 }
