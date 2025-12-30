@@ -27,7 +27,7 @@ export default {
     },
     {
       slugs: `"aime", "eye", "eerie", "riaa", "oahu", "oeis"`,
-      expected: "has a unique consonant",
+      expected: "has 1 unique consonant",
     },
   ],
 } satisfies EvalSuite;

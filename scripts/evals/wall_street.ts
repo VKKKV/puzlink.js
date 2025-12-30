@@ -18,7 +18,7 @@ export default {
         trIskelIon
         waNderiNg
       `,
-      expected: "has a letter that appears twice",
+      expected: "has exactly 1 letter that appears twice",
     },
   ],
 } satisfies EvalSuite;

@@ -12,7 +12,7 @@ export default {
         ROOD
         URUS
       `,
-      expected: "has a unique vowel",
+      expected: "has 1 unique vowel",
     },
   ],
 } as EvalSuite;

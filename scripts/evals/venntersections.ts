@@ -18,7 +18,7 @@ export default {
     },
     {
       slugs: `"levitate", "inanimate", "sizes", "lightly", "crocodile", "legislator", "carousels"`,
-      expected: "has a consonant that appears at least twice",
+      expected: "has exactly 1 consonant that appears at least twice",
     },
     {
       slugs: `"questionable", "businesswoman", "exhaustion", "discouraged", "communicated", "hallucinogen", "sequoia"`,
@@ -34,7 +34,7 @@ export default {
     },
     {
       slugs: `"thumbtacks", "monologue", "frigidities", "statuesque", "testimony", "satirizing", "flawed"`,
-      expected: "has days of the week substring",
+      expected: "has 1 days of the week substring",
     },
     {
       slugs: `"thumbtacks", "monologue", "testimony", "camel", "meteorology", "trampoline", "achievement"`,
@@ -42,7 +42,7 @@ export default {
     },
     {
       slugs: `"monologue", "frigidities", "satirizing", "meteorology", "avalance", "achievement", "constitute"`,
-      expected: "has a letter that appears at least thrice",
+      expected: "has at least 2 pairs of equal letters, separated by 1 letter",
     },
     {
       slugs: `"philharmonic", "mischievous", "alphabet", "restaurant", "leeching", "mushroom", "pioneer"`,
@@ -50,7 +50,7 @@ export default {
     },
     {
       slugs: `"leeching", "mushroom", "pioneer", "loophole", "toothpaste", "seventeenth", "kneeling"`,
-      expected: "has equal letters with 0 letters between, 1 times",
+      expected: "has exactly 1 double letter",
     },
     {
       slugs: `"philharmonic", "mischievous", "leeching", "loophole", "toothpaste", "alcoholic", "narwhal"`,

@@ -4,6 +4,7 @@ import type { LinkOptions } from "../index.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
 import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
+import { metricLinkers } from "../metrics/index.js";
 import * as T from "../templating/index.js";
 import { indexingLinker } from "./indexing.js";
 import { lengthLinker } from "./length.js";
@@ -42,6 +43,7 @@ export function allLinkers(wordlist: Wordlist): Linker[] {
   const lengthDist = LengthDistribution.from(answerLengthLogProbs);
   return [
     ...featureLinkers(wordlist),
+    ...metricLinkers(wordlist),
     indexingLinker(wordlist),
     lengthLinker(lengthDist),
     otherLinker(wordlist),

@@ -22,7 +22,7 @@ export default {
         BOSWORTH
         MERMAID
       `,
-      expected: "has equal letters with 2 letters between, 1 times",
+      expected: "has 1 pair of equal letters, separated by 2 letters",
     },
   ],
 } satisfies EvalSuite;

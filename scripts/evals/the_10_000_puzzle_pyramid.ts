@@ -29,7 +29,7 @@ export default {
     },
     {
       slugs: `batts, blenched, brill, british, composts, cords, crawls, defends, flop, gemmy, grandams, inks, keenest, limp, lint, marshy, narwhals, prefers, scraps, sheet, shrunk, slack, sleek, sneerers, speedwell, suburbs, tramways, yam, yelped, yolk`,
-      expected: "has a unique vowel",
+      expected: "has 1 unique vowel",
     },
     {
       slugs: `affidavits, allots, armours, bolshevists, cashless, chaperons, chinchillas, cookeys, danglers, emborders, glamorizes, imparters, jiffs, longings, mounters, omelettes, pawls, presets, prosecutrixes, quipus, recruits, resolves, rounds, samphires, sceneries, sealskins, serfhoods, sweethearts, townhouses, wagonettes`,
@@ -66,11 +66,11 @@ export default {
     },
     {
       slugs: `avitaminosis, belligerency, breveted, degenerateness, diacritical, duplicities, elderberries, evanescently, fadeaway, funiculus, hartebeest, imperceptibility, imprecisions, inhabitancies, lavalava, liquidities, mendelevium, mesmerizer, neediness, noncontagious, overstretches, pelleted, pervertedness, questionableness, reclassification, reflexive, reflexiveness, sweetened, terrenes, transcendence`,
-      expected: "has a letter that appears at least thrice",
+      expected: "has at least 1 letter that appears at least thrice",
     },
     {
       slugs: `antithetic, anxiousness, augustness, bossiness, crosshatches, curriers, druidesses, eisteddfods, enchaining, errantries, gaggle, instructorships, longstanding, nonconsenting, nonsubmissive, overrighteousness, pensioning, pentadactylate, pneumococcal, prestidigitation, preternatural, remonstrator, seasonings, settleability, smogless, spontaneousness, transferror, trunnions, uninvitingly, untranscendentally`,
-      expected: "has a letter that appears at least thrice",
+      expected: "has at least 1 letter that appears at least thrice",
     },
     {
       slugs: `exacerbations, examined, examining, exasperate, exchequer, excitability, excretes, exculpated, exercisable, exerts, exhausting, exhaustive, exhibit, exhibiters, exhorters, existent, expansionary, expatriate, expedited, expeditious, expert, experting, exploders, expounders, expressionistic, exserts, extendible, exterminating, extinguish, extraterritorial`,

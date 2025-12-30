@@ -30,50 +30,6 @@ function containsOne(category: Category): Feature {
   };
 }
 
-function containsTimes(
-  category: Category,
-  times: number,
-  strict: boolean,
-): Feature {
-  const regex = new RegExp(category.items.join("|"), "g");
-  return {
-    name: T.Join([
-      "has",
-      !strict && "at least",
-      times,
-      category.name,
-      T.Inflect(times, "substring", "substrings"),
-    ]),
-    property: (slug) => {
-      const matches = [];
-
-      for (const match of slug.matchAll(regex)) {
-        if (strict && matches.length >= times) {
-          return null;
-        }
-        matches.push(match);
-      }
-      if (strict ? matches.length !== times : matches.length < times) {
-        return null;
-      }
-
-      const indices = matches.flatMap((m) =>
-        interval(m.index, m.index + m[0].length - 1),
-      );
-      const [first, ...rest] = matches;
-      return T.Row([
-        T.Highlight(slug, indices),
-        T.Slug(first![0]),
-        T.Indices(first!.index),
-        ...rest.flatMap((m) => [
-          T.Collapsible(T.Slug(m[0])),
-          T.Collapsible(T.Indices(m.index)),
-        ]),
-      ]);
-    },
-  };
-}
-
 function startsWithOne(category: Category): Feature {
   const regex = new RegExp(`^(${category.items.join("|")})`);
   return {
@@ -210,11 +166,10 @@ function hasChangeAny(category: Category): Feature {
 
 export function substringFeatures(): Feature[] {
   return [
-    ...mapProduct(containsOne, categories),
-    ...mapProduct(containsTimes, shortCategories, interval(2, 5), [
-      true,
-      false,
-    ]),
+    ...mapProduct(
+      containsOne,
+      categories.filter((c) => shortCategories.every((d) => c.name !== d.name)),
+    ),
     ...mapProduct(startsWithOne, categories),
     ...mapProduct(endsWithOne, categories),
     ...mapProduct(canBeBrokenInto, shortCategories),

@@ -27,7 +27,7 @@ export default {
         SELECTED
         SOLDIERED
       `,
-      expected: "has solfege substring",
+      expected: "has at least 1 solfege substring",
     },
     {
       slugs: `

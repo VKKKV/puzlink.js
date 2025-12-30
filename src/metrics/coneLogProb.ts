@@ -1,10 +1,10 @@
+import { metricLogProbs } from "../data/metricLogProbs.js";
 import { LogNum } from "../lib/logNum.js";
-import { interval, product, type TupleOf } from "../lib/util.js";
-import { Vector, type Cone } from "./cone.js";
+import { interval } from "../lib/util.js";
 
 type MetricCache = {
-  maxVector: number[];
-  logProbs: Record<string, LogNum>;
+  maxVector: number;
+  logProbs: Record<number, LogNum>;
 };
 
 class LogProbCache {
@@ -20,8 +20,8 @@ class LogProbCache {
     data: Record<
       string,
       {
-        maxVector: number[];
-        logProbs: Record<string, number>;
+        maxVector: number;
+        logProbs: Record<number, number>;
       }
     >,
   ) {
@@ -30,19 +30,20 @@ class LogProbCache {
     for (const [name, { maxVector, logProbs }] of Object.entries(data)) {
       this.metricLogProbs[name] = { maxVector, logProbs: {} };
       for (const [vector, logProb] of Object.entries(logProbs)) {
-        this.metricLogProbs[name].logProbs[vector] = LogNum.fromExp(logProb);
+        this.metricLogProbs[name].logProbs[vector as unknown as number] =
+          LogNum.fromExp(logProb);
       }
     }
     this.wrapCompute = (_, fn) => fn();
   }
 
   *dump(): Generator<string> {
-    yield `export const metricLogProbs: Record<string, Record<string, number>> = {`;
+    yield `export const metricLogProbs: Record<string, { maxVector: number; logProbs: Record<number, number>; }> = {`;
     for (const [name, { maxVector, logProbs }] of Object.entries(
       this.metricLogProbs,
     )) {
       yield `  "${name}": {`;
-      yield `    "maxVector": [${maxVector.join(", ")}],`;
+      yield `    "maxVector": ${maxVector.toString()},`;
       yield `    "logProbs": {`;
       for (const [vector, logProb] of Object.entries(logProbs)) {
         yield `      "${vector}": ${logProb.toLog().toString()},`;
@@ -65,31 +66,19 @@ class LogProbCache {
     );
   }
 
-  total<Dimension extends number>(name: string, cone: Cone<Dimension>): LogNum {
+  total(name: string, vertex: number, strict: boolean): LogNum {
     const { maxVector, logProbs } = this.metricLogProbs[name] ?? {};
     if (!maxVector || !logProbs) {
       throw new Error(`Unknown metric: ${name}; should call fill() first`);
     }
-    const ranges = [];
-    for (const d of interval(0, cone.vertex.dimension - 1)) {
-      if (cone.strict[d]) {
-        ranges.push([cone.vertex.get(d)]);
-      } else {
-        ranges.push(interval(cone.vertex.get(d), maxVector[d]!));
-      }
+    if (strict) {
+      return logProbs[vertex] ?? LogNum.from(0);
     }
-    const partials = [];
-    for (const tuple of product(ranges)) {
-      const vector = Vector.from(
-        cone.vertex.dimension,
-        tuple as TupleOf<Dimension, number>,
-      );
-      const logProb = logProbs[vector.toString()];
-      if (logProb) {
-        partials.push(logProb);
-      }
-    }
-    return LogNum.sum(partials);
+    return LogNum.sum(
+      interval(vertex, maxVector).flatMap((i) =>
+        logProbs[i] ? [logProbs[i]] : [],
+      ),
+    );
   }
 }
 
@@ -97,4 +86,4 @@ class LogProbCache {
  * We wrap the log prob cache in a class so we can do stuff like print
  * debug output and whatever.
  */
-export const ConeLogProbs = new LogProbCache({});
+export const ConeLogProbs = new LogProbCache(metricLogProbs);

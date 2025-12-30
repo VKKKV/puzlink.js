@@ -1,7 +1,6 @@
 import { morseLetter } from "../data/morse.js";
-import { scrabbleLetterScore } from "../data/scrabble.js";
 import { VOWELS } from "../lib/letterDistribution.js";
-import { enumerate, interval, mapProduct, windows } from "../lib/util.js";
+import { enumerate, interval, windows } from "../lib/util.js";
 import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
@@ -163,24 +162,6 @@ function alternatingVowels(): Feature {
   };
 }
 
-function scrabbleScore(n: number): Feature {
-  return {
-    name: T.Join(["has scrabble score", n]),
-    property: (slug) => {
-      const points = Array.from(slug, (letter) => scrabbleLetterScore[letter]!);
-      const score = points.reduce((a, b) => a + b, 0);
-      if (score !== n) {
-        return null;
-      }
-      return T.Row([
-        T.Slug(slug),
-        T.Text(score.toString()),
-        ...points.map((p) => T.Text(p)),
-      ]);
-    },
-  };
-}
-
 function morseEqual(): Feature {
   return {
     name: T.Join(["has morse code with equal dot/dash count"]),
@@ -198,27 +179,6 @@ function morseEqual(): Feature {
   };
 }
 
-function morseCount(
-  kind: { one: string; other: string; chars: string },
-  n: number,
-): Feature {
-  return {
-    name: T.Join(["has morse code with", T.Count(n, kind.one, kind.other)]),
-    property: (slug) => {
-      const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
-        " ",
-      );
-      const count = Array.from(morse).filter((c) =>
-        kind.chars.includes(c),
-      ).length;
-      if (count !== n) {
-        return null;
-      }
-      return T.Row([T.Slug(slug), T.Text(count), T.Slug(morse)]);
-    },
-  };
-}
-
 /** Features that don't fit elsewhere. */
 export function otherFeatures(): Feature[] {
   return [
@@ -228,16 +188,6 @@ export function otherFeatures(): Feature[] {
     hill(),
     valley(),
     alternatingVowels(),
-    ...mapProduct(scrabbleScore, interval(1, 40)),
     morseEqual(),
-    ...mapProduct(
-      morseCount,
-      [
-        { chars: ".", one: "dot", other: "dots" },
-        { chars: "-", one: "dash", other: "dashes" },
-        { chars: ".-", one: "dot or dash", other: "dots and dashes" },
-      ],
-      interval(1, 40),
-    ),
   ];
 }
