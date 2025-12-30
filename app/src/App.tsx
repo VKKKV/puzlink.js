@@ -1,31 +1,9 @@
-import type { Link } from "puzlink";
 import * as Puzlink from "puzlink";
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
+import { LinkDisplay } from "./LinkDisplay";
 import { Settings } from "./Settings";
 import { useStore } from "./store";
-
-function LinkDisplay({ link, rank }: { link: Link; rank: number }) {
-  return (
-    <details className="link" open={rank <= 4 && link.description.length > 0}>
-      <summary>
-        <div className="link-summary">
-          <span className="link-name">{link.name}</span>
-          <span className="link-score">{link.score.toFixed(1)}</span>
-        </div>
-      </summary>
-      {Array.isArray(link.description) ? (
-        <ul className="link-description">
-          {link.description.map((line, i) => (
-            <li key={i}>{line}</li>
-          ))}
-        </ul>
-      ) : (
-        <div className="link-description">{link.description}</div>
-      )}
-    </details>
-  );
-}
 
 function LinkOutput() {
   const puzlinkReady = useStore((state) => state.puzlinkReady);
@@ -90,7 +68,8 @@ function LinkInput() {
   const userOptions = useStore((state) => state.userOptions);
 
   const format = () => {
-    setLinkInput(Puzlink.parse(linkInput).join("\n"));
+    const parsed = Puzlink.parse(linkInput).join("\n");
+    setLinkInput(userOptions.capitalizeSlugs ? parsed.toUpperCase() : parsed);
   };
 
   return (

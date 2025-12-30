@@ -21,10 +21,12 @@ export function Highlight(
   slug: string,
   highlights: ArrayLike<number>,
 ): Highlight {
+  const maybeNeg = toArray(highlights);
+  const nonNeg = maybeNeg.map((i) => (i >= 0 ? i : slug.length + i));
   return {
     type: "highlight",
     slug,
-    highlights: toArray(highlights),
+    highlights: nonNeg,
   };
 }
 
@@ -153,10 +155,15 @@ export type InlineRenderer<T, Options extends object> = {
 
 /** Render an inline tag. */
 export function renderInline<T, Options extends object>(
-  renderer: InlineRenderer<T, Options>,
+  renderer:
+    | InlineRenderer<T, Options>
+    | ((inline: Inline, options: Options) => T),
   inline: Inline,
   options: Options,
 ): T {
+  if (typeof renderer === "function") {
+    return renderer(inline, options);
+  }
   switch (inline.type) {
     case "fraction":
       return renderer.fraction(inline.numerator, inline.denominator, options);

@@ -104,7 +104,9 @@ export type TableRenderer<I, T, Options extends object> = (
 
 /** Render a table. */
 export function renderTable<I, T, Options extends object>(
-  inline: InlineRenderer<I, Options>,
+  inline:
+    | InlineRenderer<I, Options>
+    | ((inline: Inline, options: Options) => I),
   table: TableRenderer<I, T, Options>,
   template: Table,
   options: Options,

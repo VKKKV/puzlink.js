@@ -61,6 +61,7 @@ self.addEventListener("message", ({ data }: { data: WorkerInput }) => {
   outputGenerator = puzlink.link(data.input, {
     ...data.options,
     lazy: true,
+    jsonOutput: true,
   });
 
   const sendChunk = () => {

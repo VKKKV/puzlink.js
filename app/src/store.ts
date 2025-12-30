@@ -52,6 +52,10 @@ type UserOptions = {
   autoFormat: boolean;
   /** Whether to automatically send the input to Puzlink.link() on type. */
   autoSend: boolean;
+  /** Whether to capitalize slugs in the interface. */
+  capitalizeSlugs: boolean;
+  /** Whether to zero-index indices in the interface. */
+  zeroIndex: boolean;
 };
 
 type State = {
@@ -98,6 +102,8 @@ const stateCreator: StateCreator<State> = (set, get) => ({
   userOptions: {
     autoFormat: false,
     autoSend: true,
+    capitalizeSlugs: false,
+    zeroIndex: false,
   },
 
   puzlinkInited: false,

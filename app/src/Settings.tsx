@@ -76,6 +76,40 @@ export function Settings({
             Format the input when clicking out.
           </span>
         </label>
+
+        <label className="setting-item">
+          <input
+            type="checkbox"
+            checked={userOptions.capitalizeSlugs}
+            onChange={(e) => {
+              setUserOptions({
+                ...userOptions,
+                capitalizeSlugs: e.target.checked,
+              });
+            }}
+          />
+          <span className="setting-name">Capitalize answer-like strings</span>
+          <span className="setting-description">
+            Capitalize inputs, indexed letters, substrings, etc.
+          </span>
+        </label>
+
+        <label className="setting-item">
+          <input
+            type="checkbox"
+            checked={userOptions.zeroIndex}
+            onChange={(e) => {
+              setUserOptions({
+                ...userOptions,
+                zeroIndex: e.target.checked,
+              });
+            }}
+          />
+          <span className="setting-name">Start indices at 0</span>
+          <span className="setting-description">
+            Start letter indices at 0 instead of 1.
+          </span>
+        </label>
       </div>
 
       <div className="controls">
@@ -86,6 +120,8 @@ export function Settings({
             setUserOptions({
               autoSend: true,
               autoFormat: false,
+              capitalizeSlugs: false,
+              zeroIndex: false,
             });
           }}
         >

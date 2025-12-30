@@ -11,11 +11,10 @@ export const renderToText = makeRenderer(
     fraction: (numerator, denominator) =>
       `${numerator.toString()}/${denominator.toString()}`,
     highlight: (slug, indices) => {
-      const nonNegIndices = indices.map((i) => (i >= 0 ? i : slug.length + i));
       const capitalized = [];
       for (let i = 0; i < slug.length; i++) {
         capitalized.push(
-          nonNegIndices.includes(i) ? slug[i]!.toUpperCase() : slug[i]!,
+          indices.includes(i) ? slug[i]!.toUpperCase() : slug[i]!,
         );
       }
       return capitalized.join("");

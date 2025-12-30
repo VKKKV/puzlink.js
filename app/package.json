@@ -13,6 +13,7 @@
     "vite": "npm:rolldown-vite@7.2.5"
   },
   "dependencies": {
+    "lucide-react": "^0.562.0",
     "puzlink": "file:..",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
