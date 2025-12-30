@@ -129,23 +129,26 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
 
   return {
     name: metric.metricName,
-    eval: function* (slugs) {
+    eval: function* (slugs, options) {
       const scores = slugs.map((slug) =>
         metric.score(slug, getProps(wordlist, slug)),
       );
       const bitsetToRanges = getFeatureRanges(scores.map((x) => x.score));
       for (const [bitset, ranges] of bitsetToRanges) {
         const indices = Array.from(new Bitset(bitset).entries());
-        const rangeLogProbs = ranges.map((range) => {
+        if (
+          indices.length !== 0 &&
+          indices.length < options.minFeatureRatio * slugs.length
+        ) {
+          continue;
+        }
+        const rangeLogProbs = ranges.flatMap((range) => {
           const logProb = LogNum.binomialPValue(
             indices.length,
             slugs.length,
-            LogNum.min([
-              MetricLogProbs.get(linkerName, range.vertex, range.strict),
-              LogNum.from(1),
-            ]),
+            MetricLogProbs.get(linkerName, range.vertex, range.strict),
           );
-          return { range, logProb };
+          return logProb ? [{ range, logProb }] : [];
         });
         const { range, logProb } =
           LogNum.minBy(rangeLogProbs, (x) => x.logProb) ?? {};

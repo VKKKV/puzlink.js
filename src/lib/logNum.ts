@@ -129,6 +129,10 @@ export class LogNum {
     return this.data < other.data;
   }
 
+  closeTo(other: LogNum, logDigits = 4): boolean {
+    return Math.abs(this.data - other.data) <= 10 ** -logDigits / 2;
+  }
+
   static max(values: LogNum[]): LogNum {
     return new LogNum(Math.max(...values.map((x) => x.data)));
   }
@@ -186,18 +190,22 @@ export class LogNum {
     successes: number,
     trials: number,
     frequency: LogNum,
-  ): LogNum {
-    const clamped = Math.max(-10, Math.min(frequency.toLog(), 0));
-    const expected = trials * LogNum.fromExp(clamped).toNum();
+  ): LogNum | undefined {
+    if (frequency.closeTo(LogNum.from(1))) {
+      return undefined;
+    }
+
+    const clamped = LogNum.fromExp(Math.max(-15, frequency.toLog()));
+    const expected = trials * clamped.toNum();
     const probs = [];
 
     if (successes > expected) {
       for (const i of interval(successes, trials)) {
-        probs.push(LogNum.binomialProb(i, trials, frequency));
+        probs.push(LogNum.binomialProb(i, trials, clamped));
       }
     } else {
       for (const i of interval(0, successes)) {
-        probs.push(LogNum.binomialProb(i, trials, frequency));
+        probs.push(LogNum.binomialProb(i, trials, clamped));
       }
     }
 

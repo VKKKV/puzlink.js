@@ -19,7 +19,7 @@ function equalWithDistanceTimes(letter: string, distance: number): Metric {
         : T.Join([
             "has",
             T.Slug(`${letter}${"?".repeat(distance)}${letter}`),
-            times === 1 ? "as a substring" : "as a substring,",
+            times <= 1 ? "as a substring" : "as a substring,",
             times > 1 && !strict && "at least",
             times > 1 && T.Times(times),
           ]),

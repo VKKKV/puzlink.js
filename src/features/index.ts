@@ -72,8 +72,11 @@ function featureLinker(
       const logProb = LogNum.binomialPValue(
         description.length,
         slugs.length,
-        LogNum.max([FeatureLogProbs.get(key), LogNum.from(-10)]),
+        FeatureLogProbs.get(key),
       );
+      if (!logProb) {
+        return [];
+      }
       return [
         {
           name: T.Join([T.Fraction(description.length, slugs.length), name]),
