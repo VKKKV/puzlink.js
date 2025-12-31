@@ -1,6 +1,6 @@
 import { LogNum } from "./logNum.js";
 
-export abstract class LogProbCache<T> {
+export abstract class KeyedCache<T> {
   useCache = true;
   cache: Record<string, T> = {};
   wrapCompute: (name: string, fn: () => T, existing: T | undefined) => T = (
@@ -8,7 +8,7 @@ export abstract class LogProbCache<T> {
     fn,
   ) => fn();
 
-  abstract dump(): Generator<string>;
+  abstract dump(): string;
 
   abstract repr(value: T): string;
 
@@ -21,20 +21,16 @@ export abstract class LogProbCache<T> {
   }
 }
 
-export class FeatureLogProbCache extends LogProbCache<LogNum> {
-  constructor(data: Record<string, number>) {
+export class FeatureLogProbCache extends KeyedCache<LogNum> {
+  constructor(data: Record<string, number | null>) {
     super();
     for (const [name, logProb] of Object.entries(data)) {
-      this.cache[name] = LogNum.fromExp(logProb);
+      this.cache[name] = LogNum.fromJSON(logProb);
     }
   }
 
-  *dump(): Generator<string> {
-    yield `export const featureLogProbs: Record<string, number> = {`;
-    for (const [name, logProb] of Object.entries(this.cache)) {
-      yield `  "${name}": ${logProb.toLog().toString()},`;
-    }
-    yield `};`;
+  dump() {
+    return JSON.stringify(this.cache, null, 2);
   }
 
   repr(value: LogNum): string {
@@ -50,24 +46,16 @@ export class FeatureLogProbCache extends LogProbCache<LogNum> {
   }
 }
 
-export class MetricLogProbCache extends LogProbCache<LogNum[]> {
-  constructor(data: Record<string, number[]>) {
+export class MetricLogProbCache extends KeyedCache<LogNum[]> {
+  constructor(data: Record<string, (number | null)[]>) {
     super();
     for (const [name, logProbs] of Object.entries(data)) {
-      this.cache[name] = logProbs.map((logProb) => LogNum.fromExp(logProb));
+      this.cache[name] = logProbs.map((logProb) => LogNum.fromJSON(logProb));
     }
   }
 
-  *dump(): Generator<string> {
-    yield `export const metricLogProbs: Record<string, number[]> = {`;
-    for (const [name, logProbs] of Object.entries(this.cache)) {
-      yield `  "${name}": [`;
-      for (const logProb of logProbs) {
-        yield `    ${logProb.toLog().toString()},`;
-      }
-      yield `  ],`;
-    }
-    yield `};`;
+  dump() {
+    return JSON.stringify(this.cache, null, 2);
   }
 
   repr(value: LogNum[]): string {

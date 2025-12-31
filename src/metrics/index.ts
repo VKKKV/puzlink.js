@@ -1,8 +1,8 @@
-import { metricLogProbs } from "../data/metricLogProbs.js";
+import { json } from "../data/json.js";
 import { Bitset } from "../lib/bitset.js";
+import { MetricLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
-import { MetricLogProbCache } from "../lib/logProbCache.js";
 import { enumerate, interval, windows } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker } from "../linkers/index.js";
@@ -12,7 +12,7 @@ import { letterSequenceMetrics } from "./letterSequence.js";
 import { otherMetrics } from "./other.js";
 import { substringMetrics } from "./substring.js";
 
-export const MetricLogProbs = new MetricLogProbCache(metricLogProbs);
+export const MetricLogProbs = new MetricLogProbCache(json.metricLogProbs ?? {});
 
 type Props = {
   letterIndices: LetterIndices;

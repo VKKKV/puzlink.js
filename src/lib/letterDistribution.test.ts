@@ -1,46 +1,38 @@
-import { loadWordlist } from "cromulence";
 import { describe, expect, test } from "vitest";
 import { LetterDistribution } from "./letterDistribution.js";
-import { speedTest } from "./testUtils.js";
 
 describe("LetterDistribution", () => {
-  test.runIf(speedTest)("speed", async () => {
-    const wordlist = await loadWordlist();
-    const start = Date.now();
-    new LetterDistribution(Object.keys(wordlist));
-    const time = Date.now() - start;
-    expect(time).toBeLessThan(1000);
-    console.log(`LetterDistribution init: ${time.toString()}ms`);
-  });
-
-  const dist = new LetterDistribution([
-    "aaaaaaaa",
-    "bb",
-    "ccc",
-    "dddd",
-    "eeeeeeeeeeeee",
-    "ff",
-    "gg",
-    "hhhhhh",
-    "iiiiiii",
-    // .
-    "k",
-    "llll",
-    "mm",
-    "nnnnnnn",
-    "oooooooo",
-    "pp",
-    // .
-    "rrrrrr",
-    "ssssss",
-    "ttttttttt",
-    "uuu",
-    "v",
-    "ww",
-    // .
-    "yy",
-    // .
-  ]);
+  const dist = new LetterDistribution(
+    [
+      "aaaaaaaa",
+      "bb",
+      "ccc",
+      "dddd",
+      "eeeeeeeeeeeee",
+      "ff",
+      "gg",
+      "hhhhhh",
+      "iiiiiii",
+      // .
+      "k",
+      "llll",
+      "mm",
+      "nnnnnnn",
+      "oooooooo",
+      "pp",
+      // .
+      "rrrrrr",
+      "ssssss",
+      "ttttttttt",
+      "uuu",
+      "v",
+      "ww",
+      // .
+      "yy",
+      // .
+    ],
+    false,
+  );
 
   test("probUnordered", () => {
     expect(

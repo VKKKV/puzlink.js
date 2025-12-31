@@ -6,7 +6,7 @@ import * as path from "node:path";
 import * as url from "node:url";
 import type { Link } from "../src/index.js";
 import { Puzlink } from "../src/index.js";
-import { time } from "./util.js";
+import { timeAsync } from "./util.js";
 
 const DEFAULT_LIMIT = 3;
 
@@ -270,7 +270,7 @@ async function mainLoop(args: Args, puzlink: Puzlink) {
   let totalTests = 0;
 
   for await (const evalSuite of getEvalSuites(args)) {
-    const { result: results, duration } = await time(() =>
+    const { result: results, duration } = await timeAsync(() =>
       Array.from(runEvalSuite(puzlink, evalSuite)),
     );
     console.log(
@@ -319,7 +319,7 @@ async function main() {
   }
 
   process.stdout.write(chalk.gray("initializing puzlink..."));
-  const { result: puzlink, duration: puzlinkInitMs } = await time(() =>
+  const { result: puzlink, duration: puzlinkInitMs } = await timeAsync(() =>
     Puzlink.download(),
   );
   console.log(chalk.gray(` took ${puzlinkInitMs.toString()}ms`));

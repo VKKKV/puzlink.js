@@ -21,6 +21,22 @@ export class Distribution<T extends PropertyKey> {
     return new Distribution(new Map(counter.frequencies()));
   }
 
+  static parse(dumped: Record<string, number | null>): Distribution<string> {
+    const frequencies = new Map<string, LogNum>();
+    for (const [item, freq] of Object.entries(dumped)) {
+      frequencies.set(item, LogNum.fromJSON(freq));
+    }
+    return new Distribution(frequencies);
+  }
+
+  dump(): Record<T, number | null> {
+    const result = {} as Record<T, number | null>;
+    for (const [item, freq] of this.frequencies) {
+      result[item] = freq.toJSON();
+    }
+    return result;
+  }
+
   /** Get the frequency of the given item. */
   get(item: T): LogNum {
     return this.frequencies.get(item) ?? LogNum.from(0);

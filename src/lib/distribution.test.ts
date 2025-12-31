@@ -22,9 +22,7 @@ describe("Distribution", () => {
       .toMatchInlineSnapshot(`
         {
           "high": {
-            "5": _LogNum {
-              "data": 1.791759469228055,
-            },
+            "5": 1.791759469228055,
           },
           "low": {},
         }

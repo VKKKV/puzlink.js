@@ -43,6 +43,13 @@ export class LogNum {
     return new LogNum(value);
   }
 
+  static fromJSON(value: number | null): LogNum {
+    if (value === null) {
+      return LogNum.from(0);
+    }
+    return new LogNum(value);
+  }
+
   static fromFraction(numerator: number, denominator: number): LogNum {
     return new LogNum(Math.log(numerator) - Math.log(denominator));
   }
@@ -69,6 +76,10 @@ export class LogNum {
   }
 
   toLog(): number {
+    return this.data;
+  }
+
+  toJSON(): number {
     return this.data;
   }
 

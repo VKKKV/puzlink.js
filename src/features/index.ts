@@ -1,7 +1,7 @@
-import { featureLogProbs } from "../data/featureLogProbs.js";
+import { json } from "../data/json.js";
+import { FeatureLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
-import { FeatureLogProbCache } from "../lib/logProbCache.js";
 import { Wordlist } from "../lib/wordlist.js";
 import type { Linker } from "../linkers/index.js";
 import * as T from "../templating/index.js";
@@ -15,7 +15,9 @@ import { wordplayFeatures } from "./wordplay.js";
  * Computing feature LogProbs can be expensive; so we've precomputed some
  * cached values.
  */
-export const FeatureLogProbs = new FeatureLogProbCache(featureLogProbs);
+export const FeatureLogProbs = new FeatureLogProbCache(
+  json.featureLogProbs ?? {},
+);
 
 type Props = {
   letterIndices: LetterIndices;

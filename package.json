@@ -29,8 +29,8 @@
     "!src/**/*.test.ts"
   ],
   "scripts": {
-    "build:categories": "tsx scripts/buildCategories.ts && prettier --write src/data/categories",
-    "build:logProbs": "tsx scripts/buildLogProbs.ts && prettier --write src/data",
+    "build:categories": "tsx scripts/buildCategories.ts",
+    "build:json": "tsx scripts/buildJSON.ts",
     "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",
     "lint": "eslint",

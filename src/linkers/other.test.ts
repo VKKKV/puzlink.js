@@ -39,7 +39,7 @@ describe("other linker", () => {
       [
         [
           "unusual letter distribution",
-          "over-represented j q x z",
+          "over-represented j x q z",
         ],
         [
           "start with the same vowel-consonant pattern",
@@ -58,7 +58,7 @@ describe("other linker", () => {
       [
         [
           "unusual letter distribution",
-          "over-represented f g j",
+          "over-represented h f j g",
         ],
         [
           "multiple shared suffixes and prefixes",

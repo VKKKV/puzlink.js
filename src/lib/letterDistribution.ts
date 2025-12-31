@@ -1,3 +1,4 @@
+import { json } from "../data/json.js";
 import { Distribution } from "./distribution.js";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
@@ -34,7 +35,19 @@ export class LetterDistribution {
     }
   >;
 
-  constructor(wordlist: string[]) {
+  constructor(wordlist: string[], useCache = true) {
+    const cached = json.letterDistribution;
+    if (cached && useCache) {
+      this.distribution = Distribution.parse(cached.letterCount);
+      this.lengthToProbs = new Map(
+        cached.lengthToProbs.map(([length, { word, anagram }]) => [
+          length,
+          { word: LogNum.fromJSON(word), anagram: LogNum.fromJSON(anagram) },
+        ]),
+      );
+      return;
+    }
+
     const letterCount = new Map<string, number>();
     let total = 0;
 
@@ -84,6 +97,19 @@ export class LetterDistribution {
         .get(word.length)!
         .anagram.add(prob.mul(perms));
     }
+  }
+
+  dump(): NonNullable<typeof json.letterDistribution> {
+    return {
+      letterCount: this.distribution.dump(),
+      lengthToProbs: Array.from(
+        this.lengthToProbs.entries(),
+        ([length, { word, anagram }]) => [
+          length,
+          { word: word.toJSON(), anagram: anagram.toJSON() },
+        ],
+      ),
+    };
   }
 
   /**
