@@ -473,7 +473,7 @@ function transaddWith(letter: string): Feature {
 
 function transaddAny(): Feature {
   return {
-    name: T.Text("has transadd"),
+    name: T.Text("has some transadd"),
     property: (slug, { wordlist }) => {
       const allTransadds: [letter: string, transadd: string][] = [];
       for (const letter of LETTERS) {
@@ -527,7 +527,7 @@ function transdeleteWith(letter: string): Feature {
 
 function transdeleteAny(): Feature {
   return {
-    name: T.Text("has transdelete"),
+    name: T.Text("has some transdelete"),
     property: (slug, { wordlist }) => {
       const allTransdeletes: [letter: string, transdelete: string][] = [];
       for (const letter of new Set(slug)) {

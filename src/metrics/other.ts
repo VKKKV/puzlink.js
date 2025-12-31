@@ -7,6 +7,7 @@ import type { Metric } from "./index.js";
 function scrabbleScore(): Metric {
   return {
     metricName: T.Text("scrabble score"),
+    maxNonStrict: 0,
     name: (score, strict) =>
       T.Join(["has scrabble score", !strict && "at least", score]),
     score: (slug) => {
@@ -28,6 +29,7 @@ function morseCount(kind: {
 }): Metric {
   return {
     metricName: T.Join(["morse", kind.other, "count"]),
+    maxNonStrict: 0,
     name: (count, strict) =>
       T.Join([
         "has morse code with",

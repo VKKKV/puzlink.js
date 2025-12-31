@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { getFeatureRanges } from "./index.js";
+import { getFeatureRanges, type Metric } from "./index.js";
 
 describe("getFeatureRanges", () => {
   test("usual", () => {
-    const featureRanges = getFeatureRanges([1, 3, 4, 7]);
+    const featureRanges = getFeatureRanges({} as Metric, [1, 3, 4, 7]);
     // {}
     expect(featureRanges.get(0n)).toEqual([
       { vertex: 2, strict: true },
@@ -18,7 +18,7 @@ describe("getFeatureRanges", () => {
   });
 
   test("special case", () => {
-    expect(getFeatureRanges([0, 0, 0, 0, 0])).toEqual(
+    expect(getFeatureRanges({} as Metric, [0, 0, 0, 0, 0])).toEqual(
       new Map([[31n, [{ vertex: 0, strict: true }]]]),
     );
   });

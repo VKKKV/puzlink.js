@@ -1575,7 +1575,6 @@ export const featureLogProbs: Record<string, number> = {
   "has transadd with x": -3.4307253168114595,
   "has transadd with y": -2.1155747605157327,
   "has transadd with z": -2.918609256757648,
-  "has transadd": -0.44069525681355337,
   "has transdelete with a": -1.613039274090717,
   "has transdelete with b": -2.646143930291883,
   "has transdelete with c": -2.349081816888697,
@@ -1602,6 +1601,7 @@ export const featureLogProbs: Record<string, number> = {
   "has transdelete with x": -4.44401510798966,
   "has transdelete with y": -2.8729769038692208,
   "has transdelete with z": -3.9260204173113387,
-  "has transdelete": -0.21846265339839377,
   "has caesar shift": -2.1652771887887763,
+  "has some transadd": -0.44069525681355337,
+  "has some transdelete": -0.21846265339839377,
 };

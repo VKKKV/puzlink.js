@@ -106,19 +106,19 @@ describe("LogNum", () => {
 
   test("binomial p value", () => {
     expect(
-      LogNum.binomialPValue(0, 4, LogNum.fromFraction(1, 2)).toNum(),
+      LogNum.binomialPValue(0, 4, LogNum.fromFraction(1, 2))?.toNum(),
     ).toBeCloseTo(1 / 16);
     expect(
-      LogNum.binomialPValue(1, 4, LogNum.fromFraction(1, 2)).toNum(),
+      LogNum.binomialPValue(1, 4, LogNum.fromFraction(1, 2))?.toNum(),
     ).toBeCloseTo(5 / 16);
     expect(
-      LogNum.binomialPValue(2, 4, LogNum.fromFraction(1, 2)).toNum(),
+      LogNum.binomialPValue(2, 4, LogNum.fromFraction(1, 2))?.toNum(),
     ).toBeCloseTo(11 / 16);
     expect(
-      LogNum.binomialPValue(3, 4, LogNum.fromFraction(1, 2)).toNum(),
+      LogNum.binomialPValue(3, 4, LogNum.fromFraction(1, 2))?.toNum(),
     ).toBeCloseTo(5 / 16);
     expect(
-      LogNum.binomialPValue(4, 4, LogNum.fromFraction(1, 2)).toNum(),
+      LogNum.binomialPValue(4, 4, LogNum.fromFraction(1, 2))?.toNum(),
     ).toBeCloseTo(1 / 16);
   });
 });

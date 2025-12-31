@@ -7,6 +7,7 @@ import type { Metric } from "./index.js";
 function equalWithDistanceTimes(letter: string, distance: number): Metric {
   return {
     metricName: T.Join(["equal", letter, "with distance", distance, "count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       distance === 0
         ? T.Join([
@@ -75,6 +76,7 @@ function equalWithDistanceTimes(letter: string, distance: number): Metric {
 function equalAnyDistanceTimes(distance: number): Metric {
   return {
     metricName: T.Join(["equal with distance", distance, "count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       distance === 0
         ? T.Join([
@@ -173,6 +175,7 @@ function bigramOfTimes(bigram: {
 }): Metric {
   return {
     metricName: T.Join([bigram.type, "bigram count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       T.Join([
         "has",
@@ -211,6 +214,7 @@ function bigramOfTimes(bigram: {
 function consecutiveOfTimes(kind: LetterKind): Metric {
   return {
     metricName: T.Join(["consecutive", kind.one, "count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       T.Join([
         "has",

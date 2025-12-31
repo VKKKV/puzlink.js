@@ -21,7 +21,7 @@ export default {
         anaphia
         teenage
       `,
-      expected: "has 3 unique consonants",
+      expected: "has at least 4 unique consonants",
     },
   ],
 } satisfies EvalSuite;

@@ -7,6 +7,7 @@ function containsTimes(category: Category): Metric {
   const regex = new RegExp(category.items.join("|"), "g");
   return {
     metricName: T.Join([category.name, "substring count"]),
+    maxNonStrict: 3,
     name: (times, strict) =>
       T.Join([
         "has",

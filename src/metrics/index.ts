@@ -34,6 +34,19 @@ export type Metric = {
   /** The name of the metric; used for debugging. */
   metricName: T.Inline;
   /**
+   * Maximum vertex to allow in a non-strict feature.
+   *
+   * Pretty much all metrics are correlated with slug length. Input slugs are
+   * on average longer than wordlist items, so they score higher on-average.
+   * This can result in uninteresting features simply due to length; if your
+   * answers are all fifteen letters long, it's kinda spurious if several have
+   * at least six alphabetic bigrams. (However, if several have *exactly* six
+   * alphabetic bigrams, that's always interesting.)
+   *
+   * When in doubt, 5 is a good default.
+   */
+  maxNonStrict: number;
+  /**
    * Constructs the name of a feature. For example: (2, true) =>
    *   "has exactly two ..."
    */
@@ -63,6 +76,7 @@ type FeatureRange = { vertex: number; strict: boolean };
  * these are the best-scoring ones.
  */
 export function getFeatureRanges(
+  metric: Metric,
   scores: number[],
 ): Map<bigint, FeatureRange[]> {
   const scoreToBitset = new Map<number, bigint>();
@@ -75,6 +89,9 @@ export function getFeatureRanges(
 
   const setToRanges = new Map<bigint, FeatureRange[]>([[0n, []]]);
   const push = (range: FeatureRange, contained: bigint) => {
+    if (!range.strict && range.vertex > metric.maxNonStrict) {
+      return;
+    }
     if (!setToRanges.has(contained)) {
       setToRanges.set(contained, []);
     }
@@ -104,10 +121,13 @@ export function getFeatureRanges(
   }
 
   // There is exactly one pair of complementary feature ranges: (0, true) and
-  // (1, false). If both are present, we keep only (0, true).
-  const zeroScore = scoreToBitset.get(0);
-  if (zeroScore) {
-    setToRanges.delete(allIndices & ~zeroScore);
+  // (1, false). We discard (1, false) iff it corresponds to zero slugs.
+  const filteredAll =
+    setToRanges.get(0n)?.filter((r) => r.vertex !== 1 || r.strict) ?? [];
+  if (filteredAll.length > 0) {
+    setToRanges.set(0n, filteredAll);
+  } else {
+    setToRanges.delete(0n);
   }
 
   return setToRanges;
@@ -133,7 +153,10 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
       const scores = slugs.map((slug) =>
         metric.score(slug, getProps(wordlist, slug)),
       );
-      const bitsetToRanges = getFeatureRanges(scores.map((x) => x.score));
+      const bitsetToRanges = getFeatureRanges(
+        metric,
+        scores.map((x) => x.score),
+      );
       for (const [bitset, ranges] of bitsetToRanges) {
         const indices = Array.from(new Bitset(bitset).entries());
         if (

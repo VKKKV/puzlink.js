@@ -20,7 +20,7 @@ export default {
         SUSURRANT
         PARTITION
       `,
-      expected: "has 2 pairs of equal letters, separated by 1 letter",
+      expected: "has at least 2 pairs of equal letters, separated by 1 letter",
     },
     {
       slugs: `

@@ -59,7 +59,7 @@ export default {
         SWIMMER
         SWORD COAST
       `,
-      expected: "has 2 compass direction substrings",
+      expected: "has 2 compass directions substrings",
     },
     {
       slugs: `

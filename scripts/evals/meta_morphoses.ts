@@ -19,7 +19,7 @@ export default {
         ANAGRAM
         STRONG-ARMED
       `,
-      expected: "has transadd",
+      expected: "has some transadd",
     },
   ],
 } satisfies EvalSuite;

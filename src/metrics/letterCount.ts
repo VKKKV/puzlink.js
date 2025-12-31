@@ -7,6 +7,7 @@ import type { Metric } from "./index.js";
 function withTimes(letter: string): Metric {
   return {
     metricName: T.Join([letter, "count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       T.Join([
         strict ? "has exactly" : "has at least",
@@ -30,6 +31,7 @@ function withTimes(letter: string): Metric {
 function uniqueOf(kind: LetterKind): Metric {
   return {
     metricName: T.Join(["unique", kind.one, "count"]),
+    maxNonStrict: 5,
     name: (times, strict) =>
       T.Join([
         "has",
@@ -99,6 +101,7 @@ function nGramRepeatsTimes(
       repeatsStrict ? "exactly" : "at least",
       T.Times(repeats),
     ]),
+    maxNonStrict: 5,
     name: (count, strict) =>
       T.Join([
         strict ? "has exactly" : "has at least",
@@ -151,6 +154,7 @@ function nGramRepeatsTimes(
 function repeatedOf(kind: LetterKind): Metric {
   return {
     metricName: T.Join(["repeated", kind.one, "count"]),
+    maxNonStrict: 5,
     name: (count, strict) =>
       T.Join([
         strict ? "has exactly" : "has at least",
