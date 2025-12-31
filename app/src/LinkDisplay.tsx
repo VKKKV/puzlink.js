@@ -98,7 +98,7 @@ const render = Puzlink.makeRenderer<
       };
     },
     ordinal(rawRank, options) {
-      const rank = options.zeroIndex ? rawRank : rawRank + 1;
+      const rank = options.zeroIndex || rawRank < 0 ? rawRank : rawRank + 1;
       const count = ordinal.select(rank);
       const suffix =
         count === "one"

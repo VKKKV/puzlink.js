@@ -1,10 +1,10 @@
 import type { Link, LinkOptions } from "puzlink";
 import * as Puzlink from "puzlink";
 import { create, type StateCreator } from "zustand";
+import { devtools, persist } from "zustand/middleware";
 import { shallow as shallowEqual } from "zustand/shallow";
 import type { WorkerInput, WorkerOutput } from "./worker";
 import PuzlinkWorker from "./worker?worker";
-import { persist } from "zustand/middleware";
 
 // TODO: right now we stole these examples directly from puz.link; we should format them with newlines and spaces to make clear that it like, works
 const examples = [
@@ -61,6 +61,8 @@ type UserOptions = {
 type State = {
   /** The ID of the current Puzlink.link() call. */
   inputID: number | null;
+  /** Last input ID used. */
+  lastInputID: number;
   /** The (unparsed) input to Puzlink.link(). */
   linkInput: string;
   /** Options for Puzlink.link(). */
@@ -76,7 +78,7 @@ type State = {
   /** The parsed input corresponding to the last Puzlink.link() call. */
   lastLinkInput: string[] | null;
   /** The input ID corresponding to the outputLinks. */
-  outputInputID: number | null;
+  outputInputID: number;
   /** The output links from the (possibly last) Puzlink.link() call. */
   outputLinks: Link[];
 
@@ -96,6 +98,7 @@ type State = {
 
 const stateCreator: StateCreator<State> = (set, get) => ({
   inputID: null,
+  lastInputID: -1,
   linkInput: initialLinkInput(),
   linkOptions: {},
 
@@ -110,7 +113,7 @@ const stateCreator: StateCreator<State> = (set, get) => ({
   puzlinkReady: false,
 
   lastLinkInput: null,
-  outputInputID: null,
+  outputInputID: -1,
   outputLinks: [],
 
   setLinkInput: (value) => {
@@ -144,7 +147,7 @@ const stateCreator: StateCreator<State> = (set, get) => ({
       return;
     }
 
-    const newInputID = (get().inputID ?? 0) + 1;
+    const newInputID = get().lastInputID + 1;
 
     send({
       type: "input",
@@ -155,7 +158,7 @@ const stateCreator: StateCreator<State> = (set, get) => ({
     set({
       lastLinkInput: parsed,
       inputID: newInputID,
-      outputInputID: null,
+      lastInputID: newInputID,
     });
   },
   initWorker: () => {
@@ -171,17 +174,29 @@ const stateCreator: StateCreator<State> = (set, get) => ({
         });
         get().sendInput();
       } else if (data.type === "output:link") {
-        set({
-          outputInputID: data.inputID,
-          outputLinks: (data.inputID !== get().outputInputID
-            ? data.chunk
-            : get().outputLinks.concat(data.chunk)
-          ).sort((a, b) => b.score - a.score),
-        });
+        if (data.inputID < get().outputInputID) {
+          // old; ignore
+        } else if (data.inputID === get().outputInputID) {
+          // current; append
+          set({
+            outputInputID: data.inputID,
+            outputLinks: get()
+              .outputLinks.concat(data.chunk)
+              .sort((a, b) => b.score - a.score),
+          });
+        } else {
+          // new; replace
+          set({
+            outputInputID: data.inputID,
+            outputLinks: data.chunk.sort((a, b) => b.score - a.score),
+          });
+        }
       } else if (data.type === "output:end") {
-        set({
-          inputID: null,
-        });
+        if (data.inputID === get().inputID) {
+          set({
+            inputID: null,
+          });
+        }
       } else {
         data.type satisfies "error";
         console.error("Puzlink worker error:", data.error);
@@ -192,12 +207,23 @@ const stateCreator: StateCreator<State> = (set, get) => ({
   },
 });
 
-export const useStore = create(
-  persist(stateCreator, {
-    name: "puzlink.js",
-    partialize: (state) => ({
-      linkOptions: state.linkOptions,
-      userOptions: state.userOptions,
-    }),
-  }),
+export const useStore = create<State>()(
+  // @ts-expect-error - mixed middlewares
+  import.meta.env.PROD
+    ? persist(stateCreator, {
+        name: "puzlink.js",
+        partialize: (state) => ({
+          linkOptions: state.linkOptions,
+          userOptions: state.userOptions,
+        }),
+      })
+    : devtools(
+        persist(stateCreator, {
+          name: "puzlink.js",
+          partialize: (state) => ({
+            linkOptions: state.linkOptions,
+            userOptions: state.userOptions,
+          }),
+        }),
+      ),
 );

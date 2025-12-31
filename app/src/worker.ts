@@ -53,7 +53,7 @@ self.addEventListener("message", ({ data }: { data: WorkerInput }) => {
 
   data.type satisfies "input";
 
-  if (inputID === data.inputID) {
+  if (inputID !== null && inputID <= data.inputID) {
     return;
   }
 
