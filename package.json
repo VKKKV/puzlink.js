@@ -30,7 +30,7 @@
   ],
   "scripts": {
     "build:categories": "tsx scripts/buildCategories.ts",
-    "build:json": "tsx scripts/buildJSON.ts",
+    "build:cache": "tsx scripts/buildCache.ts",
     "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",
     "lint": "eslint",

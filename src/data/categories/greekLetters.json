@@ -1,4 +1,4 @@
-export default [
+[
   "zeta",
   "xi",
   "upsilon",
@@ -22,5 +22,5 @@ export default [
   "delta",
   "chi",
   "beta",
-  "alpha",
-];
+  "alpha"
+]

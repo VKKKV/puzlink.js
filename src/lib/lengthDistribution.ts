@@ -26,8 +26,11 @@ export class LengthDistribution {
     }
   }
 
-  static from(data: Map<number, LogNum>): LengthDistribution {
-    return new LengthDistribution(new Distribution(data));
+  static from(data: [number, number][]): LengthDistribution {
+    const map = new Map(
+      data.map(([length, freq]) => [length, LogNum.fromExp(freq)]),
+    );
+    return new LengthDistribution(new Distribution(map));
   }
 
   /** Log probability that k words have the same length. */

@@ -20,10 +20,14 @@ class BaseAffixDistribution {
     }
 
     for (const word of wordlist) {
+      let sliced = "";
       for (let i = 1; i <= word.length; i++) {
-        affixes
-          .get(i)!
-          .push(affix === "prefix" ? word.slice(0, i) : word.slice(-i));
+        if (affix === "prefix") {
+          sliced = sliced + word[i - 1]!;
+        } else {
+          sliced = word.at(-i)! + sliced;
+        }
+        affixes.get(i)!.push(sliced);
       }
     }
 

@@ -10,26 +10,23 @@ const dataDir = path.resolve(
   "data",
 );
 
-const tsDir = path.join(dataDir, "categories");
+const jsonDir = path.join(dataDir, "categories");
 const txtDir = path.join(dataDir, "categories", "txt");
 
 /** Write a file, return its basename (without '.ts'). */
 async function writeFile(name: string, lines: string[]) {
-  const cleanLines = lines
+  const cleaned = lines
     .filter((line) => !line.startsWith("#"))
     .map((line) => line.toLowerCase().replaceAll(/[^a-z]/g, ""))
     .filter((line) => line.length > 0);
-  const tsLines = [];
-  tsLines.push(`export default [`);
+
   // Why reverse sort? For regex matching, we want to match the longest string
   // possible first, so e.g. we want to match NW before N.
-  for (const line of Array.from(new Set(cleanLines)).sort().reverse()) {
-    tsLines.push(`  "${line}",`);
-  }
-  tsLines.push(`];`);
+  const unique = Array.from(new Set(cleaned)).sort().reverse();
+
   await fs.writeFile(
-    path.join(tsDir, `${name}.ts`),
-    tsLines.join("\n"),
+    path.join(jsonDir, `${name}.json`),
+    JSON.stringify(unique, null, 2),
     "utf-8",
   );
   return name;
@@ -93,16 +90,19 @@ async function* writeCustomFiles(): AsyncGenerator<string> {
 async function main() {
   const names = [];
   for await (const name of writeTxtFiles()) {
-    console.log(`wrote ${name}.ts`);
+    console.log(`wrote ${name}.json`);
     names.push(name);
   }
   for await (const name of writeCustomFiles()) {
-    console.log(`wrote ${name}.ts`);
+    console.log(`wrote ${name}.json`);
     names.push(name);
   }
   const categoriesFileName = path.join(dataDir, "categories.ts");
   const newLines = names
-    .map((name) => `import ${name} from "./categories/${name}.js";`)
+    .map(
+      (name) =>
+        `import ${name} from "./categories/${name}.json" with { type: "json" };`,
+    )
     .sort();
   let importsDone = false;
   let categoriesDone = false;

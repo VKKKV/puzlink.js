@@ -1,4 +1,4 @@
-export default [
+[
   "zwe",
   "zmb",
   "zaf",
@@ -247,5 +247,5 @@ export default [
   "aia",
   "ago",
   "afg",
-  "abw",
-];
+  "abw"
+]

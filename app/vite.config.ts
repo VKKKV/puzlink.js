@@ -2,7 +2,7 @@ import * as url from "node:url";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-export default defineConfig({
+export default defineConfig((env) => ({
   base: "",
   build: {
     rolldownOptions: {
@@ -21,9 +21,15 @@ export default defineConfig({
       },
     }),
   ],
-  resolve: {
-    alias: {
-      puzlink: url.fileURLToPath(new URL("../src/index.ts", import.meta.url)),
-    },
-  },
-});
+  ...(env.command === "build"
+    ? {}
+    : {
+        resolve: {
+          alias: {
+            puzlink: url.fileURLToPath(
+              new URL("../src/index.ts", import.meta.url),
+            ),
+          },
+        },
+      }),
+}));

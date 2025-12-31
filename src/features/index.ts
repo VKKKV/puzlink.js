@@ -1,4 +1,4 @@
-import { json } from "../data/json.js";
+import { cache } from "../data/cache.js";
 import { FeatureLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
@@ -16,7 +16,7 @@ import { wordplayFeatures } from "./wordplay.js";
  * cached values.
  */
 export const FeatureLogProbs = new FeatureLogProbCache(
-  json.featureLogProbs ?? {},
+  cache.featureLogProbs ?? {},
 );
 
 type Props = {

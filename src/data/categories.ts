@@ -1,15 +1,15 @@
-import compass from "./categories/compass.js";
-import countryAlpha2 from "./categories/countryAlpha2.js";
-import countryAlpha3 from "./categories/countryAlpha3.js";
-import daysOfTheWeek from "./categories/daysOfTheWeek.js";
-import elementSymbols from "./categories/elementSymbols.js";
-import greekLetters from "./categories/greekLetters.js";
-import months from "./categories/months.js";
-import natoAlphabet from "./categories/natoAlphabet.js";
-import numbers from "./categories/numbers.js";
-import romanNumerals from "./categories/romanNumerals.js";
-import solfege from "./categories/solfege.js";
-import usStateAbbreviations from "./categories/usStateAbbreviations.js";
+import compass from "./categories/compass.json" with { type: "json" };
+import countryAlpha2 from "./categories/countryAlpha2.json" with { type: "json" };
+import countryAlpha3 from "./categories/countryAlpha3.json" with { type: "json" };
+import daysOfTheWeek from "./categories/daysOfTheWeek.json" with { type: "json" };
+import elementSymbols from "./categories/elementSymbols.json" with { type: "json" };
+import greekLetters from "./categories/greekLetters.json" with { type: "json" };
+import months from "./categories/months.json" with { type: "json" };
+import natoAlphabet from "./categories/natoAlphabet.json" with { type: "json" };
+import numbers from "./categories/numbers.json" with { type: "json" };
+import romanNumerals from "./categories/romanNumerals.json" with { type: "json" };
+import solfege from "./categories/solfege.json" with { type: "json" };
+import usStateAbbreviations from "./categories/usStateAbbreviations.json" with { type: "json" };
 
 export const categories: Category[] = [
   { name: "iso 2-letter country codes", items: countryAlpha2 },

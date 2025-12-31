@@ -1,4 +1,4 @@
-export default [
+[
   "xxx",
   "xxv",
   "xxi",
@@ -129,5 +129,5 @@ export default [
   "cci",
   "ccc",
   "cc",
-  "c",
-];
+  "c"
+]

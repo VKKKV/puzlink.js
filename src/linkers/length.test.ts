@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
 import { answerLengthLogProbs } from "../data/answerLengths.js";
-import { Distribution } from "../lib/distribution.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
 import { testLinker } from "./index.js";
 import { lengthLinker } from "./length.js";
@@ -8,7 +7,7 @@ import { lengthLinker } from "./length.js";
 describe("lengthLinker", () => {
   const link = testLinker(
     lengthLinker,
-    new LengthDistribution(new Distribution(answerLengthLogProbs)),
+    LengthDistribution.from(answerLengthLogProbs),
   );
 
   test("length links", () => {

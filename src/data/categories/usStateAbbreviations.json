@@ -1,4 +1,4 @@
-export default [
+[
   "wy",
   "wv",
   "wi",
@@ -48,5 +48,5 @@ export default [
   "az",
   "ar",
   "al",
-  "ak",
-];
+  "ak"
+]

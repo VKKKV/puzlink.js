@@ -1,4 +1,4 @@
-import { json } from "../data/json.js";
+import { cache } from "../data/cache.js";
 import { Distribution } from "./distribution.js";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
@@ -36,7 +36,7 @@ export class LetterDistribution {
   >;
 
   constructor(wordlist: string[], useCache = true) {
-    const cached = json.letterDistribution;
+    const cached = cache.letterDistribution;
     if (cached && useCache) {
       this.distribution = Distribution.parse(cached.letterCount);
       this.lengthToProbs = new Map(
@@ -99,7 +99,7 @@ export class LetterDistribution {
     }
   }
 
-  dump(): NonNullable<typeof json.letterDistribution> {
+  dump(): NonNullable<typeof cache.letterDistribution> {
     return {
       letterCount: this.distribution.dump(),
       lengthToProbs: Array.from(

@@ -15,15 +15,11 @@ export class LogCounter<T extends PropertyKey> {
     data: Iterable<U>,
     map: (item: U) => T,
   ): LogCounter<T>;
-  static from(
-    data: string | Iterable<PropertyKey>,
-    map?: (item: PropertyKey) => PropertyKey,
-  ) {
+  static from(data: string | Iterable<PropertyKey>) {
     const counts = new Map<PropertyKey, number>();
     let total = 0;
 
-    for (const item_ of data) {
-      const item = map ? map(item_) : item_;
+    for (const item of data) {
       counts.set(item, (counts.get(item) ?? 0) + 1);
       total++;
     }

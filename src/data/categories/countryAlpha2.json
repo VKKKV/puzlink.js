@@ -1,4 +1,4 @@
-export default [
+[
   "zw",
   "zm",
   "za",
@@ -247,5 +247,5 @@ export default [
   "ag",
   "af",
   "ae",
-  "ad",
-];
+  "ad"
+]

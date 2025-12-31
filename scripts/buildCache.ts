@@ -1,7 +1,7 @@
 import { loadWordlist } from "cromulence";
 import meow from "meow";
 import * as fs from "node:fs/promises";
-import { json } from "../src/data/json.js";
+import { cache } from "../src/data/cache.js";
 import { featureLinkers, FeatureLogProbs } from "../src/features/index.js";
 import { KeyedCache } from "../src/lib/keyedCache.js";
 import { LetterDistribution } from "../src/lib/letterDistribution.js";
@@ -20,7 +20,7 @@ const cli = meow(
     Build JSON caches.
 
     Usage
-      $ npm run build:json -- [options]
+      $ npm run build:cache -- [options]
 
     Options
       --all          Force rebuild all log probs
@@ -71,8 +71,11 @@ function preDownload<T>(state: State, cache: KeyedCache<T>) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-parameters
-async function write<const K extends keyof typeof json>(key: K, value: string) {
-  const path = new URL(`../src/data/json/${key}.json`, import.meta.url);
+async function write<const K extends keyof typeof cache>(
+  key: K,
+  value: string,
+) {
+  const path = new URL(`../src/data/cache/${key}.json`, import.meta.url);
   await fs.writeFile(path, value + "\n", "utf-8");
 }
 
@@ -96,7 +99,7 @@ async function main() {
   }
   if (state.args.letters) {
     console.log("- letter distribution");
-    delete json.letterDistribution;
+    delete cache.letterDistribution;
   }
 
   console.log("");

@@ -1,8 +1,8 @@
-import featureLogProbs from "./json/featureLogProbs.json" with { type: "json" };
-import letterDistribution from "./json/letterDistribution.json" with { type: "json" };
-import metricLogProbs from "./json/metricLogProbs.json" with { type: "json" };
+import featureLogProbs from "./cache/featureLogProbs.json" with { type: "json" };
+import letterDistribution from "./cache/letterDistribution.json" with { type: "json" };
+import metricLogProbs from "./cache/metricLogProbs.json" with { type: "json" };
 
-export const json = {
+export const cache = {
   featureLogProbs,
   letterDistribution,
   metricLogProbs,

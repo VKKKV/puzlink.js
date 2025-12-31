@@ -1,4 +1,4 @@
-import { json } from "../data/json.js";
+import { cache } from "../data/cache.js";
 import { Bitset } from "../lib/bitset.js";
 import { MetricLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
@@ -12,7 +12,9 @@ import { letterSequenceMetrics } from "./letterSequence.js";
 import { otherMetrics } from "./other.js";
 import { substringMetrics } from "./substring.js";
 
-export const MetricLogProbs = new MetricLogProbCache(json.metricLogProbs ?? {});
+export const MetricLogProbs = new MetricLogProbCache(
+  cache.metricLogProbs ?? {},
+);
 
 type Props = {
   letterIndices: LetterIndices;

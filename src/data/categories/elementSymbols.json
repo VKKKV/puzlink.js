@@ -1,4 +1,4 @@
-export default [
+[
   "zr",
   "zn",
   "yb",
@@ -116,5 +116,5 @@ export default [
   "am",
   "al",
   "ag",
-  "ac",
-];
+  "ac"
+]

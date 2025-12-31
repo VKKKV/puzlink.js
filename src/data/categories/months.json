@@ -1,4 +1,4 @@
-export default [
+[
   "sep",
   "oct",
   "nov",
@@ -10,5 +10,5 @@ export default [
   "feb",
   "dec",
   "aug",
-  "apr",
-];
+  "apr"
+]

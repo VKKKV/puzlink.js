@@ -1,4 +1,4 @@
-export default [
+[
   "zero",
   "two",
   "twelve",
@@ -11,5 +11,5 @@ export default [
   "four",
   "five",
   "eleven",
-  "eight",
-];
+  "eight"
+]
