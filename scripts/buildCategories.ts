@@ -3,15 +3,11 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as url from "node:url";
 
-const dataDir = path.resolve(
-  path.dirname(url.fileURLToPath(import.meta.url)),
-  "..",
-  "src",
-  "data",
-);
+const scriptsDir = path.dirname(url.fileURLToPath(import.meta.url));
+const txtDir = path.join(scriptsDir, "categories");
 
+const dataDir = path.resolve(scriptsDir, "..", "src", "data");
 const jsonDir = path.join(dataDir, "categories");
-const txtDir = path.join(dataDir, "categories", "txt");
 
 /** Write a file, return its basename (without '.ts'). */
 async function writeFile(name: string, lines: string[]) {

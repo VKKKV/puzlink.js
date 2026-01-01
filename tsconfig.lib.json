@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "!src/**/*.test.ts"],
   "compilerOptions": {
     "exactOptionalPropertyTypes": true,
     "noPropertyAccessFromIndexSignature": true,

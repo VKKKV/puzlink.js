@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "include": ["*.js", "scripts/**/*.ts"],
+  "include": ["*.js", "scripts/**/*.ts", "src/**/*.test.ts"],
   "compilerOptions": {
     "exactOptionalPropertyTypes": true,
     "noPropertyAccessFromIndexSignature": true,
