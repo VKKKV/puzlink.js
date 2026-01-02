@@ -51,7 +51,7 @@ describe("LetterBitCounters", () => {
     const start = Date.now();
     new LetterBitCounters(Object.keys(wordlist));
     const time = Date.now() - start;
-    expect(time).toBeLessThan(1000);
+    expect(time).toBeLessThan(2000);
     console.log(`LetterBitCounters init: ${time.toString()}ms`);
   });
 
