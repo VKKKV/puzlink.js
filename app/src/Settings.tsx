@@ -1,14 +1,13 @@
-import type { RefCallback } from "react";
-import { useRef } from "react";
+import * as Icons from "lucide-react";
+import { use } from "react";
+import { Modal } from "./Modal";
+import { ModalContext } from "./modalContext";
 import "./Settings.css";
 import { useStore } from "./store";
+import { Tooltip } from "./Tooltip";
 
-export function Settings({
-  ref: refCallback,
-}: {
-  ref: RefCallback<HTMLDialogElement>;
-}) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+function SettingsContent() {
+  const modalContext = use(ModalContext);
   const linkOptions = useStore((state) => state.linkOptions);
   const setLinkOptions = useStore((state) => state.setLinkOptions);
   const userOptions = useStore((state) => state.userOptions);
@@ -16,14 +15,7 @@ export function Settings({
   const sendInput = useStore((state) => state.sendInput);
 
   return (
-    <dialog
-      className="settings"
-      closedby="any"
-      ref={(ref) => {
-        refCallback(ref);
-        dialogRef.current = ref;
-      }}
-    >
+    <>
       <h2>Settings</h2>
 
       <div className="setting-items">
@@ -129,13 +121,32 @@ export function Settings({
         </button>
         <button
           onClick={() => {
-            dialogRef.current?.close();
+            modalContext.getRef()?.close();
             sendInput();
           }}
         >
           Close
         </button>
       </div>
-    </dialog>
+    </>
+  );
+}
+
+export function Settings() {
+  return (
+    <Modal
+      className="settings"
+      trigger={(props) => {
+        return (
+          <Tooltip content="Settings" position="bottom-right">
+            <button className="secondary" onClick={props.open}>
+              <Icons.Settings />
+            </button>
+          </Tooltip>
+        );
+      }}
+    >
+      <SettingsContent />
+    </Modal>
   );
 }

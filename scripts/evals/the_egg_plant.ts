@@ -2,7 +2,8 @@ import type { EvalSuite } from "../runEvals.js";
 
 export default {
   name: "The Egg Plant",
-  source: "http://tinyurl.com/nplbarexam",
+  source:
+    "https://puzzlvaria.wordpress.com/2018/06/16/bar-exam-part-4-and-then-there-were-puzzles/",
   cases: [
     {
       slugs: `"cardioid", "liqueur", "naiads", "paleoecology", "tenuous", "breathtaking", "hangnail", "topspin", "wardrobe", "worldly"`,

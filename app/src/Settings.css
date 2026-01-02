@@ -1,16 +1,4 @@
 .settings[open] {
-  display: flex;
-  flex-direction: column;
-  font-size: 0.9em;
-  gap: 0.5em;
-
-  h2 {
-    font-size: 1.1em;
-    font-weight: 600;
-    margin: 0;
-    margin-bottom: 0.25em;
-  }
-
   .setting-items {
     display: grid;
     gap: 0 0.5em;
@@ -27,11 +15,7 @@
   }
 
   .setting-name {
-    margin-top: 0.25em;
+    margin-top: 0.5em;
     font-weight: 500;
-  }
-
-  .setting-description {
-    margin-bottom: 0.25em;
   }
 }

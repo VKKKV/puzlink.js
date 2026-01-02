@@ -36,7 +36,7 @@
   display: inline-flex;
   justify-content: space-between;
   padding-left: 0.5em;
-  width: calc(100% - 2em);
+  width: calc(100% - 1.5em);
 }
 
 .link-name {
@@ -75,6 +75,7 @@
 
   button {
     background-color: transparent;
+    border-color: transparent;
     color: var(--primary-color);
     font-weight: 500;
     transition: all 0.2s ease-in-out;

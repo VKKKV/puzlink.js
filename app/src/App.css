@@ -15,6 +15,9 @@
 }
 
 .header {
+  height: 2.5em;
+  padding-top: 0.5em;
+  flex-shrink: 0;
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -27,9 +30,8 @@
 .input {
   display: flex;
   flex-direction: column;
-  gap: 0.5em;
   justify-content: center;
-  padding: 0.5em 1em 1em;
+  padding: 0 1em 1em;
 
   h1 {
     color: var(--primary-color);
@@ -45,14 +47,11 @@
     width: 100%;
   }
 
-  .controls {
+  & > .controls {
     display: flex;
     justify-content: space-between;
-
-    .buttons {
-      display: flex;
-      gap: 0.5em;
-    }
+    gap: 0.5em;
+    margin: 0.5em 0 0;
   }
 
   .credits {
@@ -68,38 +67,78 @@
   max-height: 100%;
   min-width: 0%;
 
-  &.loading {
-    align-items: center;
-    flex-direction: row;
+  & > .controls {
+    display: flex;
     gap: 0.5em;
-    justify-content: center;
-  }
-
-  .load-more {
-    margin: 1em;
+    height: 2em;
+    padding: 0.5em 0.5em 0.5em 0;
+    flex-shrink: 0;
   }
 
   .links {
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+
+    &.loading {
+      height: 100%;
+      align-items: center;
+      flex-direction: row;
+      gap: 0.5em;
+      justify-content: center;
+    }
+  }
+
+  .load-more {
+    margin: 1em;
   }
 }
 
-.output-controls {
-  padding: 0.5em 0.5em 0.5em 0;
+.controls-spacer {
+  flex-grow: 1;
 }
 
 @media (max-width: 720px) {
   .app {
-    flex-direction: column;
+    display: grid;
+    grid-template: auto auto auto 1fr / auto auto;
+  }
+
+  .input,
+  .output {
+    display: contents;
+  }
+
+  .input textarea,
+  .output .links {
+    grid-column: 1 / 3;
+  }
+
+  .input .header {
+    padding: 0 0.5em;
+    justify-content: start;
+    gap: 1em;
+  }
+
+  .controls-spacer {
+    display: none;
+  }
+
+  .input > .controls {
+    margin: 0;
+    padding: 0.5em 0 0.5em 0.5em;
+    justify-content: start;
+  }
+
+  .output > .controls {
+    height: auto;
+    padding: 0.5em 0.5em 0.5em 0;
+    justify-content: end;
   }
 
   .input textarea {
-    min-height: 15em;
-  }
-
-  .credits {
-    display: none;
+    min-height: 12em;
+    width: calc(100% - 1em);
+    margin: 0 auto;
   }
 }

@@ -33,7 +33,7 @@ a {
 button {
   align-items: center;
   background-color: var(--primary-color);
-  border: none;
+  border: 2px solid var(--primary-color);
   color: #fff;
   cursor: pointer;
   display: inline-flex;
@@ -63,18 +63,21 @@ button {
   }
 
   &.button-link {
-    background: none;
+    background: var(--tertiary-color);
     border: none;
     color: var(--primary-color);
     display: inline;
-    text-decoration: underline;
-    padding: 0;
+    padding: 0.1em 0.3em;
     margin: 0;
     height: unset;
     font-size: inherit;
     font-weight: inherit;
     text-align: inherit;
     vertical-align: inherit;
+
+    &:hover {
+      background-color: oklch(from var(--secondary-color) 0.95 0.1 h);
+    }
   }
 }
 
@@ -116,16 +119,6 @@ textarea {
   100% {
     transform: rotate(360deg);
   }
-}
-
-dialog {
-  border: 1px solid #888;
-  box-shadow: 0 0 0 1px #888;
-  border-radius: 4px;
-  padding: 1em;
-  max-width: calc(100% - 10em);
-  max-height: calc(100% - 10em);
-  overflow: auto;
 }
 
 input[type="checkbox"] {
@@ -234,4 +227,11 @@ input[type="range"] {
 svg.lucide {
   height: 1.25em;
   width: 1.25em;
+}
+
+button:has(> svg.lucide),
+button.secondary:has(> svg.lucide) {
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  max-height: 100%;
 }

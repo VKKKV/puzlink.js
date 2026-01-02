@@ -3,43 +3,25 @@ import * as Puzlink from "puzlink";
 import { create, type StateCreator } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { shallow as shallowEqual } from "zustand/shallow";
+import { examples } from "./examples";
 import type { WorkerInput, WorkerOutput } from "./worker";
 import PuzlinkWorker from "./worker?worker";
 
-// TODO: right now we stole these examples directly from puz.link; we should format them with newlines and spaces to make clear that it like, works
-const examples = [
-  // denizen of the deep, mitmh 2015
-  "press hill apes nerds times ordinary mill",
-  // bubbles, mitmh 2015
-  "chokechain hourhand lithograph shibboleth shortsighted thermophile",
-  // 10000 puzzle pyramid, mitmh 2015
-  "amontillados blooming calcutta dilemma piazzas squareness",
-  // 10000 puzzle pyramid, mitmh 2015
-  "antithetic crosshatches gaggle nonconsenting pneumococcal prestidigitation smogless trunnions",
-  // venntersections, mitmh 2014
-  "grimaced formally questionable discouraged communicated chysalis saccharin",
-  // venntersections, mitmh 2014
-  "thumbtacks monologue frigidities statuesque testimony satirizing flawed",
-  // finsey gillhone, mitmh 2015
-  "arcdetriomphescalemodel uvwavedetector gearstick firstprize thiefgamemanual monopoly tuvalutravelguide",
-  // finsey gillhone, mitmh 2015
-  "rib node emission lamp ward cent cam",
-  // pod of dolphins meta, mitmh 2015
-  "citygates impulsive clickspam baptistry leviathan policecar coupdetat sforzando cartwheel",
-  // venntersections, mitmh 2014
-  "lowered levitate inanimate paradise leveraged sizes tuxedo",
-];
-
-const initialLinkInput = (): string => {
+const initialLinkInput = (): {
+  linkInput: string;
+  lastExampleIndex: number;
+} => {
   const parsed = Puzlink.parse(
     new URLSearchParams(new URL(window.location.href).search).get("input") ??
       "",
   );
-  return parsed.length > 0
-    ? parsed.join("\n")
-    : examples[Math.floor(Math.random() * examples.length)]
-        .split(" ")
-        .join("\n");
+  const lastExampleIndex = Math.floor(Math.random() * examples.length);
+  const linkInput =
+    parsed.length > 0 ? parsed.join("\n") : examples[lastExampleIndex].slugs;
+  return {
+    linkInput,
+    lastExampleIndex,
+  };
 };
 
 const worker = new PuzlinkWorker();
@@ -67,6 +49,10 @@ type State = {
   linkInput: string;
   /** Options for Puzlink.link(). */
   linkOptions: Pick<LinkOptions, "minFeatureRatio" | "ordered">;
+  /** The index of the current example, if any. */
+  exampleIndex: number | null;
+  /** The index of the last example. */
+  lastExampleIndex: number;
 
   userOptions: UserOptions;
 
@@ -84,6 +70,12 @@ type State = {
 
   /** Sets the link input. */
   setLinkInput: (value: string) => void;
+  /** Formats the link input. */
+  formatLinkInput: () => void;
+  /** Sets the link input to an example. */
+  setExample: (index: number | null | "last") => void;
+  /** Get a link for sharing the current input. */
+  getShareLink: () => string;
   /** Sets the link options. */
   setLinkOptions: (
     value: Pick<LinkOptions, "minFeatureRatio" | "ordered">,
@@ -99,8 +91,9 @@ type State = {
 const stateCreator: StateCreator<State> = (set, get) => ({
   inputID: null,
   lastInputID: -1,
-  linkInput: initialLinkInput(),
+  ...initialLinkInput(),
   linkOptions: {},
+  exampleIndex: null,
 
   userOptions: {
     autoFormat: false,
@@ -117,13 +110,53 @@ const stateCreator: StateCreator<State> = (set, get) => ({
   outputLinks: [],
 
   setLinkInput: (value) => {
-    set({ linkInput: value });
-
+    set({
+      linkInput: value,
+      exampleIndex: null,
+    });
     const url = new URL(window.location.href);
     if (url.searchParams.has("input")) {
       url.searchParams.delete("input");
       window.history.pushState(null, "", url.href);
     }
+  },
+  setExample: (index) => {
+    if (index === null) {
+      set({
+        exampleIndex: null,
+        lastExampleIndex: get().exampleIndex ?? 0,
+      });
+      return;
+    }
+    const wrapped =
+      index === "last"
+        ? get().lastExampleIndex
+        : (index + examples.length) % examples.length;
+    set({
+      linkInput: examples[wrapped].slugs,
+      exampleIndex: wrapped,
+    });
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("input")) {
+      url.searchParams.delete("input");
+      window.history.pushState(null, "", url.href);
+    }
+    get().sendInput();
+  },
+  formatLinkInput: () => {
+    const parsed = Puzlink.parse(get().linkInput).join("\n");
+    set({
+      linkInput: get().userOptions.capitalizeSlugs
+        ? parsed.toUpperCase()
+        : parsed,
+    });
+  },
+  getShareLink: () => {
+    const input = Puzlink.parse(get().linkInput).join(",");
+    const url = new URL(window.location.href);
+    url.searchParams.set("input", input);
+    window.history.pushState(null, "", url.href);
+    return url.href;
   },
   setLinkOptions: (value) => {
     if (shallowEqual(get().linkOptions, value)) {

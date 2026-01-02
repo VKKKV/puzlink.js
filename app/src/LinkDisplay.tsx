@@ -1,9 +1,11 @@
+import * as Icons from "lucide-react";
 import * as Puzlink from "puzlink";
 import type { JSX } from "react";
 import { Fragment, useRef, useState } from "react";
+import { CopyButton } from "./CopyButton";
+import { IconButton } from "./IconButton";
 import "./LinkDisplay.css";
 import { useStore } from "./store";
-import * as Icons from "lucide-react";
 
 const ordinal = new Intl.PluralRules("en", { type: "ordinal" });
 
@@ -216,23 +218,6 @@ export function LinkDisplay({
     : null;
   const tableRef = useRef<HTMLTableElement>(null);
 
-  const handleCopy = async () => {
-    if (!tableRef.current || !rendered) {
-      return false;
-    }
-
-    const { sheets, plain } = rendered;
-
-    await navigator.clipboard.write([
-      new ClipboardItem({
-        "text/html": sheets,
-        "text/plain": plain,
-      }),
-    ]);
-
-    return true;
-  };
-
   const hasContent = !!rendered?.plain.trim();
 
   return (
@@ -253,22 +238,39 @@ export function LinkDisplay({
       {hasContent && (
         <div className="link-description">
           <div className="link-buttons">
-            <button className="link-copy" onClick={() => void handleCopy()}>
-              <Icons.Clipboard />
-            </button>
+            <CopyButton
+              content={() =>
+                rendered &&
+                new ClipboardItem({
+                  "text/html": rendered.sheets,
+                  "text/plain": rendered.plain,
+                })
+              }
+            >
+              {({ justCopied, onClick }) => (
+                <IconButton
+                  label={justCopied ? "Copied!" : "Copy"}
+                  onClick={onClick}
+                  position="left"
+                >
+                  {justCopied ? <Icons.Check /> : <Icons.Clipboard />}
+                </IconButton>
+              )}
+            </CopyButton>
             {rendered!.collapsible && (
-              <button
-                className="link-copy"
+              <IconButton
+                label={collapse ? "Expand" : "Collapse"}
                 onClick={() => {
                   setCollapse(!collapse);
                 }}
+                position="left"
               >
                 {collapse ? (
                   <Icons.ChevronsLeftRight />
                 ) : (
                   <Icons.ChevronsRightLeft />
                 )}
-              </button>
+              </IconButton>
             )}
           </div>
           <div className="link-table-wrapper">
