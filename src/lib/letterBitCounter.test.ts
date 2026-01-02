@@ -1,4 +1,4 @@
-import { loadWordlist } from "cromulence";
+import { downloadWordlist } from "#download";
 import { describe, expect, test } from "vitest";
 import { LetterBitCounter, LetterBitCounters } from "./letterBitCounter.js";
 import { slowTests } from "./testUtils.js";
@@ -47,7 +47,7 @@ describe("LetterBitCounter", () => {
 
 describe("LetterBitCounters", () => {
   test.runIf(slowTests)("speed", async () => {
-    const wordlist = await loadWordlist();
+    const wordlist = await downloadWordlist();
     const start = Date.now();
     new LetterBitCounters(Object.keys(wordlist));
     const time = Date.now() - start;

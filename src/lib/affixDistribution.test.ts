@@ -1,4 +1,4 @@
-import { loadWordlist } from "cromulence";
+import { downloadWordlist } from "#download";
 import { describe, expect, test } from "vitest";
 import { PrefixDistribution, SuffixDistribution } from "./affixDistribution.js";
 import { Distribution } from "./distribution.js";
@@ -6,7 +6,7 @@ import { slowTests } from "./testUtils.js";
 
 describe("AffixDistribution", () => {
   test.runIf(slowTests)("speed", async () => {
-    const wordlist = await loadWordlist();
+    const wordlist = await downloadWordlist();
     const start = Date.now();
     new PrefixDistribution(Object.keys(wordlist));
     new SuffixDistribution(Object.keys(wordlist));

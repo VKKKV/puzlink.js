@@ -1,4 +1,4 @@
-import { Cromulence, loadWordlist, logProbToZipf } from "cromulence";
+import { Cromulence, logProbToZipf } from "cromulence";
 import { PrefixDistribution, SuffixDistribution } from "./affixDistribution.js";
 import { LetterBitCounters } from "./letterBitCounter.js";
 import { LetterDistribution } from "./letterDistribution.js";
@@ -28,10 +28,6 @@ export class Wordlist {
     this.letters = new LetterDistribution(Object.keys(wordlist));
     this.prefixes = new PrefixDistribution(Object.keys(wordlist));
     this.suffixes = new SuffixDistribution(Object.keys(wordlist));
-  }
-
-  static async download(): Promise<Wordlist> {
-    return new Wordlist(await loadWordlist());
   }
 
   /**
