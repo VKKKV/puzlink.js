@@ -4,7 +4,6 @@ export default {
   name: "The 10,000 Puzzle Pyramid",
   source:
     "https://puzzles.mit.edu/2015/puzzle/the_10_000_puzzle_pyramid/solution/",
-  // TODO: go through these cases and reduce the number of given slugs
   cases: [
     {
       slugs: `adrenaline, airlike, animosities, anise, availability, axes, biotite, bluecoat, cafeterias, casque, cerulean, cuesta, defoamed, eras, eyepoint, fatigued, hoot, idle, ingratiate, limier, mime, noticeable, peculate, pelage, pitied, quinquina, readout, realizes, reinduce, vivarium`,

@@ -67,6 +67,13 @@ export type LinkOptions = {
    */
   minFeatureRatio?: number;
   /**
+   * Only report features that are satisfied by either all, or at most
+   * maxFeatureRatio of the words.
+   *
+   * Defaults to 1.0.
+   */
+  maxFeatureRatio?: number;
+  /**
    * Set to true if the input has a particular order. Some of the links we use
    * apply only if the words have a given order.
    *
@@ -76,11 +83,18 @@ export type LinkOptions = {
 };
 
 /**
- * Create a Puzlink instance by downloading the wordlist and, optionally,
- * hypernym data.
+ * Create a Puzlink instance by downloading the wordlist, and possibly, some
+ * optional data.
+ *
+ * All of these sizes are with brotli compression:
+ *
+ * - The wordlist is required and is 693 kB.
+ * - The small hypernym data is 312 kB. It enables links of the form "has
+ *   substrings from some category".
+ * - The large is an additional 207 kB. It enables reporting the names of the
+ *   category substrings.
  */
 export async function download({
-  /** TODO */
   hypernym = "large",
 }: {
   hypernym?: boolean | "small" | "large";
@@ -162,6 +176,7 @@ export class Puzlink {
       lazy = false,
       limit = 10,
       minFeatureRatio = 0.5,
+      maxFeatureRatio = 1.0,
       ordered,
     }: LinkOptions = {},
   ): Generator<Link> | Link[] {
@@ -181,7 +196,14 @@ export class Puzlink {
       ordered = !isSorted;
     }
 
-    const options = { jsonOutput, lazy, limit, ordered, minFeatureRatio };
+    const options = {
+      jsonOutput,
+      lazy,
+      limit,
+      ordered,
+      minFeatureRatio,
+      maxFeatureRatio,
+    };
 
     if (lazy) {
       return this.linkLazy(slugs, options);
@@ -191,6 +213,4 @@ export class Puzlink {
       .sort((a, b) => (a.score > b.score ? -1 : 1))
       .slice(0, limit ?? Infinity);
   }
-
-  // TODO: clustering, pos/neg
 }

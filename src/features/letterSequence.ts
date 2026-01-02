@@ -51,7 +51,6 @@ function unequalWithDistance(a: string, b: string, distance: number): Feature {
   };
 }
 
-// TODO: does this belong somewhere else?
 function bookendsOf(length: number): Feature {
   return {
     name: T.Join([

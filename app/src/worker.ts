@@ -10,7 +10,7 @@ export type WorkerInput =
       type: "input";
       inputID: number;
       input: string[];
-      options?: Pick<LinkOptions, "minFeatureRatio" | "ordered">;
+      options?: LinkOptions;
     }
   | { type: "abort"; inputID: number };
 

@@ -22,6 +22,10 @@ export class Bitset {
     return new Bitset(data);
   }
 
+  complement(total: number): Bitset {
+    return new Bitset(((1n << BigInt(total)) - 1n) ^ this.data);
+  }
+
   *entries(): Generator<number> {
     for (let i = 0; i <= Bitset.max; i++) {
       if (this.data & (1n << BigInt(i))) {

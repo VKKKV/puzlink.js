@@ -122,7 +122,7 @@ function SettingsContent() {
         <button
           onClick={() => {
             modalContext.getRef()?.close();
-            sendInput();
+            sendInput(true);
           }}
         >
           Close

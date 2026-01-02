@@ -71,6 +71,12 @@ function featureLinker(
       ) {
         return [];
       }
+      if (
+        description.length !== slugs.length &&
+        description.length > options.maxFeatureRatio * slugs.length
+      ) {
+        return [];
+      }
       const logProb = LogNum.binomialPValue(
         description.length,
         slugs.length,

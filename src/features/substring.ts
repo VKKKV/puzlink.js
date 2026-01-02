@@ -9,8 +9,6 @@ import { interval, mapProduct } from "../lib/util.js";
 import * as T from "../templating/index.js";
 import type { Feature } from "./index.js";
 
-// TODO(maybe): looking for long substrings that are words; we need a good heuristic for these, because we e.g. don't want to report that UNDERSCORE is a substring of UNDERSCORES, but we do want to report STRANGE is a substring of FOREST RANGER
-
 function containsOne(category: Category): Feature {
   const regex = new RegExp(category.items.join("|"));
   return {

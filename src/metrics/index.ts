@@ -5,7 +5,7 @@ import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
 import { enumerate, interval, windows } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
-import type { Linker } from "../linkers/index.js";
+import type { Linker, PartialLink } from "../linkers/index.js";
 import * as T from "../templating/index.js";
 import { letterCountMetrics } from "./letterCount.js";
 import { letterSequenceMetrics } from "./letterSequence.js";
@@ -35,6 +35,10 @@ function getProps(wordlist: Wordlist, slug: string): Props {
 export type Metric = {
   /** The name of the metric; used for debugging. */
   metricName: T.Inline;
+  /**
+   * Don't report this metric if its score is zero.
+   */
+  ignoreIfZero?: boolean;
   /**
    * Maximum vertex to allow in a non-strict feature.
    *
@@ -94,6 +98,9 @@ export function getFeatureRanges(
     if (!range.strict && range.vertex > metric.maxNonStrict) {
       return;
     }
+    if (metric.ignoreIfZero && range.vertex === 0 && range.strict) {
+      return;
+    }
     if (!setToRanges.has(contained)) {
       setToRanges.set(contained, []);
     }
@@ -151,7 +158,7 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
 
   return {
     name: metric.metricName,
-    eval: function* (slugs, options) {
+    eval: function (slugs, options) {
       const scores = slugs.map((slug) =>
         metric.score(slug, getProps(wordlist, slug)),
       );
@@ -159,11 +166,19 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
         metric,
         scores.map((x) => x.score),
       );
+
+      const bitsetToBest = new Map<bigint, PartialLink>();
       for (const [bitset, ranges] of bitsetToRanges) {
         const indices = Array.from(new Bitset(bitset).entries());
         if (
           indices.length !== 0 &&
           indices.length < options.minFeatureRatio * slugs.length
+        ) {
+          continue;
+        }
+        if (
+          indices.length !== slugs.length &&
+          indices.length > options.maxFeatureRatio * slugs.length
         ) {
           continue;
         }
@@ -180,7 +195,7 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
         if (!range || !logProb) {
           continue;
         }
-        yield {
+        bitsetToBest.set(bitset, {
           name: T.Join([
             T.Fraction(indices.length, slugs.length),
             metric.name(range.vertex, range.strict),
@@ -189,8 +204,20 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
           description: T.Table(
             indices.map((i) => scores[i]!.describe(range.vertex, range.strict)),
           ),
-        };
+        });
       }
+
+      const links = [];
+      for (const [bitset, link] of bitsetToBest) {
+        const complement = new Bitset(bitset).complement(slugs.length);
+        const complementLink = bitsetToBest.get(complement.data);
+        if (complementLink?.logProb.lt(link.logProb)) {
+          continue;
+        }
+        links.push(link);
+      }
+
+      return links;
     },
   };
 }

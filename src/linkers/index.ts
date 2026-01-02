@@ -76,6 +76,7 @@ export function testLinker<Args extends any[]>(
         lazy: false,
         limit: Infinity,
         minFeatureRatio: 0,
+        maxFeatureRatio: 1,
         ordered: true,
       }),
       (l) => [

@@ -7,6 +7,7 @@ import type { Metric } from "./index.js";
 function equalWithDistanceTimes(letter: string, distance: number): Metric {
   return {
     metricName: T.Join(["equal", letter, "with distance", distance, "count"]),
+    ignoreIfZero: true,
     maxNonStrict: 5,
     name: (times, strict) =>
       distance === 0

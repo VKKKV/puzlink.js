@@ -1,4 +1,3 @@
-import type { Link, LinkOptions } from "puzlink";
 import * as Puzlink from "puzlink";
 import { create, type StateCreator } from "zustand";
 import { devtools, persist } from "zustand/middleware";
@@ -6,6 +5,11 @@ import { shallow as shallowEqual } from "zustand/shallow";
 import { examples } from "./examples";
 import type { WorkerInput, WorkerOutput } from "./worker";
 import PuzlinkWorker from "./worker?worker";
+
+type LinkOptions = Pick<
+  Puzlink.LinkOptions,
+  "maxFeatureRatio" | "minFeatureRatio" | "ordered"
+>;
 
 const initialLinkInput = (): {
   linkInput: string;
@@ -48,7 +52,7 @@ type State = {
   /** The (unparsed) input to Puzlink.link(). */
   linkInput: string;
   /** Options for Puzlink.link(). */
-  linkOptions: Pick<LinkOptions, "minFeatureRatio" | "ordered">;
+  linkOptions: LinkOptions;
   /** The index of the current example, if any. */
   exampleIndex: number | null;
   /** The index of the last example. */
@@ -66,7 +70,7 @@ type State = {
   /** The input ID corresponding to the outputLinks. */
   outputInputID: number;
   /** The output links from the (possibly last) Puzlink.link() call. */
-  outputLinks: Link[];
+  outputLinks: Puzlink.Link[];
 
   /** Sets the link input. */
   setLinkInput: (value: string) => void;
@@ -77,13 +81,11 @@ type State = {
   /** Get a link for sharing the current input. */
   getShareLink: () => string;
   /** Sets the link options. */
-  setLinkOptions: (
-    value: Pick<LinkOptions, "minFeatureRatio" | "ordered">,
-  ) => void;
+  setLinkOptions: (value: LinkOptions) => void;
   /** Sets the user options. */
   setUserOptions: (value: UserOptions) => void;
   /** Parses the input and sends it to the Puzlink worker, if different. */
-  sendInput: () => void;
+  sendInput: (force?: boolean) => void;
   /** Initializes the Puzlink worker. */
   initWorker: () => void;
 };
@@ -170,13 +172,13 @@ const stateCreator: StateCreator<State> = (set, get) => ({
     }
     set({ lastLinkInput: null, userOptions: value });
   },
-  sendInput: () => {
+  sendInput: (force?: boolean) => {
     if (!get().puzlinkReady) {
       return;
     }
 
     const parsed = Puzlink.parse(get().linkInput);
-    if (shallowEqual(get().lastLinkInput, parsed)) {
+    if (!force && shallowEqual(get().lastLinkInput, parsed)) {
       return;
     }
 
