@@ -1,6 +1,6 @@
 {
   "name": "puzlink",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Tool to find patterns among sets of words",
   "keywords": [
     "puzzles"
@@ -16,6 +16,12 @@
   "license": "MIT",
   "author": "CJ Quines <cj@cjquines.com>",
   "type": "module",
+  "imports": {
+    "#download": {
+      "node": "./src/download.node.ts",
+      "default": "./src/download.ts"
+    }
+  },
   "exports": {
     ".": "./dist/index.js",
     "./parse": "./dist/parse.js"
@@ -24,13 +30,13 @@
   "types": "dist/index.d.ts",
   "files": [
     "dist/**/*",
-    "!dist/tsconfig.*",
     "src/**/*",
-    "!src/**/*.test.ts"
+    "!src/**/*.test.ts",
+    "!src/data/hypernyms/*.txt"
   ],
   "scripts": {
-    "build:categories": "tsx scripts/buildCategories.ts",
     "build:cache": "tsx scripts/buildCache.ts",
+    "build:categories": "tsx scripts/buildCategories.ts",
     "build:hypernyms": "tsx scripts/buildHypernyms.ts",
     "build:tsc": "tsc --build tsconfig.build.json",
     "format": "prettier --write .",

@@ -4,8 +4,8 @@ import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import * as url from "node:url";
 import { HypernymDAG } from "../src/lib/hypernymDAG.js";
-import { Category, Pointer, POS, Synset } from "./wordnet.js";
 import { LogNum } from "../src/lib/logNum.js";
+import { Category, Pointer, POS, Synset } from "./wordnet.js";
 
 const scriptsDir = path.dirname(url.fileURLToPath(import.meta.url));
 
@@ -17,13 +17,18 @@ const scriptsDir = path.dirname(url.fileURLToPath(import.meta.url));
  */
 const wordnetDir = path.join(scriptsDir, "wordnet");
 
-const dataDir = path.resolve(scriptsDir, "..", "src", "data", "wordnet");
+const srcDataDir = path.resolve(scriptsDir, "..", "src", "data", "hypernyms");
+const distDataDir = path.resolve(scriptsDir, "..", "dist", "data", "hypernyms");
 
 async function writeLines(name: string, lines: string[]) {
   const data = lines.join("\n");
-  const file = path.join(dataDir, name);
-  await fs.mkdir(path.dirname(file), { recursive: true });
-  await fs.writeFile(file, data, "utf-8");
+  for (const file of [
+    path.join(srcDataDir, name),
+    path.join(distDataDir, name),
+  ]) {
+    await fs.mkdir(path.dirname(file), { recursive: true });
+    await fs.writeFile(file, data, "utf-8");
+  }
   const sizeKB = Math.round(data.length / 1e3);
   const gzipSizeKB = Math.round((await gzipSize(data)) / 1e3);
   console.log(
@@ -166,8 +171,8 @@ async function main() {
   );
 
   const hypernymDAG = new HypernymDAG(index, data);
-  const { indexLines, dataLines, wordDataLines } = hypernymDAG.dump();
-  const reparsed = HypernymDAG.parse(indexLines, dataLines);
+  const { indexLines, dataLines, wordLines } = hypernymDAG.dump();
+  const reparsed = HypernymDAG.parse({ indexLines, dataLines });
 
   for (const [word, synsetIDs] of reparsed.index) {
     if (JSON.stringify(index.get(word)) !== JSON.stringify(synsetIDs)) {
@@ -191,9 +196,9 @@ async function main() {
     }
   }
 
-  await writeLines("hypernyms-index", indexLines);
-  await writeLines("hypernyms-data", dataLines);
-  await writeLines("hypernyms-word-data", wordDataLines);
+  await writeLines("hypernyms-index.txt", indexLines);
+  await writeLines("hypernyms-data.txt", dataLines);
+  await writeLines("hypernyms-word.txt", wordLines);
 }
 
 await main();

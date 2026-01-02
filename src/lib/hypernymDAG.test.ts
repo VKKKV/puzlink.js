@@ -1,10 +1,11 @@
 import { describe, expect, test } from "vitest";
-import { slowTests } from "./testUtils.js";
+import { downloadHypernymData } from "../download.node.js";
 import { HypernymDAG } from "./hypernymDAG.js";
+import { slowTests } from "./testUtils.js";
 
 describe("hypernymDAG", () => {
   test.runIf(slowTests)("download + real data", async () => {
-    const hypernymDAG = await HypernymDAG.download();
+    const hypernymDAG = HypernymDAG.parse(await downloadHypernymData());
 
     expect(
       hypernymDAG.similarity([

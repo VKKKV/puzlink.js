@@ -8,6 +8,7 @@
     "strict": true,
 
     "module": "nodenext",
+    "rootDir": ".",
 
     "noEmit": true,
     "outDir": "dist",
@@ -18,6 +19,8 @@
     "verbatimModuleSyntax": true,
 
     "lib": ["esnext"],
-    "target": "esnext"
+    "target": "esnext",
+
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo"
   }
 }

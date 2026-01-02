@@ -1,16 +1,19 @@
+import type { HypernymDAG } from "../lib/hypernymDAG.js";
 import { LogNum } from "../lib/logNum.js";
 import { interval, windows } from "../lib/util.js";
-import type { HypernymDAG } from "../lib/hypernymDAG.js";
 import * as T from "../templating/index.js";
 import type { Linker, PartialLink } from "./index.js";
 
 type Props = {
   slugs: string[];
-  hypernymDAG: HypernymDAG;
+  hypernymDAG: HypernymDAG | undefined;
 };
 
 function relatedSubstrings(props: Props): PartialLink[] {
   const { slugs, hypernymDAG } = props;
+  if (!hypernymDAG) {
+    return [];
+  }
 
   const wordSubstrings = slugs.map((slug) => {
     const words = new Set<string>();
@@ -45,7 +48,7 @@ function relatedSubstrings(props: Props): PartialLink[] {
 }
 
 /** Substring-based links. */
-export function substringLinker(hypernymDAG: HypernymDAG): Linker {
+export function substringLinker(hypernymDAG?: HypernymDAG): Linker {
   return {
     name: T.Text("substring links"),
     eval: (slugs) => {

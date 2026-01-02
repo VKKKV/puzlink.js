@@ -1,10 +1,9 @@
-import { answerLengthLogProbs } from "../data/answerLengths.js";
 import { featureLinkers } from "../features/index.js";
 import type { LinkOptions } from "../index.js";
+import { HypernymDAG } from "../lib/hypernymDAG.js";
 import { LengthDistribution } from "../lib/lengthDistribution.js";
 import { LogNum } from "../lib/logNum.js";
 import type { Wordlist } from "../lib/wordlist.js";
-import { HypernymDAG } from "../lib/hypernymDAG.js";
 import { metricLinkers } from "../metrics/index.js";
 import * as T from "../templating/index.js";
 import { indexingLinker } from "./indexing.js";
@@ -44,18 +43,22 @@ export type Linker = {
 };
 
 /** All linkers. */
-export function allLinkers(
-  wordlist: Wordlist,
-  hypernymDAG?: HypernymDAG,
-): Linker[] {
-  const lengthDist = LengthDistribution.from(answerLengthLogProbs);
+export function allLinkers({
+  lengthDist,
+  wordlist,
+  hypernymDAG,
+}: {
+  lengthDist: LengthDistribution;
+  wordlist: Wordlist;
+  hypernymDAG: HypernymDAG | undefined;
+}): Linker[] {
   return [
     ...featureLinkers(wordlist),
     ...metricLinkers(wordlist),
     indexingLinker(wordlist),
     lengthLinker(lengthDist),
     otherLinker(wordlist),
-    ...(hypernymDAG ? [substringLinker(hypernymDAG)] : []),
+    substringLinker(hypernymDAG),
   ];
 }
 

@@ -1,7 +1,13 @@
 import { DeltaEncoding, FrontEncoding } from "./compress.js";
-import { interval } from "./util.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
+import { interval } from "./util.js";
+
+export type HypernymDAGData = {
+  indexLines: string[];
+  dataLines: string[];
+  wordLines?: string[];
+};
 
 type SynsetData = {
   hyponymLogProb: LogNum;
@@ -27,11 +33,7 @@ export class HypernymDAG {
     this.data = data;
   }
 
-  dump(): {
-    indexLines: string[];
-    dataLines: string[];
-    wordDataLines: string[];
-  } {
+  dump(): Required<HypernymDAGData> {
     const indexLines = [];
 
     // Bin words by synset ID:
@@ -54,7 +56,7 @@ export class HypernymDAG {
     }
 
     const dataLines = [];
-    const wordDataLines = [];
+    const wordLines = [];
 
     // Bin synset IDs by hyponym count:
     const dataBins = new Map<number, number[]>();
@@ -84,7 +86,7 @@ export class HypernymDAG {
         }
         const { hypernyms, word } = this.data.get(synsetID)!;
         if (word) {
-          wordDataLines.push(word);
+          wordLines.push(word);
         }
         if (hypernyms.length === 0) {
           if (synsetID > 0) {
@@ -102,14 +104,14 @@ export class HypernymDAG {
       );
     }
 
-    return { indexLines, dataLines, wordDataLines };
+    return { indexLines, dataLines, wordLines };
   }
 
-  static parse(
-    indexLines: string[],
-    dataLines: string[],
-    wordDataLines?: string[],
-  ): HypernymDAG {
+  static parse({
+    indexLines,
+    dataLines,
+    wordLines,
+  }: HypernymDAGData): HypernymDAG {
     const index = new Map<string, number[]>();
 
     for (const bin of interval(0, indexLines.length - 1)) {
@@ -142,7 +144,7 @@ export class HypernymDAG {
         const synsetID = ++lastSynsetID;
         const [first, ...rest] = encoded;
         const hypernyms = DeltaEncoding.decode([delta.decode(first!), ...rest]);
-        const word = wordDataLines?.[synsetID];
+        const word = wordLines?.[synsetID];
         data.set(synsetID, {
           hyponymLogProb,
           hypernyms,
@@ -152,26 +154,6 @@ export class HypernymDAG {
     }
 
     return new HypernymDAG(index, data);
-  }
-
-  // TODO: make web version
-  static async download() {
-    const fs = await import("node:fs/promises");
-    const path = await import("node:path");
-    const url = await import("node:url");
-    const dataDir = path.join(
-      path.dirname(url.fileURLToPath(import.meta.url)),
-      "..",
-      "data",
-      "wordnet",
-    );
-    const readLines = async (name: string) =>
-      (await fs.readFile(path.join(dataDir, name), "utf-8")).split("\n");
-    return HypernymDAG.parse(
-      await readLines("hypernyms-index"),
-      await readLines("hypernyms-data"),
-      await readLines("hypernyms-word-data"),
-    );
   }
 
   @memoize()

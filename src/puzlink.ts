@@ -1,5 +1,7 @@
-import { loadWordlist } from "cromulence";
-import { HypernymDAG } from "./lib/hypernymDAG.js";
+import { downloadHypernymData, downloadWordlist } from "#download";
+import { answerLengthLogProbs } from "./data/answerLengths.js";
+import { HypernymDAG, type HypernymDAGData } from "./lib/hypernymDAG.js";
+import { LengthDistribution } from "./lib/lengthDistribution.js";
 import { Wordlist } from "./lib/wordlist.js";
 import type { Linker } from "./linkers/index.js";
 import { allLinkers } from "./linkers/index.js";
@@ -73,16 +75,44 @@ export type LinkOptions = {
   ordered?: boolean;
 };
 
-/** Create a Puzlink instance by downloading the cromulence wordlist. */
-export async function download(): Promise<Puzlink> {
-  return new Puzlink(await loadWordlist());
+/**
+ * Create a Puzlink instance by downloading the wordlist and, optionally,
+ * hypernym data.
+ */
+export async function download({
+  /** TODO */
+  hypernym = "large",
+}: {
+  hypernym?: boolean | "small" | "large";
+} = {}): Promise<Puzlink> {
+  const [wordlist, hypernymDAGData] = await Promise.all([
+    downloadWordlist(),
+    hypernym !== false &&
+      downloadHypernymData({ includeWords: hypernym !== "small" }),
+  ]);
+  return new Puzlink({
+    wordlist,
+    ...(hypernymDAGData && { hypernymDAGData }),
+  });
 }
 
 export class Puzlink {
   linkers: Linker[];
 
-  constructor(wordlist: Record<string, number>, hypernymDAG?: HypernymDAG) {
-    this.linkers = allLinkers(new Wordlist(wordlist), hypernymDAG);
+  constructor({
+    lengthData = answerLengthLogProbs,
+    wordlist,
+    hypernymDAGData,
+  }: {
+    lengthData?: [number, number][];
+    wordlist: Record<string, number>;
+    hypernymDAGData?: HypernymDAGData;
+  }) {
+    this.linkers = allLinkers({
+      lengthDist: LengthDistribution.from(lengthData),
+      wordlist: new Wordlist(wordlist),
+      hypernymDAG: hypernymDAGData && HypernymDAG.parse(hypernymDAGData),
+    });
   }
 
   static download = download;
