@@ -165,7 +165,7 @@ export class LetterDistribution {
   }
 
   /** Log probability that k letters are consecutive. */
-  @memoize()
+  @memoize(1)
   probConsecutive(k: number): LogNum {
     if (k <= 1) {
       return LogNum.from(1);
@@ -233,7 +233,7 @@ export class LetterDistribution {
   }
 
   /** Log probability that k letters are all vowels. */
-  @memoize()
+  @memoize(1)
   probVowels(k: number): LogNum {
     if (k === 0) {
       return LogNum.from(1);
@@ -247,7 +247,7 @@ export class LetterDistribution {
   }
 
   /** Log probability that k letters are all consonants. */
-  @memoize()
+  @memoize(1)
   probConsonants(k: number): LogNum {
     if (k === 0) {
       return LogNum.from(1);

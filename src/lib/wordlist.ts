@@ -148,7 +148,7 @@ export class Wordlist {
    * Prob that, for two words, the first has a suffix equal to the second's
    * prefix, of the given length.
    */
-  @memoize()
+  @memoize(1)
   probSharedAffix(length: number) {
     const prefixes = this.prefixes.get(length);
     const suffixes = this.suffixes.get(length);

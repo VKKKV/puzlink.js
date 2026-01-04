@@ -1,4 +1,4 @@
-import { loadWordlist } from "cromulence";
+import { downloadWordlist } from "#download";
 import meow from "meow";
 import * as fs from "node:fs/promises";
 import { cache } from "../src/data/cache.js";
@@ -103,7 +103,7 @@ async function main() {
   }
 
   console.log("");
-  const rawWordlist = await timeAsync(loadWordlist);
+  const rawWordlist = await timeAsync(downloadWordlist);
   console.log(`downloaded wordlist in ${rawWordlist.duration.toString()}ms`);
 
   if (state.args.letters) {

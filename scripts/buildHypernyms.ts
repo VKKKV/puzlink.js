@@ -1,10 +1,10 @@
-import { loadWordlist, zipfToLogProb } from "cromulence";
-import { gzipSize } from "gzip-size";
-import * as fs from "node:fs/promises";
+import { downloadWordlist } from "#download";
+import { zipfToLogProb } from "cromulence";
 import * as path from "node:path";
 import * as url from "node:url";
 import { HypernymDAG } from "../src/lib/hypernymDAG.js";
 import { LogNum } from "../src/lib/logNum.js";
+import { writeLines } from "./util.js";
 import { Category, Pointer, POS, Synset } from "./wordnet.js";
 
 const scriptsDir = path.dirname(url.fileURLToPath(import.meta.url));
@@ -20,24 +20,8 @@ const wordnetDir = path.join(scriptsDir, "wordnet");
 const srcDataDir = path.resolve(scriptsDir, "..", "src", "data", "hypernyms");
 const distDataDir = path.resolve(scriptsDir, "..", "dist", "data", "hypernyms");
 
-async function writeLines(name: string, lines: string[]) {
-  const data = lines.join("\n");
-  for (const file of [
-    path.join(srcDataDir, name),
-    path.join(distDataDir, name),
-  ]) {
-    await fs.mkdir(path.dirname(file), { recursive: true });
-    await fs.writeFile(file, data, "utf-8");
-  }
-  const sizeKB = Math.round(data.length / 1e3);
-  const gzipSizeKB = Math.round((await gzipSize(data)) / 1e3);
-  console.log(
-    `${sizeKB.toString().padStart(4)}k ${gzipSizeKB.toString().padStart(4)}k ${name}`,
-  );
-}
-
 async function main() {
-  const wordlist = await loadWordlist();
+  const wordlist = await downloadWordlist();
   const nouns = await Category.fromDir(wordnetDir, POS.Noun);
 
   const allHypernyms = new Map<Synset, Synset[]>();
@@ -196,9 +180,11 @@ async function main() {
     }
   }
 
-  await writeLines("hypernyms-index.txt", indexLines);
-  await writeLines("hypernyms-data.txt", dataLines);
-  await writeLines("hypernyms-word.txt", wordLines);
+  for (const dir of [srcDataDir, distDataDir]) {
+    await writeLines(dir, "hypernyms-index.txt", indexLines);
+    await writeLines(dir, "hypernyms-data.txt", dataLines);
+    await writeLines(dir, "hypernyms-word.txt", wordLines);
+  }
 }
 
 await main();

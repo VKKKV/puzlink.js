@@ -26,7 +26,7 @@ export class LengthDistribution extends Distribution<number> {
   }
 
   /** Distribution of lengths modulo n. */
-  @memoize()
+  @memoize(1)
   private mod(n: number) {
     return this.mapItems((length) => length % n);
   }
@@ -42,7 +42,7 @@ export class LengthDistribution extends Distribution<number> {
   }
 
   /** Log probability that k words have consecutive lengths. */
-  @memoize()
+  @memoize(1)
   probConsecutive(k: number): LogNum {
     if (k <= 1) {
       return LogNum.from(1);

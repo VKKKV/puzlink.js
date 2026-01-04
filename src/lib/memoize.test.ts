@@ -13,7 +13,7 @@ describe("memoize", () => {
       this.base = base;
     }
 
-    @memoize()
+    @memoize(1)
     foo(a: number) {
       fooCalls++;
       return this.base + a;

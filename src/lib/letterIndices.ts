@@ -1,22 +1,23 @@
-import { DefaultMap } from "./defaultMap.js";
-import { memoize } from "./memoize.js";
+import { DefaultMap, ReadonlyDefaultMap } from "./defaultMap.js";
 import { enumerate } from "./util.js";
 
 /** A map from letters to their indices in a given slug. */
-export class LetterIndices extends DefaultMap<string, number[]> {
-  constructor(entries?: Iterable<readonly [string, number[]]> | null) {
+export class LetterIndices extends ReadonlyDefaultMap<
+  string,
+  readonly number[]
+> {
+  constructor(entries?: Iterable<readonly [string, readonly number[]]> | null) {
     super(() => [], entries);
   }
 
   static from(slug: string): LetterIndices {
-    const indices = new LetterIndices();
+    const indices = new DefaultMap<string, number[]>(() => []);
     for (const [i, letter] of enumerate(slug)) {
       indices.get(letter).push(i);
     }
-    return indices;
+    return new LetterIndices(indices);
   }
 
-  @memoize()
   counts() {
     return this.mapValues((indices) => indices.length);
   }
@@ -25,7 +26,9 @@ export class LetterIndices extends DefaultMap<string, number[]> {
     return new Set(Array.from(this.counts(), ([, c]) => c));
   }
 
-  filterKeys(fn: (letter: string, indices: number[]) => boolean): string[] {
+  filterKeys(
+    fn: (letter: string, indices: readonly number[]) => boolean,
+  ): string[] {
     return Array.from(this.entries())
       .filter(([letter, indices]) => fn(letter, indices))
       .map(([letter]) => letter);

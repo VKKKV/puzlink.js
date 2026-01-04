@@ -70,6 +70,20 @@ function memoizeDecorator<Fn extends AnyFn>(
   };
 }
 
+function memoize0<Fn extends () => unknown>() {
+  return memoizeDecorator<Fn>(() => {
+    let cache: unknown = null;
+    return {
+      get: () => {
+        return cache;
+      },
+      set: (_, value) => {
+        cache = value;
+      },
+    } as Cache<Parameters<Fn>, ReturnType<Fn>>;
+  });
+}
+
 function memoize1<Fn extends (Arg: any) => unknown>() {
   return memoizeDecorator<Fn>(() => {
     const cache = new Map<any, unknown>();
@@ -78,7 +92,7 @@ function memoize1<Fn extends (Arg: any) => unknown>() {
         return cache.get(key) ?? null;
       },
       set: ([key], value) => {
-        return cache.set(key, value);
+        cache.set(key, value);
       },
     } as Cache<Parameters<Fn>, ReturnType<Fn>>;
   });
@@ -129,8 +143,19 @@ function memoize3<Fn extends (Arg1: any, Arg2: any, Arg3: any) => unknown>() {
 
 /** Memoize a class method that takes up to three arguments. */
 export function memoize<const Fn extends AnyFn>(
-  levels?: 1 | 2 | 3,
+  levels: 0 | 1 | 2 | 3,
 ): (target: Fn) => Fn;
-export function memoize(levels?: 1 | 2 | 3) {
-  return levels === 3 ? memoize3() : levels === 2 ? memoize2() : memoize1();
+export function memoize(levels: 0 | 1 | 2 | 3) {
+  switch (levels) {
+    case 0:
+      return memoize0();
+    case 1:
+      return memoize1();
+    case 2:
+      return memoize2();
+    case 3:
+      return memoize3();
+    default:
+      levels satisfies never;
+  }
 }

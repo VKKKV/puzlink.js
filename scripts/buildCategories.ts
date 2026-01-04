@@ -1,11 +1,9 @@
 import { iso31661 } from "iso-3166";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import * as url from "node:url";
+import { scriptsDir, writeLines } from "./util.js";
 
-const scriptsDir = path.dirname(url.fileURLToPath(import.meta.url));
 const txtDir = path.join(scriptsDir, "categories");
-
 const dataDir = path.resolve(scriptsDir, "..", "src", "data");
 const jsonDir = path.join(dataDir, "categories");
 
@@ -20,11 +18,7 @@ async function writeFile(name: string, lines: string[]) {
   // possible first, so e.g. we want to match NW before N.
   const unique = Array.from(new Set(cleaned)).sort().reverse();
 
-  await fs.writeFile(
-    path.join(jsonDir, `${name}.json`),
-    JSON.stringify(unique, null, 2),
-    "utf-8",
-  );
+  await writeLines(jsonDir, `${name}.json`, JSON.stringify(unique, null, 2));
   return name;
 }
 
