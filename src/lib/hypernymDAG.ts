@@ -152,7 +152,7 @@ export class HypernymDAG {
     return new HypernymDAG(index, data);
   }
 
-  @memoize()
+  @memoize(1)
   ancestors(synsetID: number): number[] {
     const result = new Set<number>();
     const queue = [synsetID];
