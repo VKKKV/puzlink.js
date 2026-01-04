@@ -1,3 +1,4 @@
+import { DefaultMap } from "../lib/defaultMap.js";
 import type { LetterKind } from "../lib/letterDistribution.js";
 import { LETTERS, letterKind } from "../lib/letterDistribution.js";
 import { interval, mapProduct } from "../lib/util.js";
@@ -110,13 +111,10 @@ function nGramRepeatsTimes(
         T.Times(repeats),
       ]),
     score: (slug) => {
-      const nGramToIndices = new Map<string, number[]>();
+      const nGramToIndices = new DefaultMap<string, number[]>(() => []);
       for (const i of interval(0, slug.length - kind.n + 1)) {
         const nGram = slug.slice(i, i + kind.n);
-        if (!nGramToIndices.has(nGram)) {
-          nGramToIndices.set(nGram, []);
-        }
-        nGramToIndices.get(nGram)!.push(i);
+        nGramToIndices.get(nGram).push(i);
       }
       const nGrams = Array.from(nGramToIndices.entries()).filter(
         ([, indices]) =>

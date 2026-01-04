@@ -7,7 +7,7 @@ import { lengthLinker } from "./length.js";
 describe("lengthLinker", () => {
   const link = testLinker(
     lengthLinker,
-    LengthDistribution.from(answerLengthLogProbs),
+    LengthDistribution.parseLengths(answerLengthLogProbs),
   );
 
   test("length links", () => {

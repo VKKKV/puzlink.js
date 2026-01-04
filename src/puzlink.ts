@@ -123,7 +123,7 @@ export class Puzlink {
     hypernymDAGData?: HypernymDAGData;
   }) {
     this.linkers = allLinkers({
-      lengthDist: LengthDistribution.from(lengthData),
+      lengthDist: LengthDistribution.parseLengths(lengthData),
       wordlist: new Wordlist(wordlist),
       hypernymDAG: hypernymDAGData && HypernymDAG.parse(hypernymDAGData),
     });

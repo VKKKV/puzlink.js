@@ -1,4 +1,5 @@
 import { cache } from "../data/cache.js";
+import { DefaultMap } from "./defaultMap.js";
 import { Distribution } from "./distribution.js";
 import { LogCounter } from "./logCounter.js";
 import { LogNum } from "./logNum.js";
@@ -25,7 +26,7 @@ export const letterKind = {
  */
 export class LetterDistribution {
   readonly distribution: Distribution<string>;
-  private readonly lengthToProbs: Map<
+  private readonly lengthToProbs: DefaultMap<
     number,
     {
       /** Log probability to get a word of this length. */
@@ -39,7 +40,8 @@ export class LetterDistribution {
     const cached = cache.letterDistribution;
     if (cached && useCache) {
       this.distribution = Distribution.parse(cached.letterCount);
-      this.lengthToProbs = new Map(
+      this.lengthToProbs = new DefaultMap(
+        () => ({ word: LogNum.from(0), anagram: LogNum.from(0) }),
         cached.lengthToProbs.map(([length, { word, anagram }]) => [
           length,
           { word: LogNum.fromJSON(word), anagram: LogNum.fromJSON(anagram) },
@@ -67,7 +69,10 @@ export class LetterDistribution {
       ),
     );
 
-    this.lengthToProbs = new Map<number, { word: LogNum; anagram: LogNum }>();
+    this.lengthToProbs = new DefaultMap<
+      number,
+      { word: LogNum; anagram: LogNum }
+    >(() => ({ word: LogNum.from(0), anagram: LogNum.from(0) }));
 
     for (const word of wordlist) {
       const prob = LogNum.prod(
@@ -84,17 +89,11 @@ export class LetterDistribution {
         ),
       );
 
-      if (!this.lengthToProbs.has(word.length)) {
-        this.lengthToProbs.set(word.length, {
-          word: LogNum.from(0),
-          anagram: LogNum.from(0),
-        });
-      }
-      this.lengthToProbs.get(word.length)!.word = this.lengthToProbs
-        .get(word.length)!
+      this.lengthToProbs.get(word.length).word = this.lengthToProbs
+        .get(word.length)
         .word.add(prob);
-      this.lengthToProbs.get(word.length)!.anagram = this.lengthToProbs
-        .get(word.length)!
+      this.lengthToProbs.get(word.length).anagram = this.lengthToProbs
+        .get(word.length)
         .anagram.add(prob.mul(perms));
     }
   }
@@ -128,7 +127,7 @@ export class LetterDistribution {
   } {
     const counter = LogCounter.from(letters);
     const { high, low } = this.distribution.outliers(counter);
-    return { high: Object.keys(high), low: Object.keys(low) };
+    return { high: Array.from(high.keys()), low: Array.from(low.keys()) };
   }
 
   /**
@@ -175,15 +174,17 @@ export class LetterDistribution {
     }
 
     const freqWindow = [];
-    for (const i of interval(1, k)) {
+    for (const i of interval(0, k - 1)) {
       freqWindow.push(this.distribution.get(LETTERS[i]!));
     }
 
     const partials = [];
-    for (let a = 1; a + k - 1 <= LETTERS.length; a++) {
-      partials.push(LogNum.prod(freqWindow));
+    partials.push(LogNum.prod(freqWindow));
+
+    for (let a = 0; a + k < LETTERS.length; a++) {
       freqWindow.shift();
       freqWindow.push(this.distribution.get(LETTERS[a + k]!));
+      partials.push(LogNum.prod(freqWindow));
     }
 
     return LogNum.fromFactorial(k).mul(LogNum.sum(partials));
@@ -223,12 +224,12 @@ export class LetterDistribution {
 
   /** Log probability that k letters form a word. */
   probWord(k: number): LogNum {
-    return this.lengthToProbs.get(k)?.word ?? LogNum.from(0);
+    return this.lengthToProbs.get(k).word;
   }
 
   /** Log probability that k letters form an anagram of a word. */
   probAnagram(k: number): LogNum {
-    return this.lengthToProbs.get(k)?.anagram ?? LogNum.from(0);
+    return this.lengthToProbs.get(k).anagram;
   }
 
   /** Log probability that k letters are all vowels. */

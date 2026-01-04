@@ -1,4 +1,5 @@
 import { DeltaEncoding, FrontEncoding } from "./compress.js";
+import { DefaultMap } from "./defaultMap.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
 import { interval } from "./util.js";
@@ -59,14 +60,9 @@ export class HypernymDAG {
     const wordLines = [];
 
     // Bin synset IDs by hyponym count:
-    const dataBins = new Map<number, number[]>();
+    const dataBins = new DefaultMap<number, number[]>(() => []);
     for (const [synsetID, { hyponymLogProb }] of this.data) {
-      let bin = dataBins.get(Math.round(10 * hyponymLogProb.toLog()));
-      if (!bin) {
-        bin = [];
-        dataBins.set(Math.round(10 * hyponymLogProb.toLog()), bin);
-      }
-      bin.push(synsetID);
+      dataBins.get(Math.round(10 * hyponymLogProb.toLog())).push(synsetID);
     }
 
     // We should be writing synsets in increasing ID, with no gaps.
@@ -76,7 +72,7 @@ export class HypernymDAG {
     for (const bin of Array.from(dataBins.keys()).sort((a, b) => b - a)) {
       const delta = new DeltaEncoding();
       const encoded: number[][] = [];
-      for (const synsetID of dataBins.get(bin)!.sort((a, b) => a - b)) {
+      for (const synsetID of dataBins.get(bin).sort((a, b) => a - b)) {
         if (lastSynsetID === -1 || lastSynsetID === synsetID - 1) {
           lastSynsetID = synsetID;
         } else {

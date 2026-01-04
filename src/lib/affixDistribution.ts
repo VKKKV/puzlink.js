@@ -1,23 +1,14 @@
+import { DefaultMap } from "./defaultMap.js";
 import { Distribution } from "./distribution.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
-import { interval } from "./util.js";
 
-class BaseAffixDistribution {
-  /** Map from affix length to distribution of affixes of that length. */
-  private readonly dist = new Map<number, Distribution<string>>();
-
+/** Map from affix length to distribution of affixes of that length. */
+class BaseAffixDistribution extends DefaultMap<number, Distribution<string>> {
   constructor(affix: "prefix" | "suffix", wordlist: string[]) {
-    let maxLength = 0;
-    for (const word of wordlist) {
-      maxLength = Math.max(maxLength, word.length);
-    }
+    super(() => Distribution.fromItems([]));
 
-    const affixes = new Map<number, string[]>();
-
-    for (const i of interval(1, maxLength)) {
-      affixes.set(i, []);
-    }
+    const affixes = new DefaultMap<number, string[]>(() => []);
 
     for (const word of wordlist) {
       let sliced = "";
@@ -27,26 +18,21 @@ class BaseAffixDistribution {
         } else {
           sliced = word.at(-i)! + sliced;
         }
-        affixes.get(i)!.push(sliced);
+        affixes.get(i).push(sliced);
       }
     }
 
     for (const [length, items] of affixes) {
-      this.dist.set(length, Distribution.from(items));
+      this.set(length, Distribution.fromItems(items));
     }
-  }
-
-  /** Distribution of affixes of a given length. */
-  get(length: number): Distribution<string> {
-    return this.dist.get(length) ?? Distribution.from([]);
   }
 
   /** Vowel distribution for affixes of a given length. */
   @memoize(1)
   private vowelDist(length: number): Distribution<string> {
-    return this.get(length).map((s) => {
-      return s.replaceAll(/[aeiou]/g, "V").replaceAll(/[a-z]/g, "C");
-    });
+    return this.get(length).mapItems((s) =>
+      s.replaceAll(/[aeiou]/g, "V").replaceAll(/[a-z]/g, "C"),
+    );
   }
 
   /**

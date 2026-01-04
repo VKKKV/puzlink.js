@@ -1,5 +1,6 @@
 import { cache } from "../data/cache.js";
 import { Bitset } from "../lib/bitset.js";
+import { DefaultMap } from "../lib/defaultMap.js";
 import { MetricLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
@@ -84,7 +85,7 @@ type FeatureRange = { vertex: number; strict: boolean };
 export function getFeatureRanges(
   metric: Metric,
   scores: number[],
-): Map<bigint, FeatureRange[]> {
+): DefaultMap<bigint, FeatureRange[]> {
   const scoreToBitset = new Map<number, bigint>();
   for (const [i, score] of enumerate(scores)) {
     scoreToBitset.set(
@@ -93,7 +94,7 @@ export function getFeatureRanges(
     );
   }
 
-  const setToRanges = new Map<bigint, FeatureRange[]>([[0n, []]]);
+  const setToRanges = new DefaultMap<bigint, FeatureRange[]>(() => []);
   const push = (range: FeatureRange, contained: bigint) => {
     if (!range.strict && range.vertex > metric.maxNonStrict) {
       return;
@@ -101,10 +102,7 @@ export function getFeatureRanges(
     if (metric.ignoreIfZero && range.vertex === 0 && range.strict) {
       return;
     }
-    if (!setToRanges.has(contained)) {
-      setToRanges.set(contained, []);
-    }
-    setToRanges.get(contained)!.push(range);
+    setToRanges.get(contained).push(range);
   };
 
   const sorted = [...scoreToBitset.entries(), [Infinity, 0n] as const].sort(
@@ -131,8 +129,9 @@ export function getFeatureRanges(
 
   // There is exactly one pair of complementary feature ranges: (0, true) and
   // (1, false). We discard (1, false) iff it corresponds to zero slugs.
-  const filteredAll =
-    setToRanges.get(0n)?.filter((r) => r.vertex !== 1 || r.strict) ?? [];
+  const filteredAll = setToRanges
+    .get(0n)
+    .filter((r) => r.vertex !== 1 || r.strict);
   if (filteredAll.length > 0) {
     setToRanges.set(0n, filteredAll);
   } else {

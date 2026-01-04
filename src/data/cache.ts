@@ -10,7 +10,7 @@ export const cache = {
   // Loosen types for TS speed.
   featureLogProbs?: Record<string, number | null>;
   letterDistribution?: {
-    letterCount: Record<string, number | null>;
+    letterCount: [string, number | null][];
     lengthToProbs: [number, { word: number | null; anagram: number | null }][];
   };
   metricLogProbs?: Record<string, (number | null)[]>;

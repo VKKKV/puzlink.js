@@ -1,51 +1,33 @@
+import { DefaultMap } from "./defaultMap.js";
+import { memoize } from "./memoize.js";
 import { enumerate } from "./util.js";
 
 /** A map from letters to their indices in a given slug. */
-export class LetterIndices {
-  private readonly indices: ReadonlyMap<string, number[]>;
-
-  constructor(indices: ReadonlyMap<string, number[]>) {
-    this.indices = indices;
+export class LetterIndices extends DefaultMap<string, number[]> {
+  constructor(entries?: Iterable<readonly [string, number[]]> | null) {
+    super(() => [], entries);
   }
 
   static from(slug: string): LetterIndices {
-    const indices = new Map<string, number[]>();
-
+    const indices = new LetterIndices();
     for (const [i, letter] of enumerate(slug)) {
-      if (!indices.has(letter)) {
-        indices.set(letter, []);
-      }
-      indices.get(letter)!.push(i);
+      indices.get(letter).push(i);
     }
-
-    return new LetterIndices(indices);
+    return indices;
   }
 
-  *counts(): IterableIterator<[string, number]> {
-    for (const [letter, indices] of this.indices.entries()) {
-      yield [letter, indices.length];
-    }
+  @memoize()
+  counts() {
+    return this.mapValues((indices) => indices.length);
   }
 
   countSet(): Set<number> {
     return new Set(Array.from(this.counts(), ([, c]) => c));
   }
 
-  entries(): IterableIterator<[string, number[]]> {
-    return this.indices.entries();
-  }
-
   filterKeys(fn: (letter: string, indices: number[]) => boolean): string[] {
-    return Array.from(this.indices.entries())
+    return Array.from(this.entries())
       .filter(([letter, indices]) => fn(letter, indices))
       .map(([letter]) => letter);
-  }
-
-  get(letter: string): number[] {
-    return this.indices.get(letter) ?? [];
-  }
-
-  keys(): IterableIterator<string> {
-    return this.indices.keys();
   }
 }

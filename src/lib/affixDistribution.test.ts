@@ -21,10 +21,10 @@ describe("AffixDistribution", () => {
 
   test("get", () => {
     expect(prefixes.get(2)).toEqual(
-      Distribution.from(["ab", "gh", "mn", "st", "yz"]),
+      Distribution.fromItems(["ab", "gh", "mn", "st", "yz"]),
     );
     expect(suffixes.get(2)).toEqual(
-      Distribution.from(["ef", "kl", "qr", "wx", "cd"]),
+      Distribution.fromItems(["ef", "kl", "qr", "wx", "cd"]),
     );
   });
 });

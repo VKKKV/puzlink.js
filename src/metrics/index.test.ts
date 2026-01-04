@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+import { DefaultMap } from "../lib/defaultMap.js";
 import { getFeatureRanges, type Metric } from "./index.js";
 
 describe("getFeatureRanges", () => {
@@ -19,7 +20,7 @@ describe("getFeatureRanges", () => {
 
   test("special case", () => {
     expect(getFeatureRanges({} as Metric, [0, 0, 0, 0, 0])).toEqual(
-      new Map([[31n, [{ vertex: 0, strict: true }]]]),
+      new DefaultMap(() => [], [[31n, [{ vertex: 0, strict: true }]]]),
     );
   });
 });

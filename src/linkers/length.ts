@@ -1,3 +1,4 @@
+import { DefaultMap } from "../lib/defaultMap.js";
 import type { LengthDistribution } from "../lib/lengthDistribution.js";
 import { getArithmeticSequenceInfo } from "../lib/util.js";
 import * as T from "../templating/index.js";
@@ -95,12 +96,9 @@ function consecutive({
 }
 
 function paired({ distribution, slugs }: Props): PartialLink | null {
-  const byLength = new Map<number, string[]>();
+  const byLength = new DefaultMap<number, string[]>(() => []);
   for (const slug of slugs) {
-    if (!byLength.has(slug.length)) {
-      byLength.set(slug.length, []);
-    }
-    byLength.get(slug.length)!.push(slug);
+    byLength.get(slug.length).push(slug);
   }
   const lengthCounter = new Set(
     Array.from(byLength.values(), (slugs) => slugs.length),

@@ -3,21 +3,16 @@ import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
 import { interval, windows } from "./util.js";
 
-export class LengthDistribution {
-  readonly distribution: Distribution<number>;
-  private readonly distMod2: Distribution<number>;
-  private readonly distMod3: Distribution<number>;
+export class LengthDistribution extends Distribution<number> {
   /** Length such that 99.9% of answers have length less than this. */
   private readonly maxLength: number;
 
-  constructor(distribution: Distribution<number>) {
-    this.distribution = distribution;
-    this.distMod2 = this.distribution.map((length) => length % 2);
-    this.distMod3 = this.distribution.map((length) => length % 3);
+  constructor(frequencies: ReadonlyMap<number, LogNum>) {
+    super(frequencies);
 
     this.maxLength = Infinity;
     let totalProb = LogNum.from(0);
-    for (const [length, freq] of distribution.entries()) {
+    for (const [length, freq] of this.entries()) {
       totalProb = totalProb.add(freq);
       if (totalProb.gt(LogNum.from(0.999))) {
         this.maxLength = length;
@@ -26,31 +21,24 @@ export class LengthDistribution {
     }
   }
 
-  static from(data: [number, number][]): LengthDistribution {
-    const map = new Map(
-      data.map(([length, freq]) => [length, LogNum.fromExp(freq)]),
-    );
-    return new LengthDistribution(new Distribution(map));
+  static parseLengths(dumped: [number, number | null][]): LengthDistribution {
+    return new LengthDistribution(Distribution.parse(dumped));
   }
 
-  /** Log probability that k words have the same length. */
-  probEqual(k: number): LogNum {
-    return this.distribution.probEqual(k);
-  }
-
-  /** Log probability that k words have the same length, except for one. */
-  probAlmostEqual(k: number): LogNum {
-    return this.distribution.probAlmostEqual(k);
+  /** Distribution of lengths modulo n. */
+  @memoize()
+  private mod(n: number) {
+    return this.mapItems((length) => length % n);
   }
 
   /** Log probability that k words have the same length modulo 2. */
   probEqualMod2(k: number): LogNum {
-    return this.distMod2.probEqual(k);
+    return this.mod(2).probEqual(k);
   }
 
   /** Log probability that k words have the same length modulo 3. */
   probEqualMod3(k: number): LogNum {
-    return this.distMod3.probEqual(k);
+    return this.mod(3).probEqual(k);
   }
 
   /** Log probability that k words have consecutive lengths. */
@@ -62,19 +50,12 @@ export class LengthDistribution {
       return LogNum.from(0);
     }
 
-    const range = interval(1, this.maxLength).map((i) =>
-      this.distribution.get(i),
-    );
+    const range = interval(1, this.maxLength).map((i) => this.get(i));
     const partials = Array.from(windows(range, k), (window) =>
       LogNum.prod(window),
     );
 
     return LogNum.fromFactorial(k).mul(LogNum.sum(partials));
-  }
-
-  /** Log probability that k words have exactly two distinct lengths. */
-  probTwoDistinct(k: number): LogNum {
-    return this.distribution.probTwoDistinct(k);
   }
 
   /**
@@ -89,7 +70,7 @@ export class LengthDistribution {
     }
 
     const probs = [];
-    for (const [length, freq] of this.distribution.entries()) {
+    for (const [length, freq] of this.entries()) {
       if (length < min) {
         continue;
       }

@@ -2,8 +2,8 @@ import { describe, expect, test } from "vitest";
 import { Distribution } from "./distribution.js";
 import { LengthDistribution } from "./lengthDistribution.js";
 
-describe("Distribution", () => {
-  const dist = new LengthDistribution(Distribution.from([2, 3, 3, 4]));
+describe("LengthDistribution", () => {
+  const dist = new LengthDistribution(Distribution.fromItems([2, 3, 3, 4]));
 
   test("probEqual", () => {
     expect(dist.probEqual(2).toNum()).toBeCloseTo(3 / 8);

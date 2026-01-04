@@ -168,19 +168,23 @@ export class LogNum {
     return values[minIndex];
   }
 
-  static sum(values: LogNum[]): LogNum {
+  static sum(values: Iterable<LogNum>): LogNum {
     // Strip zeroes first:
-    values = values.filter((x) => x.data !== -Infinity);
-    const max = Math.max(...values.map((x) => x.data));
+    const arr = Array.from(values).filter((x) => x.data !== -Infinity);
+    const max = Math.max(...arr.map((x) => x.data));
     if (max === Infinity) {
       return new LogNum(Infinity);
     }
-    const expSum = values.reduce((acc, x) => acc + Math.exp(x.data - max), 0);
+    const expSum = arr.reduce((acc, x) => acc + Math.exp(x.data - max), 0);
     return new LogNum(max + Math.log(expSum));
   }
 
-  static prod(values: LogNum[]): LogNum {
-    return new LogNum(values.reduce((acc, x) => acc + x.data, 0));
+  static prod(values: Iterable<LogNum>): LogNum {
+    let acc = 0;
+    for (const x of values) {
+      acc += x.data;
+    }
+    return new LogNum(acc);
   }
 
   static binomialProb(

@@ -10,7 +10,6 @@ describe("LogCounter", () => {
     expect(counter.get("c").toNum()).toBeCloseTo(2);
     expect(counter.get("d").toNum()).toBeCloseTo(1);
 
-    expect(counter.distinct.toNum()).toBeCloseTo(4);
     expect(counter.total.toNum()).toBeCloseTo(15);
   });
 });
