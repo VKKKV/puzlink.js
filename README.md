@@ -59,7 +59,7 @@ Node 22 required. Clone the repo and run `npm install`. Some ways to contribute:
 
    Adding tests would be nice too. You can add a unit test by running `npm run test:watch`, and editing `src/features/substring.test.ts`. You can also add an eval, as above.
 
-3. Add a feature. See existing feature implementations in `src/features`. Run `npm run build:knownLogProbs` before running evals.
+3. Add a feature. See existing feature implementations in `src/features`. Run `npm run build:cache` before running evals.
 
 4. Fiddle with the app. To set up the app, run `npm run build:tsc` from the root, then `cd app` and `npm install`. From there, `npm run dev` to start the dev server.
 
