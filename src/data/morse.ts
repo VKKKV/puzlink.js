@@ -1,4 +1,4 @@
-export const morseLetter: Record<string, string> = {
+export const letterMorse: Record<string, string> = {
   a: ".-",
   b: "-...",
   c: "-.-.",
@@ -25,4 +25,18 @@ export const morseLetter: Record<string, string> = {
   x: "-..-",
   y: "-.--",
   z: "--..",
+  "1": ".----",
+  "2": "..---",
+  "3": "...--",
+  "4": "....-",
+  "5": ".....",
+  "6": "-....",
+  "7": "--...",
+  "8": "---..",
+  "9": "----.",
+  "0": "-----",
 };
+
+export const morseLetter = Object.fromEntries(
+  Object.entries(letterMorse).map(([letter, morse]) => [morse, letter]),
+);

@@ -1,4 +1,4 @@
-import { morseLetter } from "../data/morse.js";
+import { letterMorse } from "../data/morse.js";
 import { scrabbleLetterScore } from "../data/scrabble.js";
 import { mapProduct } from "../lib/util.js";
 import * as T from "../templating/index.js";
@@ -37,7 +37,7 @@ function morseCount(kind: {
         T.Count(count, kind.one, kind.other),
       ]),
     score: (slug) => {
-      const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
+      const morse = Array.from(slug, (letter) => letterMorse[letter]!).join(
         " ",
       );
       const count = Array.from(morse).filter((c) =>

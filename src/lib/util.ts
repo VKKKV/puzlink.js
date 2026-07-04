@@ -3,7 +3,7 @@
 /** Returns an array of numbers from start to end (inclusive). */
 export function interval(start: number, end: number, step = 1): number[] {
   const result = [];
-  for (let i = start; i <= end; i += step) {
+  for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
     result.push(i);
   }
   return result;
@@ -33,7 +33,7 @@ export type TupleOf<
     : TupleOf<Dimensions, Fill, [...Tuple, Fill]>;
 
 /** Cartesian product of iterables. */
-function* product<const Iters extends Iterable<any>[]>(
+export function* product<const Iters extends Iterable<any>[]>(
   iters: Iters,
 ): Generator<Product<Iters>> {
   if (iters.length === 1) {

@@ -87,7 +87,7 @@ self.addEventListener("message", ({ data }: { data: WorkerInput }) => {
       return;
     }
 
-    setInterval(sendChunk, 0);
+    setTimeout(sendChunk, 0);
   };
 
   sendChunk();

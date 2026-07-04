@@ -1,4 +1,4 @@
-import { morseLetter } from "../data/morse.js";
+import { letterMorse } from "../data/morse.js";
 import { VOWELS } from "../lib/letterDistribution.js";
 import { enumerate, interval, windows } from "../lib/util.js";
 import * as T from "../templating/index.js";
@@ -166,7 +166,7 @@ function morseEqual(): Feature {
   return {
     name: T.Join(["has morse code with equal dot/dash count"]),
     property: (slug) => {
-      const morse = Array.from(slug, (letter) => morseLetter[letter]!).join(
+      const morse = Array.from(slug, (letter) => letterMorse[letter]!).join(
         " ",
       );
       const dotCount = Array.from(morse).filter((c) => c === ".").length;
