@@ -104,7 +104,7 @@ export type EvalSuite = {
   source?: string;
   cases: {
     slugs: string | string[];
-    expected: string;
+    expected: string | string[];
   }[];
 };
 
@@ -133,7 +133,12 @@ async function* getEvalSuites(args: Args): AsyncGenerator<EvalSuite> {
         !evalSuite.default?.name ||
         !evalSuite.default.source ||
         !evalSuite.default.cases ||
-        evalSuite.default.cases.some((c) => !c.slugs || !c.expected)
+        evalSuite.default.cases.some(
+          (c) =>
+            !c.slugs ||
+            !c.expected ||
+            (Array.isArray(c.expected) && c.expected.length === 0),
+        )
       ) {
         continue;
       }
@@ -144,12 +149,16 @@ async function* getEvalSuites(args: Args): AsyncGenerator<EvalSuite> {
   }
 }
 
-type EvalResult = {
+type ExpectedResult = {
   expected: string;
-  status: Status;
-  links: Link[];
   actualRank: number | null;
   actualLink: Link | null;
+};
+
+type EvalResult = {
+  expecteds: ExpectedResult[];
+  status: Status;
+  links: Link[];
   parsedSlugs: string[];
 };
 
@@ -159,22 +168,28 @@ function* runEvalSuite(
 ): Generator<EvalResult> {
   for (const { slugs, expected } of suite.cases) {
     const parsedSlugs = Puzlink.parse(slugs);
-    const links = puzlink.link(parsedSlugs, { limit: null });
-    const index = links.findIndex((link) => link.name.includes(expected));
+    const links = puzlink.link(parsedSlugs, {
+      limit: null,
+      minFeatureRatio: 0,
+    });
+    const expecteds = (Array.isArray(expected) ? expected : [expected]).map(
+      (expected) => {
+        const index = links.findIndex((link) => link.name.includes(expected));
+        return {
+          expected,
+          actualRank: index !== -1 ? index + 1 : null,
+          actualLink: index !== -1 ? links[index]! : null,
+        };
+      },
+    );
+    const worst = Math.max(...expecteds.map((e) => e.actualRank ?? Infinity));
     const status =
-      index === 0
+      worst <= expecteds.length
         ? "okay"
-        : index !== -1 && index <= DEFAULT_LIMIT - 1
+        : worst <= expecteds.length + DEFAULT_LIMIT - 1
           ? "warn"
           : "fail";
-    yield {
-      expected,
-      status,
-      links,
-      actualRank: index !== -1 ? index + 1 : null,
-      actualLink: index !== -1 ? links[index]! : null,
-      parsedSlugs,
-    };
+    yield { expecteds, status, links, parsedSlugs };
   }
 }
 
@@ -184,21 +199,25 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
   }
   const lines: string[][] = [];
 
-  lines.push([" ".repeat(2)]);
-  lines.at(-1)!.push(statusColor[result.status](`${result.expected}:`));
-  lines
-    .at(-1)!
-    .push(
-      result.actualRank ? ` top ${result.actualRank.toString()}` : " not found",
-    );
-  if (result.actualLink) {
+  for (const expected of result.expecteds) {
+    lines.push([" ".repeat(2)]);
+    lines.at(-1)!.push(statusColor[result.status](`${expected.expected}:`));
     lines
       .at(-1)!
       .push(
-        chalk.gray(
-          ` (${result.actualLink.score.toFixed(1)}, ${result.actualLink.name})`,
-        ),
+        expected.actualRank
+          ? ` top ${expected.actualRank.toString()}`
+          : " not found",
       );
+    if (expected.actualLink) {
+      lines
+        .at(-1)!
+        .push(
+          chalk.gray(
+            ` (${expected.actualLink.score.toFixed(1)}, ${expected.actualLink.name})`,
+          ),
+        );
+    }
   }
 
   if (args.showUrl) {
@@ -213,7 +232,7 @@ function printSingleResult(args: Args, result: EvalResult): string | null {
   }
 
   for (let i = 0; i < args.limit && i < result.links.length; i++) {
-    const isExpectedLink = i + 1 === result.actualRank;
+    const isExpectedLink = result.expecteds.some((e) => e.actualRank === i + 1);
     lines.push([" ".repeat(2)]);
     lines
       .at(-1)!
