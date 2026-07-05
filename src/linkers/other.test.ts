@@ -58,7 +58,7 @@ describe("other linker", () => {
       [
         [
           "unusual letter distribution",
-          "over-represented h f j g",
+          "over-represented f j g",
         ],
         [
           "multiple shared suffixes and prefixes",

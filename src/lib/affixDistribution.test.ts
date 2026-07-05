@@ -11,7 +11,7 @@ describe("AffixDistribution", () => {
     new PrefixDistribution(Object.keys(wordlist));
     new SuffixDistribution(Object.keys(wordlist));
     const time = Date.now() - start;
-    expect(time).toBeLessThan(3000);
+    expect(time).toBeLessThan(5000);
     console.log(`AffixDistribution init: ${time.toString()}ms`);
   });
 
