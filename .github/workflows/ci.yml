@@ -8,10 +8,10 @@ jobs:
   app-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - working-directory: app
@@ -22,10 +22,10 @@ jobs:
   app-lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - working-directory: app
@@ -38,10 +38,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - run: npm run build:cache
@@ -55,10 +55,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - run: npm run lint
@@ -67,10 +67,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - run: npm run test:slow
@@ -78,10 +78,10 @@ jobs:
   test-evals:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 26
           cache: "npm"
       - run: npm ci
       - run: npm run test:evals
