@@ -42,21 +42,22 @@ function getProps(wordlist: Wordlist, slug: string): Props {
   return { letterIndices: LetterIndices.from(slug), wordlist };
 }
 
+/** Compute a feature's log prob over the wordlist. */
+export function featureLogProb(wordlist: Wordlist, feature: Feature): LogNum {
+  return wordlist.logProb(
+    (word) => feature.property(word, getProps(wordlist, word)) !== null,
+  );
+}
+
 /**
  * Create a binomial linker for a given feature. A binomial link is the
  * probability that at least k or at most k out of n words share the feature,
  * whichever is less.
  */
-function featureLinker(
-  wordlist: Wordlist,
-  { name, property }: Feature,
-): Linker | null {
+function featureLinker(wordlist: Wordlist, feature: Feature): Linker | null {
+  const { name, property } = feature;
   const key = T.renderToText(name);
-  FeatureLogProbs.fill(key, () => {
-    return wordlist.logProb(
-      (word) => property(word, getProps(wordlist, word)) !== null,
-    );
-  });
+  FeatureLogProbs.fill(key, () => featureLogProb(wordlist, feature));
 
   return {
     name,
@@ -96,15 +97,19 @@ function featureLinker(
   };
 }
 
-/** Feature-based linkers. */
-export function featureLinkers(wordlist: Wordlist): Linker[] {
+export function allFeatures(): Feature[] {
   return [
     ...letterCountFeatures(),
     ...letterSequenceFeatures(),
     ...otherFeatures(),
     ...substringFeatures(),
     ...wordplayFeatures(),
-  ].flatMap((feature) => {
+  ];
+}
+
+/** Feature-based linkers. */
+export function featureLinkers(wordlist: Wordlist): Linker[] {
+  return allFeatures().flatMap((feature) => {
     const linker = featureLinker(wordlist, feature);
     return linker ? [linker] : [];
   });

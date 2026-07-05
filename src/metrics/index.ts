@@ -141,19 +141,22 @@ export function getFeatureRanges(
   return setToRanges;
 }
 
+/** Compute a metric's per-score log probs. */
+export function metricLogProbs(wordlist: Wordlist, metric: Metric): LogNum[] {
+  const counts = wordlist.reduce(new Map<number, number>(), (acc, slug) => {
+    const vector = metric.score(slug, getProps(wordlist, slug)).score;
+    return acc.set(vector, (acc.get(vector) ?? 0) + 1);
+  });
+  return interval(0, Math.max(...counts.keys())).map((i) =>
+    LogNum.fromFraction(counts.get(i) ?? 0, wordlist.length),
+  );
+}
+
 /** Create the Linker for a Metric. */
 function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
   const linkerName = T.renderToText(metric.metricName);
 
-  MetricLogProbs.fill(linkerName, () => {
-    const counts = wordlist.reduce(new Map<number, number>(), (acc, slug) => {
-      const vector = metric.score(slug, getProps(wordlist, slug)).score;
-      return acc.set(vector, (acc.get(vector) ?? 0) + 1);
-    });
-    return interval(0, Math.max(...counts.keys())).map((i) =>
-      LogNum.fromFraction(counts.get(i) ?? 0, wordlist.length),
-    );
-  });
+  MetricLogProbs.fill(linkerName, () => metricLogProbs(wordlist, metric));
 
   return {
     name: metric.metricName,
@@ -221,14 +224,18 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
   };
 }
 
-/** Metric-based linkers. */
-export function metricLinkers(wordlist: Wordlist): Linker[] {
+export function allMetrics(): Metric[] {
   return [
     ...letterCountMetrics(),
     ...letterSequenceMetrics(),
     ...otherMetrics(),
     ...substringMetrics(),
-  ].map((metric) => metricLinker(wordlist, metric));
+  ];
+}
+
+/** Metric-based linkers. */
+export function metricLinkers(wordlist: Wordlist): Linker[] {
+  return allMetrics().map((metric) => metricLinker(wordlist, metric));
 }
 
 /**
