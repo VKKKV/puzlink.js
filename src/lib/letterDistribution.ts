@@ -265,6 +265,6 @@ export class LetterDistribution {
    * vowels and consonants.
    */
   probEqualVowelPattern(n: number, k: number): LogNum {
-    return this.probVowels(k).add(this.probConsonants(k)).pow(n);
+    return this.probVowels(1).pow(n).add(this.probConsonants(1).pow(n)).pow(k);
   }
 }

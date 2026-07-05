@@ -22,5 +22,39 @@ export default {
       slugs: `BALKED, BAR SPOON, HIGH NOON, KLUTZY, ONYX, POSTED`,
       expected: "has at least 2 reverse sequential bigrams",
     },
+    {
+      slugs: `
+        ALMOST
+        ANNIE PROULX
+        ANNOTATION
+        ARTIFICIAL
+        BALKED
+        BAR SPOON
+        BIOPSY
+        CHIMP
+        COMMUTATIVE
+        ENGINE ROOM
+        FILMS
+        GHOST
+        HIGH NOON
+        HUGO WEAVING
+        INDIVIDUAL
+        KLUTZY
+        MOUNTAIN DEW
+        MOZAMBIQUE
+        OMNIVOROUS
+        ON LOCATION
+        ONYX
+        POSTED
+        SEQUOIA
+        TUX
+      `,
+      expected: [
+        "has 5 unique vowels",
+        "with the same vowel-consonant pattern",
+        "has 0 reverse alphabetical bigrams",
+        "has at least 2 reverse sequential bigrams",
+      ],
+    },
   ],
 } satisfies EvalSuite;
