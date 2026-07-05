@@ -1,5 +1,3 @@
-import { DefaultMap } from "./defaultMap.js";
-
 /**
  * A class that uses a single bigint to store counts for each lowercase letter,
  * for fast-ish comparison.
@@ -94,20 +92,25 @@ export class LetterBitCounter {
 
 /** A map from letter bitcounters to words with that bitcounter. */
 export class LetterBitCounters {
-  private letterCounters = new DefaultMap<bigint, string[]>(() => []);
+  private letterCounters = new Map<bigint, string[]>();
   private lengths = new Set<number>();
 
   constructor(wordlist: string[]) {
     for (const word of wordlist) {
       const bitcounter = LetterBitCounter.from(word).data;
-      this.letterCounters.get(bitcounter).push(word);
+      const words = this.letterCounters.get(bitcounter);
+      if (words) {
+        words.push(word);
+      } else {
+        this.letterCounters.set(bitcounter, [word]);
+      }
       this.lengths.add(word.length);
     }
   }
 
   /** Get the words whose bitcounter matches the given slug's bitcounter. */
   get(slug: string): string[] {
-    return this.letterCounters.get(LetterBitCounter.from(slug).data);
+    return this.letterCounters.get(LetterBitCounter.from(slug).data) ?? [];
   }
 
   /** Find all substrings of the slug that anagram to a word's bitcounter. */
@@ -117,7 +120,7 @@ export class LetterBitCounters {
       let bitcounter = LetterBitCounter.from(slug.slice(0, length));
       for (; start + length <= slug.length; start++) {
         const words = this.letterCounters.get(bitcounter.data);
-        if (words.length > 0) {
+        if (words && words.length > 0) {
           yield { start, words };
         }
         bitcounter = bitcounter
