@@ -12,8 +12,7 @@ export type Renderer<I, T, Options extends object> = {
 export function makeRenderer<I, T, Options extends object>(
   defaultOptions: Options,
   inline:
-    | ((inline: Inline, options: Options) => I)
-    | InlineRenderer<I, Options>,
+    ((inline: Inline, options: Options) => I) | InlineRenderer<I, Options>,
   table: TableRenderer<I, T, Options>,
 ): Renderer<I, T, Options> {
   return function render(template, options = defaultOptions) {

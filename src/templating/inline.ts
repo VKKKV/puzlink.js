@@ -107,14 +107,7 @@ export function Times(count: number): Times {
 
 /** An inline tag. */
 export type Inline =
-  | Fraction
-  | Highlight
-  | Indices
-  | Join
-  | Ordinal
-  | Slug
-  | Text
-  | Times;
+  Fraction | Highlight | Indices | Join | Ordinal | Slug | Text | Times;
 
 // Inline helpers.
 
@@ -156,8 +149,7 @@ export type InlineRenderer<T, Options extends object> = {
 /** Render an inline tag. */
 export function renderInline<T, Options extends object>(
   renderer:
-    | InlineRenderer<T, Options>
-    | ((inline: Inline, options: Options) => T),
+    InlineRenderer<T, Options> | ((inline: Inline, options: Options) => T),
   inline: Inline,
   options: Options,
 ): T {

@@ -5,16 +5,14 @@ import { allMetrics, metricLogProbs } from "../src/metrics/index.js";
 import { timeSync } from "./util.js";
 
 export type WorkItem =
-  | { kind: "feature"; index: number }
-  | { kind: "metric"; index: number };
+  { kind: "feature"; index: number } | { kind: "metric"; index: number };
 
 export type WorkResult =
   | { kind: "feature"; index: number; result: number[]; duration: number }
   | { kind: "metric"; index: number; result: number[][]; duration: number };
 
 const send = process.send?.bind(process) as
-  | ((message: WorkResult | "ready") => void)
-  | undefined;
+  ((message: WorkResult | "ready") => void) | undefined;
 if (!send) {
   throw new Error("cacheWorker must be run as a forked child process");
 }

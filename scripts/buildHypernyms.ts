@@ -79,9 +79,8 @@ async function main() {
     hyponymLogProb.set(synset, Math.round(logWeight.toLog() * 10));
   }
 
-  const bins = Map.groupBy(
-    allHypernyms.keys(),
-    (synset) => hyponymLogProb.get(synset)!,
+  const bins = Map.groupBy(allHypernyms.keys(), (synset) =>
+    hyponymLogProb.get(synset)!,
   );
   const relabeling = new Map<Synset, number>();
   let lastLabel = -1;
