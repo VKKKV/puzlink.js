@@ -15,7 +15,14 @@
   }
 
   .setting-name {
-    margin-top: 0.5em;
     font-weight: 500;
+  }
+
+  input[type="range"] {
+    margin: 0.25em 0;
+  }
+
+  .setting-description {
+    margin-bottom: 0.5em;
   }
 }

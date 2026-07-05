@@ -42,6 +42,28 @@ function SettingsContent() {
         </label>
 
         <label className="setting-item">
+          <span></span>
+          <input
+            type="range"
+            value={100 * (linkOptions.maxFeatureRatio ?? 1)}
+            min={0}
+            max={100}
+            step={10}
+            onChange={(e) => {
+              setLinkOptions({
+                ...linkOptions,
+                maxFeatureRatio: parseFloat(e.target.value) / 100,
+              });
+            }}
+          />
+          <span className="setting-name">Maximum feature ratio</span>
+          <span className="setting-description">
+            Only report features that are satisfied by either 100% or at most{" "}
+            {100 * (linkOptions.maxFeatureRatio ?? 1)}% of the given words.
+          </span>
+        </label>
+
+        <label className="setting-item">
           <input
             type="checkbox"
             checked={userOptions.autoSend}
