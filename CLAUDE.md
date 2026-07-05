@@ -37,7 +37,7 @@ The app consumes the library's `dist/`, so rerun `npm run build:tsc` at the root
 
 ## Architecture
 
-Core pipeline (`src/puzlink.ts`): `Puzlink.link(words)` parses input into slugs (`src/parse.ts`), runs every `Linker` over them, and turns the resulting `PartialLink`s (name + `LogNum` probability + description) into `Link`s, where `score = -log10(prob)` — higher means less likely by chance, so more interesting.
+Core pipeline (`src/puzlink.ts`): `Puzlink.link(words)` parses input into slugs (`src/parse.ts`), runs every `Linker` over them, and turns the resulting `PartialLink`s (name + `LogNum` probability + description) into `Link`s, where `score = -log(prob)` — higher means less likely by chance, so more interesting.
 
 Three kinds of linkers, all assembled in `src/linkers/index.ts` (`allLinkers`):
 
