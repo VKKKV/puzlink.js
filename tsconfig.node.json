@@ -1,7 +1,16 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "include": ["*.js", "scripts/**/*.ts", "src/**/*.test.ts"],
+  "include": [
+    "*.js",
+    "scripts/**/*.ts",
+    "src/**/*.test.ts",
+    "src/lib/testUtils.ts",
+    "src/download.node.ts"
+  ],
   "compilerOptions": {
+    // simple-statistics has invalid types:
+    "skipLibCheck": true,
+
     "exactOptionalPropertyTypes": true,
     "noPropertyAccessFromIndexSignature": true,
     "noUncheckedIndexedAccess": true,
