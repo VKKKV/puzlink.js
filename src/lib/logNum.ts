@@ -206,11 +206,13 @@ export class LogNum {
     trials: number,
     frequency: LogNum,
   ): LogNum | undefined {
-    if (frequency.closeTo(LogNum.from(1))) {
+    const clamped = LogNum.fromExp(
+      Math.min(0, Math.max(-15, frequency.toLog())),
+    );
+    if (clamped.closeTo(LogNum.from(1))) {
       return undefined;
     }
 
-    const clamped = LogNum.fromExp(Math.max(-15, frequency.toLog()));
     const expected = trials * clamped.toNum();
     const probs = [];
 

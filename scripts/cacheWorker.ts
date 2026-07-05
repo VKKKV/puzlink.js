@@ -9,8 +9,8 @@ export type WorkItem =
   | { kind: "metric"; index: number };
 
 export type WorkResult =
-  | { kind: "feature"; index: number; result: number; duration: number }
-  | { kind: "metric"; index: number; result: number[]; duration: number };
+  | { kind: "feature"; index: number; result: number[]; duration: number }
+  | { kind: "metric"; index: number; result: number[][]; duration: number };
 
 const send = process.send?.bind(process) as
   | ((message: WorkResult | "ready") => void)
@@ -26,12 +26,14 @@ const metrics = allMetrics();
 process.on("message", (item: WorkItem) => {
   if (item.kind === "feature") {
     const { result, duration } = timeSync(() =>
-      featureLogProb(wordlist, features[item.index]!).toLog(),
+      featureLogProb(wordlist, features[item.index]!).map((x) => x.toLog()),
     );
     send({ ...item, result, duration });
   } else {
     const { result, duration } = timeSync(() =>
-      metricLogProbs(wordlist, metrics[item.index]!).map((x) => x.toLog()),
+      metricLogProbs(wordlist, metrics[item.index]!).map((x) =>
+        x.map((y) => y.toLog()),
+      ),
     );
     send({ ...item, result, duration });
   }

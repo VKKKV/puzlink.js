@@ -43,8 +43,8 @@ function getProps(wordlist: Wordlist, slug: string): Props {
 }
 
 /** Compute a feature's log prob over the wordlist. */
-export function featureLogProb(wordlist: Wordlist, feature: Feature): LogNum {
-  return wordlist.logProb(
+export function featureLogProb(wordlist: Wordlist, feature: Feature): LogNum[] {
+  return wordlist.logProbByLength(
     (word) => feature.property(word, getProps(wordlist, word)) !== null,
   );
 }
@@ -78,10 +78,13 @@ function featureLinker(wordlist: Wordlist, feature: Feature): Linker | null {
       ) {
         return [];
       }
+      const meanFrequency = LogNum.sum(
+        slugs.map((slug) => FeatureLogProbs.get(key, slug.length)),
+      ).div(LogNum.from(slugs.length));
       const logProb = LogNum.binomialPValue(
         description.length,
         slugs.length,
-        FeatureLogProbs.get(key),
+        meanFrequency,
       );
       if (!logProb) {
         return [];

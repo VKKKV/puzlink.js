@@ -4,6 +4,8 @@ import { LetterBitCounters } from "./letterBitCounter.js";
 import { LetterDistribution } from "./letterDistribution.js";
 import { LogNum } from "./logNum.js";
 import { memoize } from "./memoize.js";
+import { sampleWindows } from "./sampleWindows.js";
+import { interval } from "./util.js";
 
 /**
  * Info about the words in a wordlist.
@@ -74,6 +76,41 @@ export class Wordlist {
     // if we do so, do the same thing in letterDistribution
     const count = this.reduce(0, (acc, slug) => acc + (property(slug) ? 1 : 0));
     return LogNum.fromFraction(count, this.length);
+  }
+
+  /** logProb(), conditioned on slug length; 0 stores overall rate. */
+  logProbByLength(property: (slug: string) => boolean): LogNum[] {
+    const { counts, totals } = this.reduce(
+      { counts: [] as number[], totals: [] as number[] },
+      (acc, slug) => {
+        const len = slug.length;
+        if (property(slug)) {
+          acc.counts[len] = (acc.counts[len] ?? 0) + 1;
+        }
+        acc.totals[len] = (acc.totals[len] ?? 0) + 1;
+        return acc;
+      },
+    );
+
+    const overallLogProb = LogNum.fromFraction(
+      counts.reduce((a, b) => a + b, 0),
+      totals.reduce((a, b) => a + b, 0),
+    );
+
+    return [
+      overallLogProb,
+      ...sampleWindows(totals).map(({ start, end }) => {
+        let windowCount = 0;
+        let windowTotal = 0;
+        for (const i of interval(start, end)) {
+          windowCount += counts[i] ?? 0;
+          windowTotal += totals[i] ?? 0;
+        }
+        return windowTotal > 0
+          ? LogNum.fromFraction(windowCount, windowTotal)
+          : overallLogProb;
+      }),
+    ];
   }
 
   /** Returns true if the given slug is in the wordlist. */

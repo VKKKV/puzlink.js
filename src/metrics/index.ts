@@ -4,6 +4,7 @@ import { DefaultMap } from "../lib/defaultMap.js";
 import { MetricLogProbCache } from "../lib/keyedCache.js";
 import { LetterIndices } from "../lib/letterIndices.js";
 import { LogNum } from "../lib/logNum.js";
+import { sampleWindows } from "../lib/sampleWindows.js";
 import { enumerate, interval, windows } from "../lib/util.js";
 import type { Wordlist } from "../lib/wordlist.js";
 import type { Linker, PartialLink } from "../linkers/index.js";
@@ -142,14 +143,45 @@ export function getFeatureRanges(
 }
 
 /** Compute a metric's per-score log probs. */
-export function metricLogProbs(wordlist: Wordlist, metric: Metric): LogNum[] {
-  const counts = wordlist.reduce(new Map<number, number>(), (acc, slug) => {
-    const vector = metric.score(slug, getProps(wordlist, slug)).score;
-    return acc.set(vector, (acc.get(vector) ?? 0) + 1);
-  });
-  return interval(0, Math.max(...counts.keys())).map((i) =>
-    LogNum.fromFraction(counts.get(i) ?? 0, wordlist.length),
+export function metricLogProbs(wordlist: Wordlist, metric: Metric): LogNum[][] {
+  const { counts, totals } = wordlist.reduce(
+    { counts: [new Map<number, number>()], totals: [0] },
+    (acc, slug) => {
+      const vertex = metric.score(slug, getProps(wordlist, slug)).score;
+      for (const len of [0, slug.length]) {
+        const counts = (acc.counts[len] ??= new Map());
+        counts.set(vertex, (counts.get(vertex) ?? 0) + 1);
+        acc.totals[len] = (acc.totals[len] ?? 0) + 1;
+      }
+      return acc;
+    },
   );
+
+  const logProbs = (counts: Map<number, number>, total: number): LogNum[] => {
+    if (total === 0 || counts.size === 0) {
+      return [];
+    }
+    return interval(0, Math.max(...counts.keys())).map((i) =>
+      LogNum.fromFraction(counts.get(i) ?? 0, total),
+    );
+  };
+
+  const overallLogProbs = logProbs(counts[0]!, totals[0]!);
+
+  return [
+    overallLogProbs,
+    ...sampleWindows(totals).map(({ start, end }) => {
+      const windowCount = new Map<number, number>();
+      let windowTotal = 0;
+      for (const i of interval(start, end)) {
+        for (const [vertex, count] of counts[i] ?? []) {
+          windowCount.set(vertex, (windowCount.get(vertex) ?? 0) + count);
+        }
+        windowTotal += totals[i] ?? 0;
+      }
+      return logProbs(windowCount, windowTotal);
+    }),
+  ];
 }
 
 /** Create the Linker for a Metric. */
@@ -185,10 +217,15 @@ function metricLinker(wordlist: Wordlist, metric: Metric): Linker {
           continue;
         }
         const rangeLogProbs = ranges.flatMap((range) => {
+          const meanFrequency = LogNum.sum(
+            slugs.map((slug) =>
+              MetricLogProbs.get(linkerName, slug.length, range),
+            ),
+          ).div(LogNum.from(slugs.length));
           const logProb = LogNum.binomialPValue(
             indices.length,
             slugs.length,
-            MetricLogProbs.get(linkerName, range.vertex, range.strict),
+            meanFrequency,
           );
           return logProb ? [{ range, logProb }] : [];
         });

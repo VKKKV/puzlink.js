@@ -156,11 +156,7 @@ async function buildAll({
   all,
   features,
   metrics,
-}: typeof cli.flags): Promise<{
-  features: Record<string, number | null>;
-  metrics: Record<string, (number | null)[]>;
-  report: Report;
-}> {
+}: typeof cli.flags) {
   const featureKeys = features
     ? allFeatures().map((f) => T.renderToText(f.name))
     : [];
@@ -175,25 +171,25 @@ async function buildAll({
     ...featureKeys.map((key, index) => ({
       key,
       exists: key in existingFeatures,
-      item: { kind: "feature", index } as WorkItem,
+      item: { kind: "feature" as const, index },
     })),
     ...metricKeys.map((key, index) => ({
       key,
       exists: key in existingMetrics,
-      item: { kind: "metric", index } as WorkItem,
+      item: { kind: "metric" as const, index },
     })),
   ]
     .filter(({ exists }) => all || !exists)
     .sort((a, b) => timings.get(b.key) - timings.get(a.key));
 
-  const featureResults = new Map<number, number | null>();
-  const metricResults = new Map<number, (number | null)[]>();
+  const featureResults = new Map<number, (number | null)[]>();
+  const metricResults = new Map<number, (number | null)[][]>();
   const report: Report = { durations: [], changed: 0 };
 
-  const featureRepr = (value: number | null) =>
-    LogNum.fromJSON(value).toLog().toFixed(3);
+  const featureRepr = (value: (number | null)[]) =>
+    `[${value.map((x) => LogNum.fromJSON(x).toLog().toFixed(3)).join(", ")}]`;
 
-  const metricRepr = (value: (number | null)[]) =>
+  const metricRepr = (value: (number | null)[][]) =>
     `[${value.map(featureRepr).join(", ")}]`;
 
   const tag = (oldRepr: string | undefined, newRepr: string) => {
@@ -228,6 +224,7 @@ async function buildAll({
     process.stdout.write(
       `  ${key} in ${result.duration.toString()}ms ${tag(oldRepr, newRepr)}\n`,
     );
+    report.durations.push([result.duration, key]);
     timings.set(key, result.duration);
   };
 

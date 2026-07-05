@@ -21,7 +21,7 @@ export default {
         BROOK
         ALAMOGORDO
       `,
-      expected: "has at least 1 k",
+      expected: "has at least 1 'k'",
     },
   ],
 } satisfies EvalSuite;
