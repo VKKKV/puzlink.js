@@ -1,8 +1,5 @@
-/** A subset of {0, 1, ..., 59}. */
+/** A subset of the non-negative integers, backed by a bigint. */
 export class Bitset {
-  private static readonly max = 59;
-
-  /** This is a (max + 1)-bit integer. */
   readonly data: bigint;
 
   constructor(data: bigint) {
@@ -12,11 +9,6 @@ export class Bitset {
   static from(set: Iterable<number>): Bitset {
     let data = 0n;
     for (const i of set) {
-      if (i > Bitset.max) {
-        throw new Error(
-          `Bitset.from: ${i.toString()} > ${Bitset.max.toString()}`,
-        );
-      }
       data |= 1n << BigInt(i);
     }
     return new Bitset(data);
@@ -27,8 +19,9 @@ export class Bitset {
   }
 
   *entries(): Generator<number> {
-    for (let i = 0; i <= Bitset.max; i++) {
-      if (this.data & (1n << BigInt(i))) {
+    let data = this.data;
+    for (let i = 0; data > 0n; i++, data >>= 1n) {
+      if (data & 1n) {
         yield i;
       }
     }
@@ -36,8 +29,8 @@ export class Bitset {
 
   count(): number {
     let count = 0;
-    for (let i = 0; i <= Bitset.max; i++) {
-      if (this.data & (1n << BigInt(i))) {
+    for (let data = this.data; data > 0n; data >>= 1n) {
+      if (data & 1n) {
         count++;
       }
     }
